@@ -628,7 +628,7 @@ async function buatPesanan(){
       const qty=group.items.reduce((a,x)=>a+(Number(x.qty)||1),0);
       const nomor=makeOrderNumber(),ongkirGroup=group.shippingCost;
       const orderData={
-        uid:currentUser.uid, ownerUid:group.uid==='unknown'?'':group.uid, pelangganUid:currentUser.uid,
+        uid:currentUser.uid, ownerUid:currentUser.uid, pelangganUid:currentUser.uid,
         ownerName:alamatData.nama, email:currentUser.email||'',
         nomorPesanan:nomor, items:group.items,
         mitraGroups:group.uid==='unknown'?[]:[group.uid],
