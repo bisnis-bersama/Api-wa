@@ -267,7 +267,7 @@ function openReceiptModal(orderId){
   if(!modal){
     modal=document.createElement('div');modal.id='receiptModal';
     modal.style.cssText='position:fixed;inset:0;background:#0009;z-index:9999;display:flex;align-items:center;justify-content:center;padding:16px';
-    modal.innerHTML=`<div style="background:#fff;border-radius:16px;padding:16px;width:min(100%,480px);max-height:90vh;overflow:auto"><div style="display:flex;justify-content:space-between;align-items:center;gap:8px"><b>Upload Resi Pengiriman</b><button type="button" id="closeReceipt" class="btn dark">Tutup</button></div><p class="meta">Pilih foto resi yang jelas. Sistem akan mengambil tulisan menggunakan OCR, lalu menyimpan teksnya.</p><label for="receiptFile">Foto resi</label><input id="receiptFile" type="file" accept="image/*" capture="environment"><div id="receiptPreview" style="margin-top:8px"></div><div id="ocrProgress" class="meta" style="margin-top:8px"></div><label for="ocrText">Hasil pembacaan OCR (boleh diperiksa)</label><textarea id="ocrText" rows="6" placeholder="Hasil OCR akan tampil di sini"></textarea><div id="receiptError" class="err" style="display:none"></div><div class="actions"><button type="button" class="btn dark" id="runOcrBtn">Baca Resi (OCR)</button><button type="button" class="btn" id="saveReceiptBtn" disabled>Simpan & Selesaikan Pesanan</button></div></div>`;
+    modal.innerHTML=`<div style="background:#fff;border-radius:16px;padding:16px;width:min(100%,480px);max-height:90vh;overflow:auto"><div style="display:flex;justify-content:space-between;align-items:center;gap:8px"><b>Upload Resi Pengiriman</b><button type="button" id="closeReceipt" class="btn dark">Tutup</button></div><p class="meta">Pilih foto resi yang jelas. Sistem akan mengambil tulisan menggunakan OCR. Setelah diajukan, transaksi menunggu verifikasi admin; saldo belum dikreditkan.</p><label for="receiptFile">Foto resi</label><input id="receiptFile" type="file" accept="image/*" capture="environment"><div id="receiptPreview" style="margin-top:8px"></div><div id="ocrProgress" class="meta" style="margin-top:8px"></div><label for="ocrText">Hasil pembacaan OCR (boleh diperiksa)</label><textarea id="ocrText" rows="6" placeholder="Hasil OCR akan tampil di sini"></textarea><div id="receiptError" class="err" style="display:none"></div><div class="actions"><button type="button" class="btn dark" id="runOcrBtn">Baca Resi (OCR)</button><button type="button" class="btn" id="saveReceiptBtn" disabled>Upload OCR & Ajukan Verifikasi Admin</button></div></div>`;
     document.body.appendChild(modal);
     document.getElementById('closeReceipt').onclick=()=>modal.remove();
     document.getElementById('receiptFile').onchange=e=>{
@@ -283,7 +283,7 @@ function openReceiptModal(orderId){
         const result=await T.recognize(file,'ind+eng',{logger:m=>{if(m.status)progress.textContent=m.status+(m.progress!==undefined?' '+Math.round(m.progress*100)+'%':'');}});
         document.getElementById('ocrText').value=String(result.data.text||'').trim();
         if(!document.getElementById('ocrText').value)throw new Error('Tulisan pada resi tidak terbaca. Gunakan foto yang lebih jelas.');
-        progress.textContent='OCR selesai. Periksa hasil sebelum disimpan.';document.getElementById('saveReceiptBtn').disabled=false;
+        progress.textContent='OCR selesai. Periksa hasil sebelum mengajukan verifikasi admin.';document.getElementById('saveReceiptBtn').disabled=false;
       }catch(e){err.textContent=e.message||'OCR gagal.';err.style.display='block';progress.textContent='';}
       finally{runBtn.disabled=false;}
     };
@@ -299,10 +299,20 @@ function openReceiptModal(orderId){
           if(x.acceptedByMitraUid!==uid&&x.mitraUsahaUid!==uid&&x.mitraUid!==uid)throw new Error('Pesanan ini bukan milik akun mitra Anda.');
           const statusNow=String(x.status||x.statusPemenuhan||'').toLowerCase();
           if(statusNow!=='dikirim'&&statusNow!=='dalam_pengiriman')throw new Error('Pesanan harus berstatus dikirim sebelum diselesaikan.');
-          tx.update(ref,{status:'selesai',statusPemenuhan:'selesai',statusPembayaran:'menunggu_verifikasi',statusPembayaranAt:serverTimestamp(),resiOcrText:textOcr,resiNamaFile:file.name,resiMimeType:file.type||'image',resiUkuranBytes:file.size,resiDibacaOlehUid:uid,resiDibacaAt:serverTimestamp(),selesaiOlehUid:uid,selesaiAt:serverTimestamp(),updatedAt:serverTimestamp()});
+          const hargaProduk=Number(x.subtotalProduk??x.subtotal??x.totalProduk??(Number(x.total||0)-Number(x.ongkir||0)));
+          const ongkir=Number(x.ongkir??x.biayaPengiriman??0);
+          if(!Number.isFinite(hargaProduk)||hargaProduk<0||!Number.isFinite(ongkir)||ongkir<0)throw new Error('Nominal produk/ongkir tidak valid.');
+          // Komisi admin 5% dipotong dari kedua komponen secara terpisah:
+          // produk (ditanggung mitra) dan ongkir (ditanggung kurir).
+          const komisiAdminProduk=Math.round(hargaProduk*0.05);
+          const komisiAdminOngkir=Math.round(ongkir*0.05);
+          const komisiAdmin=komisiAdminProduk+komisiAdminOngkir;
+          const saldoMitra=hargaProduk-komisiAdminProduk;
+          const saldoKurir=ongkir-komisiAdminOngkir;
+          tx.update(ref,{status:'selesai',statusPemenuhan:'selesai',statusPembayaran:'menunggu_verifikasi_admin',statusVerifikasiAdmin:'menunggu',statusVerifikasiAdminAt:null,statusVerifikasiAdminOlehUid:null,statusPembayaranAt:serverTimestamp(),settlementStatus:'menunggu_verifikasi_admin',settlementCurrency:'IDR',settlementBasis:'produk_dan_ongkir_masing_masing_5_persen',settlementHargaProduk:hargaProduk,settlementOngkir:ongkir,settlementDasarKomisiProduk:hargaProduk,settlementDasarKomisiOngkir:ongkir,settlementPersentaseAdmin:5,settlementKomisiAdminProduk:komisiAdminProduk,settlementKomisiAdminOngkir:komisiAdminOngkir,settlementKomisiAdmin:komisiAdmin,settlementSaldoMitra:saldoMitra,settlementSaldoKurir:saldoKurir,resiOcrText:textOcr,resiNamaFile:file.name,resiMimeType:file.type||'image',resiUkuranBytes:file.size,resiDibacaOlehUid:uid,resiDibacaAt:serverTimestamp(),selesaiOlehUid:uid,selesaiAt:serverTimestamp(),updatedAt:serverTimestamp()});
         });
         modal.remove();await loadRecords();
-      }catch(e){err.textContent=e.message||'Gagal menyimpan resi.';err.style.display='block';saveBtn.disabled=false;saveBtn.textContent='Simpan & Selesaikan Pesanan';}
+      }catch(e){err.textContent=e.message||'Gagal menyimpan resi.';err.style.display='block';saveBtn.disabled=false;saveBtn.textContent='Upload OCR & Ajukan Verifikasi Admin';}
     };
   }
 }
