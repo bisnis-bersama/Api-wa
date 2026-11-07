@@ -628,7 +628,7 @@ async function buatPesanan(){
       const qty=group.items.reduce((a,x)=>a+(Number(x.qty)||1),0);
       const nomor=makeOrderNumber(),ongkirGroup=group.shippingCost;
       const orderData={
-        uid:currentUser.uid, ownerUid:currentUser.uid, pelangganUid:currentUser.uid,
+        uid:currentUser.uid, ownerUid:group.uid==='unknown'?'':group.uid, pelangganUid:currentUser.uid,
         ownerName:alamatData.nama, email:currentUser.email||'',
         nomorPesanan:nomor, items:group.items,
         mitraGroups:group.uid==='unknown'?[]:[group.uid],
@@ -641,10 +641,11 @@ async function buatPesanan(){
         lokasi:pLat&&pLng?{lat:pLat,lng:pLng}:null,
         alamatPengiriman:alamatData, alamat:alamatData.alamat, telepon:alamatData.telepon,
         metodePembayaran:selectedPay, metodeCOD:selectedPay==='cod',
-        status:'pending', statusPesanan:'pending', statusPemenuhan:'pending_admin',
+        status:'pending', disetujuiAdmin:false, disetujuiAdminUid:'', disetujuiAdminAt:null,
         statusPembayaran:selectedPay==='cod'?'cod':'menunggu_verifikasi',
+        metodePengirimanMitra:'belum_dipilih', siapAntar:false, ekspedisiDiprosesMitra:false,
         slaStatus:'berjalan',slaDurasiMenit:60,slaDeadlineAt:new Date(Date.now()+3600000),
-        kurirUid:'', kurirKandidat:group.kurirAll.map(k=>({uid:k.uid,nama:k.nama,jarakMitra:k.jarakMitra,saldo:k.saldo})),
+        kurirUid:'', kurirStatus:'belum_ditawarkan', kurirKandidat:group.kurirAll.map(k=>({uid:k.uid,nama:k.nama,jarakMitra:k.jarakMitra,saldo:k.saldo})),
         kurirSaldoCukup:group.kurirSaldoCukup.map(k=>({uid:k.uid,nama:k.nama,saldo:k.saldo})),
         mitraAlamat:group.info.alamat||'',mitraLat:group.info.lat||null,mitraLng:group.info.lng||null,
         radiusCOD:RADIUS_KM, codSyarat: selectedPay==='cod'?`Kurir ${RADIUS_KM}km + saldo ≥ ${rupiah(subtotal)}`:'',
@@ -656,7 +657,7 @@ async function buatPesanan(){
     localStorage.setItem('tsa_cart','[]'); cart=[];
     renderProdukSummary();
     const totalSemua=createdOrders.reduce((a,o)=>a+o.total,0);
-    document.getElementById('msg').innerHTML=`<div class="ok">✅ Berhasil membuat ${createdOrders.length} pesanan terpisah per mitra.<br>${createdOrders.map(o=>`<b>${o.nomor}</b> — ${o.mitra} - ${o.jarak.toFixed(2)}km<br>${o.shipping==='expedisi'?'📦 Expedisi':'🛵 Siap Antar'} / ${o.payment.toUpperCase()}<br>Ongkir: ${rupiah(o.ongkir)} · Total: ${rupiah(o.total)}<br><small>Masuk ke pesan mitra sesuai pemilik</small>`).join('<hr style="border:0;border-top:1px solid #c3ead7;margin:8px 0">')}<br><br>Grand Total: ${rupiah(totalSemua)}</div>`;
+    document.getElementById('msg').innerHTML=`<div class="ok">✅ Berhasil membuat ${createdOrders.length} pesanan terpisah per mitra.<br>${createdOrders.map(o=>`<b>${o.nomor}</b> — ${o.mitra} - ${o.jarak.toFixed(2)}km<br>${o.shipping==='expedisi'?'📦 Expedisi':'🛵 Siap Antar'} / ${o.payment.toUpperCase()}<br>Ongkir: ${rupiah(o.ongkir)} · Total: ${rupiah(o.total)}<br><small>Menunggu persetujuan admin. Setelah disetujui, pesanan masuk ke mitra.</small>`).join('<hr style="border:0;border-top:1px solid #c3ead7;margin:8px 0">')}<br><br>Grand Total: ${rupiah(totalSemua)}</div>`;
     document.getElementById('bottomTotal').textContent=rupiah(totalSemua);
     setTimeout(()=>{location.href='riwayat.html';},3500);
   }catch(e){
