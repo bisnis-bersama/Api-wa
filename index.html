@@ -1,0 +1,792 @@
+<!-- TSA v2026-11-06-enteng -->
+<!DOCTYPE html>
+<html lang="id">
+<head><style>
+@font-face {
+  font-family: "Optimistic";
+  font-style: normal;
+  font-weight: 400 600;
+  font-display: swap;
+  src: url("/fonts/OptimisticAI_VF_Optimized.woff2") format("woff2");
+}
+@font-face {
+  font-family: "Optimistic Mono";
+  font-style: normal;
+  font-weight: 400;
+  font-display: swap;
+  src: url("/fonts/OptimisticMono_W_TextRegular.woff2") format("woff2");
+}
+:where(html) {
+  font-family: "Optimistic", system-ui, sans-serif;
+}
+:where(code, pre, kbd, samp) {
+  font-family: "Optimistic Mono", ui-monospace, monospace;
+}
+</style>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#00a85a">
+<title>Toko Siap Antar - Produk Spreadsheet Mitra</title>
+<style>
+:root{--green:#00a85a;--cyan:#00c8d7;--yellow:#ffd400;--ink:#18312b;--muted:#66756f;--paper:#fffef0;--card:#fff;--line:#dceee5}
+*{box-sizing:border-box}
+html{scroll-behavior:smooth}
+body{margin:0;background:var(--paper);color:var(--ink);font-family:Arial,Helvetica,sans-serif;padding-bottom:82px}
+header{position:sticky;top:0;z-index:20;background:linear-gradient(100deg,#009b4b,#00c9c9,#a9d900);padding:10px 14px;min-height:58px;display:flex;align-items:center;justify-content:space-between;gap:12px;border-bottom:2px solid var(--yellow)}
+.brand{display:flex;align-items:center;gap:8px;color:white;font-weight:800;text-shadow:0 1px 3px #246a40}
+.brand img{display:block;width:64px;height:52px;object-fit:contain;flex:0 0 auto}
+.welcome-text{display:flex;flex-direction:column;gap:3px;min-width:0;max-width:560px}
+.welcome-text strong{font-size:clamp(12px,2vw,17px);line-height:1.25;color:#fff}
+.welcome-text span{font-size:clamp(9px,1.35vw,12px);line-height:1.35;color:#f2fff8;text-shadow:none}
+@media(max-width:520px){header{padding:8px 10px;gap:6px}.brand{gap:7px}.brand img{width:48px;height:46px}.welcome-text{max-width:calc(100vw - 160px)}.welcome-text strong{font-size:11px}.welcome-text span{font-size:9px}.head-actions{gap:5px}.head-actions button{padding:7px 8px;font-size:17px}}
+.head-actions{display:flex;gap:8px}
+.head-actions button{border:1px solid #ffffff80;background:#ffffff20;color:#fff;border-radius:12px;padding:8px 11px;font-size:20px}
+.promo{margin:8px 0 0;border-block:2px solid var(--yellow);background:linear-gradient(90deg,#00a85a,#00c8d7,#d8e500);padding:4px 0}
+.promo-window{overflow:hidden;background:#fff;border-radius:10px;min-height:135px}
+.promo-track{display:flex;align-items:center;width:max-content;animation:promoGeser 24s linear infinite;will-change:transform}
+.promo-track:hover{animation-play-state:paused}
+.promo-track img{display:block;flex:0 0 clamp(250px,42vw,520px);width:clamp(250px,42vw,520px);height:clamp(135px,22vw,220px);object-fit:contain;background:#fff;margin-right:8px}
+@media(max-width:600px){.promo-track img{flex-basis:78vw;width:78vw;height:clamp(145px,35vw,190px);margin-right:6px}}
+@media(min-width:1000px){.promo-track img{flex-basis:38vw;width:38vw;height:220px;margin-right:10px}}
+@keyframes promoGeser{from{transform:translateX(0)}to{transform:translateX(-50%)}}
+@media(prefers-reduced-motion:reduce){.promo-track{animation:none;overflow-x:auto;max-width:100%}}
+.quick-wrap{position:sticky;top:58px;z-index:15;background:#fffef0;padding:10px 12px 8px;border-bottom:1px solid var(--line)}
+.categories{display:flex;gap:8px;overflow-x:auto;white-space:nowrap;padding:2px 0 9px;scrollbar-width:none}
+.categories::-webkit-scrollbar{display:none}
+.cat{flex:0 0 auto;border:0;border-radius:30px;background:#edf5f0;padding:10px 14px;color:#34433d;font-size:14px}
+.cat.active{background:linear-gradient(100deg,#00a85a,#00c8d7);color:white}
+.cat.menu{background:var(--yellow);color:#222}
+.search{display:flex;align-items:center;gap:8px;background:#fff;border:1.5px solid #a8dfc6;border-radius:30px;padding:0 14px;box-shadow:0 1px 5px #0000000a}
+.search input{width:100%;border:0;outline:0;background:transparent;padding:13px 0;font-size:15px;color:#23352e}
+main{padding:10px 12px 18px;min-height:150px}
+.products{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px}
+.product{min-width:0;background:var(--card);border:1px solid var(--line);border-radius:15px;overflow:hidden;box-shadow:0 2px 5px #18312b12;display:flex;flex-direction:column}
+.product-photo{height:112px;background:linear-gradient(135deg,#e4fff2,#fafff0);display:flex;align-items:center;justify-content:center;padding:6px;position:relative}
+.product-photo img{width:100%;height:100%;object-fit:contain}
+.mitra-tag{position:absolute;top:4px;left:4px;right:auto;background:#111;color:#ffd400;font-size:8px;font-weight:800;padding:3px 6px;border-radius:999px;max-width:80%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.product-info{padding:8px 7px 9px;display:flex;flex-direction:column;flex:1;text-align:center;gap:6px}
+.product-name{font-size:12px;font-weight:800;line-height:1.4;min-height:29px;overflow-wrap:anywhere;color:#18312b}
+.product-desc{font-size:9px;line-height:1.35;color:var(--muted);min-height:25px}
+.product-meta{font-size:9px;line-height:1.4;color:#52635b;background:#f3fff7;border-radius:7px;padding:5px 3px}
+.product-meta strong{color:#008b4c}
+.price{font-weight:800;color:#008b4c;font-size:12px}
+.actions{display:grid;grid-template-columns:30px 30px minmax(0,1fr);gap:4px;margin-top:auto}
+.actions button{border:0;border-radius:8px;min-height:29px;font-size:11px}
+.wa{background:#e0fff0}.cart{background:#fff7ce}.buy{background:#ffc400;color:#171717;font-weight:700}
+.notice{padding:20px 12px;text-align:center;color:#6b7770;background:#fff;border:1px solid var(--line);border-radius:12px}
+footer{margin:18px 12px 0;padding:22px 12px;background:#fff;text-align:center}
+footer h3{margin:0 0 16px;color:#009c54}
+.socials{display:flex;justify-content:center;gap:28px}
+.socials a{color:#222;text-decoration:none;font-size:13px}
+.bottom-nav{position:fixed;z-index:30;bottom:0;left:0;right:0;background:#fff;border-top:1px solid #e5e7eb;display:grid;grid-template-columns:repeat(4,1fr);padding:7px 4px calc(7px + env(safe-area-inset-bottom));box-shadow:0 -3px 12px #0000000c}
+.bottom-nav button{background:none;border:0;color:#777;font-size:11px;display:flex;flex-direction:column;align-items:center;gap:3px}
+.bottom-nav .ico{font-size:22px;line-height:1.2}
+.bottom-nav button:first-child{color:#009c54}
+@media(max-width:520px){.products{grid-template-columns:repeat(2,minmax(0,1fr));gap:8px}.product-photo{height:125px}.product-name{font-size:13px;font-weight:800}.product-desc{font-size:10px}.price{font-size:13px}.quick-wrap{top:58px}.promo-track img{height:125px}}
+@media(max-width:600px){.promo-window{min-height:145px;padding:6px 0}.promo-track img{height:133px;margin-top:0;margin-bottom:0}}
+@media(max-width:360px){.products{grid-template-columns:repeat(2,minmax(0,1fr))}.product-photo{height:105px}.cat{padding:9px 11px;font-size:13px}}
+body{background:#f4fff7;color:var(--ink)}
+header{position:sticky;top:0;z-index:20;background:#fff;border:0;box-shadow:0 2px 7px rgba(0,80,40,.08);isolation:isolate}
+header::before,header::after{content:"";position:absolute;left:0;right:0;height:2px;background:linear-gradient(90deg,#ffd400 0%,#00a85a 28%,#00c8d7 52%,#a9d900 76%,#ffd400 100%);pointer-events:none;z-index:1}
+header::before{top:0}header::after{bottom:0}
+.brand{color:#18312b;text-shadow:none;min-width:0}
+.brand img{background:#fff;object-fit:contain;border:1.5px solid transparent;border-radius:12px;padding:3px;background:linear-gradient(#fff,#fff) padding-box,linear-gradient(135deg,#ffd400 0%,#00a85a 30%,#00c8d7 58%,#a9d900 80%,#ffd400 100%) border-box;box-shadow:0 1px 4px rgba(0,120,65,.10)}
+.welcome-text strong{color:#008b4c;text-shadow:none}
+.welcome-text span{color:#52635b;text-shadow:none}
+.head-actions button{color:#008b4c;background:#f3fff7;border:1px solid #b9e5ce}
+.quick-wrap{background:#fffef0}
+.product{background:#fff}
+.product-photo{background:linear-gradient(135deg,#d9ffed,#f4ffe2)}
+@media(max-width:520px){header{padding:8px 10px}.brand img{width:48px;height:46px}.welcome-text{max-width:calc(100vw - 160px)}}
+.product-photo{cursor:zoom-in}
+.product-zoom{position:fixed;inset:0;z-index:9999;display:none;align-items:center;justify-content:center;padding:64px 16px 24px;background:rgba(0,0,0,.84);overflow-y:auto}
+.product-zoom.show{display:flex}
+.product-zoom-close{position:fixed;top:max(14px,env(safe-area-inset-top));right:16px;z-index:2;width:48px;height:48px;border:0;border-radius:50%;background:#fff;color:#173b32;font-size:30px;cursor:pointer;box-shadow:0 2px 10px #0003}
+.product-zoom-content{width:100%;max-width:650px;display:flex;flex-direction:column;align-items:stretch;gap:12px;margin:auto}
+.product-zoom-image-wrap{width:100%;display:flex;align-items:center;justify-content:center;background:#fff;border-radius:18px;overflow:hidden}
+.product-zoom img{display:block;width:100%;max-height:61vh;object-fit:contain;background:#fff}
+.product-zoom-name{color:#fff;text-align:center;font-size:18px;font-weight:800;line-height:1.4;overflow-wrap:anywhere}
+.product-zoom-price{color:#ffd400;text-align:center;font-size:20px;font-weight:800}
+.product-zoom-actions{display:grid;grid-template-columns:54px 54px minmax(0,1fr);gap:8px;width:100%}
+.product-zoom-actions button{min-height:50px;border:0;border-radius:12px;font-size:20px;cursor:pointer}
+.product-zoom-actions .zoom-wa{background:#d9ffeb}
+.product-zoom-actions .zoom-cart{background:#fff3bd}
+.product-zoom-actions .zoom-buy{background:#ffc400;color:#171717;font-size:17px;font-weight:800}
+.product-zoom-actions button:active{transform:scale(.97)}
+.product-zoom-actions button:disabled{opacity:.7;cursor:default}
+@media(max-width:520px){.product-zoom{padding:62px 16px 24px}.product-zoom-content{max-width:100%}.product-zoom img{max-height:55vh}.product-zoom-name{font-size:17px}.product-zoom-actions{grid-template-columns:54px 54px minmax(0,1fr)}}
+/* Tambahan untuk input mitra di index */
+.mitra-card{background:#fff;border:2px solid #111;border-radius:16px;padding:14px;margin:10px 12px;box-shadow:0 4px 12px rgba(0,0,0,.08)}
+.mitra-card .label{font-weight:900;font-size:14px;display:flex;justify-content:space-between;align-items:center}
+.hint{font-size:10px;color:#666;background:#fffbe6;border:1px solid #ffec99;padding:8px;border-radius:8px;margin:8px 0}
+.input-mitra{width:100%;border:1.5px solid #a8dfc6;border-radius:12px;padding:12px;margin:6px 0 12px;font:13px system-ui;outline:0}
+.input-mitra:focus{border-color:#00a85a}
+.btn-mitra{border:0;border-radius:12px;padding:12px 14px;font-weight:800;cursor:pointer;width:100%}
+.btn-y{background:#ffd400;color:#111}.btn-dark{background:#111;color:#ffd400}
+.preview{width:100%;max-height:180px;object-fit:contain;background:#f8f8f8;border-radius:12px;border:2px dashed #ddd;display:none;margin-bottom:10px}
+.linkbox{background:#111;color:#ffd400;padding:10px;border-radius:10px;font-family:monospace;font-size:11px;word-break:break-all}
+/* Panel menu hamburger */
+.menu-backdrop{position:fixed;inset:0;z-index:1000;background:rgba(10,30,22,.48);display:none}
+.menu-backdrop.show{display:block}
+.menu-drawer{position:absolute;top:0;left:0;bottom:0;width:min(86vw,340px);background:#fff;padding:18px 14px 24px;overflow-y:auto;box-shadow:8px 0 28px #0002;transform:translateX(-105%);transition:transform .22s ease}
+.menu-backdrop.show .menu-drawer{transform:translateX(0)}
+.menu-drawer-head{display:flex;align-items:center;justify-content:space-between;padding:5px 4px 16px;border-bottom:1px solid var(--line);margin-bottom:10px}
+.menu-drawer-head strong{font-size:18px;color:#008b4c}
+.menu-close{border:0;background:#f1f7f3;border-radius:10px;width:38px;height:38px;font-size:24px;color:#234}
+.menu-items{display:grid;gap:7px}
+.menu-item{display:flex;align-items:center;gap:12px;width:100%;padding:13px 12px;border:1px solid #e1efe7;border-radius:12px;background:#fbfffc;color:#20372e;text-decoration:none;font-size:14px;font-weight:700;text-align:left}
+.menu-item:active{background:#e8fff1}
+.menu-item .menu-icon{width:28px;text-align:center;font-size:20px}
+@media(prefers-reduced-motion:reduce){.menu-drawer{transition:none}}
+/* Mode gelap: diaktifkan dari tombol pada header. */
+body.dark-mode{--ink:#e7f2ec;--muted:#aabbb2;--paper:#101a16;--card:#1b2923;--line:#34483e;background:#101a16;color:var(--ink)}
+body.dark-mode header{background:#17251e;box-shadow:0 2px 8px #0006}
+body.dark-mode .brand{color:#edf8f1}
+body.dark-mode .welcome-text strong{color:#70e6a4}
+body.dark-mode .welcome-text span{color:#c0d0c7}
+body.dark-mode .head-actions button{color:#ffe27a;background:#26382f;border-color:#496454}
+body.dark-mode .quick-wrap{background:#14221b;border-color:#34483e}
+body.dark-mode .cat{background:#26382f;color:#e7f2ec}
+body.dark-mode .cat.active{background:linear-gradient(100deg,#008d4b,#009eaa);color:#fff}
+body.dark-mode .cat.menu{background:#ffd400;color:#222}
+body.dark-mode .search{background:#1b2923;border-color:#496454}
+body.dark-mode .search input{color:#f0f7f2}
+body.dark-mode .product{background:#1b2923;border-color:#34483e;box-shadow:0 2px 7px #0005}
+body.dark-mode .product-photo{background:linear-gradient(135deg,#263c31,#29352b)}
+body.dark-mode .product-meta{background:#26382f;color:#c5d7cc}
+body.dark-mode .product-meta strong{color:#70e6a4}
+body.dark-mode .price{color:#70e6a4}
+body.dark-mode .product-name{color:#edf8f1}
+body.dark-mode .notice{background:#1b2923;border-color:#34483e;color:#bdcbc3}
+body.dark-mode footer{background:#1b2923;color:#e7f2ec}
+body.dark-mode .socials a{color:#e7f2ec}
+body.dark-mode .bottom-nav{background:#17251e;border-color:#34483e}
+body.dark-mode .bottom-nav button{color:#bdcbc3}
+body.dark-mode .bottom-nav button:first-child{color:#70e6a4}
+body.dark-mode .menu-drawer{background:#17251e;color:#e7f2ec}
+body.dark-mode .menu-drawer-head{border-color:#34483e}
+body.dark-mode .menu-drawer-head strong{color:#70e6a4}
+body.dark-mode .menu-close{background:#26382f;color:#e7f2ec}
+body.dark-mode .menu-item{background:#1f3028;border-color:#34483e;color:#e7f2ec}
+body.dark-mode .menu-item:active{background:#294a37}
+</style>
+</head>
+<body>
+<header>
+  <div class="brand">
+    <img class="brand-logo-left" src="logo2.png" alt="Logo Toko Siap Antar">
+    <div class="welcome-text">
+      <strong>Selamat Datang di Toko Siap Antar!</strong>
+      <span id="welcomeSub">Marketplace Indonesia dengan segala produk yang mudah dipilih dan diantar dalam estimasi 1 jam.</span>
+    </div>
+  </div>
+  <div class="head-actions"><button id="refresh" aria-label="Muat ulang" title="Muat ulang">↻</button><button id="themeToggle" type="button" aria-label="Aktifkan mode gelap" title="Mode gelap">🌙</button></div>
+</header>
+
+<!-- Slide sponsor otomatis membaca link gambar dari kolom N Spreadsheet MEMBER -->
+<section class="promo" aria-label="Sponsor Toko Siap Antar" id="sponsorPromo">
+  <div class="promo-window">
+    <div class="promo-track" id="promoTrack"></div>
+  </div>
+</section>
+
+<!-- Pengelolaan produk dilakukan di halaman Kelola Produk, bukan di Index. -->
+<section class="quick-wrap">
+  <nav class="categories" id="categories" aria-label="Kategori">
+    <button class="cat menu" type="button" id="openMenu">☰ MENU</button>
+    <button class="cat active" data-cat="Semua">🏠 Semua</button>
+    <button class="cat" data-cat="Makanan">🍜 Makanan</button>
+    <button class="cat" data-cat="Minuman">🥤 Minuman</button>
+    <button class="cat" data-cat="Sembako">🧺 Sembako</button>
+    <button class="cat" data-cat="Accessories">🎧 Accessories</button>
+    <button class="cat" data-cat="Sparepart">🔧 Sparepart HP</button>
+    <button class="cat" data-cat="Bibit Tanaman">🌱 Bibit Tanaman</button>
+    <button class="cat" data-cat="Pakaian">👕 Pakaian</button>
+    <button class="cat" data-cat="Kecantikan">💄 Kecantikan</button>
+    <button class="cat" data-cat="Properti">🏠 Properti</button>
+    <button class="cat" data-cat="Alat Dapur">🍳 Alat Dapur</button>
+    <button class="cat" data-cat="Sparepart Motor & Mobil">🚗 Sparepart Motor & Mobil</button>
+    <button class="cat" data-cat="Buah-buahan">🍎 Buah-buahan</button>
+    <button class="cat" data-cat="Sayuran">🥬 Sayuran</button>
+    <button class="cat" data-cat="Pertanian">🚜 Pertanian</button>
+    <button class="cat" data-cat="Elektronik">📺 Elektronik</button>
+    <button class="cat" data-cat="Perlengkapan Rumah">🛋️ Perlengkapan Rumah</button>
+    <button class="cat" data-cat="Perlengkapan Bayi">🍼 Perlengkapan Bayi</button>
+    <button class="cat" data-cat="Hewan & Pakan">🐾 Hewan & Pakan</button>
+    <button class="cat" data-cat="Otomotif">🛵 Otomotif</button>
+    <button class="cat" data-cat="Olahraga">⚽ Olahraga</button>
+    <button class="cat" data-cat="Buku & Alat Tulis">📚 Buku & Alat Tulis</button>
+    <button class="cat" data-cat="Jasa">🧰 Jasa</button>
+    <button class="cat" data-cat="Lainnya">📦 Lainnya</button>
+    <button class="cat" data-cat="MitraSaya">🏪 Produk Saya</button>
+  </nav>
+  <label class="search"><span>🔎</span><input id="searchInput" type="search" placeholder="Cari produk / mitra..." autocomplete="off"></label>
+</section>
+
+<div class="menu-backdrop" id="menuBackdrop" aria-hidden="true">
+  <aside class="menu-drawer" role="dialog" aria-modal="true" aria-label="Menu Toko Siap Antar">
+    <div class="menu-drawer-head"><strong>Menu Toko Siap Antar</strong><button class="menu-close" id="closeMenu" type="button" aria-label="Tutup menu">×</button></div>
+    <nav class="menu-items">
+      <a class="menu-item" href="data-gojek-elit.html"><span class="menu-icon">🛵</span>Gojek Elit</a>
+      <a class="menu-item" href="https://fixzi-global.vercel.app" target="_blank" rel="noopener"><span class="menu-icon">📊</span>Fixzy Business</a>
+      <a class="menu-item" href="daftar-mitra-usaha.html"><span class="menu-icon">🏪</span>Daftar Jadi Penjual</a>
+      <a class="menu-item" href="daftar-mitra-pengantaran.html"><span class="menu-icon">🚴</span>Daftar Jadi Kurir</a>
+      <a class="menu-item" href="daftar-mitra-pengantaran.html"><span class="menu-icon">🚕</span>Daftar Jadi Gojek Elit</a>
+      <a class="menu-item" href="https://wa.me/62895707182299" target="_blank" rel="noopener"><span class="menu-icon">💬</span>Chat Admin</a>
+      <a class="menu-item" href="page.html"><span class="menu-icon">ℹ️</span>About Toko Siap Antar</a>
+    </nav>
+  </aside>
+</div>
+
+<main><div id="products" class="products"><div class="notice" style="grid-column:1/-1">Memuat produk dari Google Sheets…</div></div></main>
+<footer><h3>🌐 Ikuti Kami</h3><div class="socials"><a href="#" id="facebook">● Facebook</a><a href="#" id="instagram">◎ Instagram</a><a href="#" id="whatsapp">◉ WhatsApp</a></div></footer>
+<nav class="bottom-nav" aria-label="Navigasi bawah">
+  <button id="homeBtn"><span class="ico">⌂</span>Home</button><button id="historyBtn"><span class="ico">▤</span>Riwayat</button><button id="cartBtn"><span class="ico">🛒 <sup id="cartCount">0</sup></span>Keranjang</button><button id="profileBtn"><span class="ico">👤</span>Profil</button>
+</nav>
+
+<div id="productZoom" class="product-zoom" role="dialog" aria-modal="true" aria-label="Detail produk">
+  <button type="button" id="productZoomClose" class="product-zoom-close" aria-label="Tutup popup">×</button>
+  <div class="product-zoom-content">
+    <div class="product-zoom-image-wrap"><img id="productZoomImage" src="" alt="Foto produk"></div>
+    <div id="productZoomName" class="product-zoom-name"></div>
+    <div id="productZoomPrice" class="product-zoom-price"></div>
+    <div class="product-zoom-actions">
+      <button type="button" class="zoom-wa" data-zoom-action="wa" aria-label="Tanya melalui WhatsApp">☏</button>
+      <button type="button" class="zoom-cart" data-zoom-action="cart" aria-label="Tambah ke keranjang">🛒</button>
+      <button type="button" class="zoom-buy" data-zoom-action="buy">Beli</button>
+    </div>
+  </div>
+</div>
+
+<script type="module">
+import {auth, db} from "./firebase-config.js";
+import {onAuthStateChanged, signOut} from "https://www.gstatic.com/firebasejs/12.4.0/firebase-auth.js";
+import {doc, getDoc} from "https://www.gstatic.com/firebasejs/12.4.0/firebase-firestore.js";
+
+// Spreadsheet MEMBER: kolom A-N, kolom N berisi link gambar sponsor.
+const SHEET_URL = 'https://docs.google.com/spreadsheets/d/1H23wsTKmR1grQgSAqULbUCM9wQdfx5u6RHJwrrbROG0/gviz/tq?sheet=MEMBER';
+
+const productsEl = document.getElementById('products');
+const searchInput = document.getElementById('searchInput');
+let allProducts = [];
+let activeCategory = 'Semua';
+let cart = [];
+let currentUser=null, mitraUid='', mitraNama='', compressedBase64='', currentRole='';
+
+try {
+  const savedCart = JSON.parse(localStorage.getItem('tsa_cart') || '[]');
+  cart = Array.isArray(savedCart) ? savedCart : [];
+} catch (error) {
+  cart = [];
+}
+
+const formatPrice = value => {
+  const n = Number(String(value ?? '').replace(/[^\d,-]/g,'').replace(/\./g,'').replace(',','.'));
+  return Number.isFinite(n) && n ? 'Rp ' + n.toLocaleString('id-ID') : (value ? String(value) : 'Hubungi kami');
+};
+
+function convertImage(url) {
+  if (!url) return '';
+  const s = String(url).trim().replace(/^\s+|\s+$/g, '');
+  if (/^data:image\//i.test(s)) return s;
+  if (/^\/9j\//i.test(s)) return 'data:image/jpeg;base64,' + s;
+  if (/^iVBORw0KGgo/.test(s)) return 'data:image/png;base64,' + s;
+  if (/^R0lGOD/.test(s)) return 'data:image/gif;base64,' + s;
+  if (/^UklGR/.test(s)) return 'data:image/webp;base64,' + s;
+
+  // Link Google Drive biasa diubah menjadi URL thumbnail agar bisa dimuat sebagai gambar.
+  const driveId = s.match(/(?:id=|\/d\/)([A-Za-z0-9_-]{15,})/);
+  if (driveId && /drive\.google\.com/i.test(s)) {
+    return 'https://drive.google.com/thumbnail?id=' + driveId[1] + '&sz=w800';
+  }
+  return s;
+}
+
+function escapeHtml(value) {
+  return String(value ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+}
+function num(v){const n=Number(v); return isNaN(n)?null:n;}
+function ownerInitials(name){
+  const words=String(name||'Mitra').trim().split(/\s+/).filter(Boolean);
+  return words.map(word=>Array.from(word)[0].toUpperCase()).join('').slice(0,5)||'M';
+}
+function flagEnabled(value){
+  const v=String(value??'').trim().toLowerCase();
+  return value===true || v==='1' || v==='true' || v==='ya' || v==='yes' || v==='aktif';
+}
+function deliveryLabels(p){
+  const labels=[];
+  if(flagEnabled(p.cod)) labels.push('COD');
+  if(flagEnabled(p.kurir)) labels.push('Kurir');
+  if(flagEnabled(p.expedisi)) labels.push('Ekspedisi');
+  return labels.length ? labels.join(' · ') : 'Belum tersedia';
+}
+
+/* SLIDE SPONSOR: baca kolom N (indeks 13) - termasuk baris yang cuma ada kolom N doang (baris 3-5) */
+function renderSponsorSlides(rows) {
+  const section = document.getElementById('sponsorPromo');
+  const track = document.getElementById('promoTrack');
+  if (!section || !track) return;
+  const links = [];
+  (rows || []).forEach(row => {
+    const cells = row?.c || [];
+    const cell = cells[13];
+    if (!cell) return;
+    [cell.v, cell.f, cell.p].forEach(val => {
+      if (val == null) return;
+      if (typeof val === 'object') { Object.values(val).forEach(v2 => { if (typeof v2 === 'string') (v2.match(/https?:\/\/[^\s"'<>,
+]+/ig) || []).forEach(u => links.push(u)); }); return; }
+      if (typeof val !== 'string') return;
+      (val.replace(/&amp;/g, '&').match(/https?:\/\/[^\s"'<>,
+]+/ig) || []).forEach(u => {
+        u = u.replace(/[),.;]+$/, '');
+        if (/docs\.google\.com\/spreadsheets/i.test(u)) return;
+        if (u.toLowerCase() === 'column 14') return;
+        links.push(u);
+      });
+    });
+  });
+  const images = [...new Set(links.map(convertImage))].filter(Boolean);
+  section.style.display = 'block';
+  track.replaceChildren();
+  if (!images.length) {
+    track.innerHTML = '<div style="padding:18px;text-align:center;color:#008b4c;font-weight:700">Slide promo</div>';
+    track.style.animation = 'none';
+    return;
+  }
+  const slides = images.length === 1 ? [images[0], images[0], images[0], images[0]] : [...images, ...images];
+  track.innerHTML = slides.map((url, index) => `
+    <img src="${escapeHtml(url)}" alt="Sponsor Toko Siap Antar" loading="${index < images.length ? 'eager' : 'lazy'}" referrerpolicy="no-referrer" onerror="this.style.display='none'">
+  `).join('');
+  track.style.animation = '';
+}
+
+function renderProducts() {
+  const q = searchInput.value.trim().toLowerCase();
+  let filtered = allProducts.filter(p => {
+    const matchesText = !q || p.searchText.includes(q);
+    let matchesCat = true;
+    if(activeCategory==='MitraSaya' && mitraUid){
+      matchesCat = p.mitraUid===mitraUid;
+    } else if(activeCategory!=='Semua' && activeCategory!=='__menu'){
+      matchesCat = (String(p.category||'').toLowerCase().includes(activeCategory.toLowerCase()) || (p.name + ' ' + p.description).toLowerCase().includes(activeCategory.toLowerCase()));
+    }
+    return matchesText && matchesCat;
+  });
+  if (!filtered.length) {
+    productsEl.innerHTML = '<div class="notice" style="grid-column:1/-1">Produk tidak ditemukan. Kategori: '+escapeHtml(activeCategory)+'</div>';
+    return;
+  }
+  productsEl.innerHTML = filtered.map(p => `
+    <article class="product" data-product-id="${escapeHtml(p.id)}">
+      <div class="product-photo">${p.image ? `<img loading="lazy" src="${escapeHtml(p.image)}" alt="${escapeHtml(p.name)}" onerror="this.style.display='none'">` : '<span>📦</span>'}<span class="mitra-tag">🏪 ${escapeHtml(ownerInitials(p.mitraNama))}</span></div>
+      <div class="product-info">
+        <div class="product-name">${escapeHtml(p.name)}</div>
+        <div class="product-desc">${escapeHtml(p.description || 'Pesanan siap antar ±1 jam').slice(0,80)}</div>
+        <div class="price">${escapeHtml(formatPrice(p.price))}</div>
+        <div class="product-meta"><strong>Pengiriman:</strong> ${escapeHtml(deliveryLabels(p))}</div>
+        <div class="actions">
+          <button class="wa" data-action="wa" data-id="${escapeHtml(p.id)}" aria-label="Tanya WhatsApp">☏</button>
+          <button class="cart" data-action="cart" data-id="${escapeHtml(p.id)}" aria-label="Tambah keranjang">🛒</button>
+          <button class="buy" data-action="buy" data-id="${escapeHtml(p.id)}">Beli</button>
+        </div>
+      </div>
+    </article>`).join('');
+
+  productsEl.querySelectorAll('.product').forEach((card, idx)=>{
+    const p=filtered[idx];
+    const imgEl=card.querySelector('.product-photo img');
+    if(imgEl && p.image) imgEl.src=p.image;
+  });
+}
+
+function updateCart() {
+  document.getElementById('cartCount').textContent = cart.reduce((sum,item)=>sum+(Number(item.qty)||0),0);
+  try { localStorage.setItem('tsa_cart', JSON.stringify(cart)); } catch (error) {}
+}
+function addProductToCart(p) {
+  const existing = cart.find(item => item.id === p.id);
+  if (existing) { existing.qty = (Number(existing.qty) || 0) + 1; existing.mitraUid=p.mitraUid||existing.mitraUid||''; existing.mitraNama=p.mitraNama||existing.mitraNama||'Mitra'; existing.cod=p.cod; existing.kurir=p.kurir; existing.expedisi=p.expedisi; existing.stock=p.stock; existing.category=p.category; }
+  else cart.push({id:p.id,name:p.name,price:p.price,qty:1,mitraUid:p.mitraUid||'',mitraNama:p.mitraNama||'Mitra',image:p.image,cod:p.cod,kurir:p.kurir,expedisi:p.expedisi,stock:p.stock,category:p.category});
+  updateCart();
+}
+function normalizeWhatsAppNumber(value) {
+  let number = String(value || '').replace(/\D/g, '');
+  if (number.startsWith('0')) number = '62' + number.slice(1);
+  else if (number.startsWith('8')) number = '62' + number;
+  return number;
+}
+
+// Nomor WhatsApp pemilik diambil dari dokumen Firestore users/{UID},
+// sesuai halaman daftar-mitra-usaha.html: field noWA.
+async function openOwnerWhatsApp(p, intro='Halo, saya ingin bertanya tentang produk: ') {
+  // UID pemilik produk berasal dari kolom G spreadsheet dan menjadi ID dokumen mitra_public.
+  const ownerUid = String(p?.mitraUid || p?.ownerUid || p?.tokoId || '').trim();
+  if (!ownerUid) {
+    alert('UID pemilik produk pada kolom G spreadsheet masih kosong.');
+    return;
+  }
+
+  // Buka tab saat klik berlangsung agar tidak diblokir browser HP.
+  const waTab = window.open('about:blank', '_blank');
+
+  try {
+    // Nomor WhatsApp publik mitra disimpan pada mitra_public/{UID}, field noWA.
+    const ownerSnap = await getDoc(doc(db, 'mitra_public', ownerUid));
+    if (!ownerSnap.exists()) {
+      throw new Error('Data mitra tidak ditemukan di mitra_public/' + ownerUid + '. Pastikan dokumen publik mitra sudah dibuat.');
+    }
+
+    const ownerData = ownerSnap.data() || {};
+    const ownerNumber = normalizeWhatsAppNumber(ownerData.noWA || ownerData.whatsapp || ownerData.nomorWA || '');
+    if (!ownerNumber || ownerNumber.length < 10) {
+      throw new Error('Nomor WhatsApp mitra belum valid. Periksa field noWA pada dokumen mitra_public/' + ownerUid + '.');
+    }
+
+    const ownerName = String(p.mitraNama || ownerData.nama || 'Mitra').trim();
+    const message = intro + String(p.name || 'produk') +
+      ' — ' + formatPrice(p.price) + ' (Mitra: ' + ownerName + ')';
+    const waUrl = 'https://wa.me/' + ownerNumber + '?text=' + encodeURIComponent(message);
+
+    if (waTab && !waTab.closed) {
+      waTab.opener = null;
+      waTab.location.href = waUrl;
+    } else {
+      // Cadangan jika browser tidak mengizinkan tab baru.
+      window.location.href = waUrl;
+    }
+  } catch (error) {
+    if (waTab && !waTab.closed) waTab.close();
+    console.error('Gagal membuka WhatsApp pemilik produk:', error);
+    alert(error.message || 'Tidak dapat membuka WhatsApp pemilik produk. Periksa koneksi dan izin Firestore.');
+  }
+}
+
+productsEl.addEventListener('click', e => {
+  const btn = e.target.closest('button[data-action]');
+  if (!btn) return;
+  const p = allProducts.find(item => item.id === btn.dataset.id);
+  if (!p) return;
+  if (btn.dataset.action === 'wa') openOwnerWhatsApp(p, 'Halo, saya mau tanya produk: ');
+  if (btn.dataset.action === 'buy') {
+    addProductToCart(p);
+    location.href = 'keranjang.html';
+    return;
+  }
+  if (btn.dataset.action === 'cart') {
+    addProductToCart(p);
+    btn.textContent = '✓';
+    setTimeout(()=>{if(btn.isConnected)btn.textContent='🛒'},700);
+  }
+});
+
+searchInput.addEventListener('input', renderProducts);
+document.getElementById('categories').addEventListener('click',e=>{
+  const btn=e.target.closest('[data-cat]'); if(!btn)return;
+  activeCategory=btn.dataset.cat;
+  document.querySelectorAll('.cat[data-cat]').forEach(el=>el.classList.toggle('active',el===btn));
+  renderProducts();
+});
+
+const menuBackdrop=document.getElementById('menuBackdrop');
+function openMenu(){menuBackdrop.classList.add('show');menuBackdrop.setAttribute('aria-hidden','false');document.body.style.overflow='hidden';}
+function closeMenu(){menuBackdrop.classList.remove('show');menuBackdrop.setAttribute('aria-hidden','true');document.body.style.overflow='';}
+document.getElementById('openMenu').addEventListener('click',openMenu);
+document.getElementById('closeMenu').addEventListener('click',closeMenu);
+menuBackdrop.addEventListener('click',e=>{if(e.target===menuBackdrop)closeMenu();});
+document.addEventListener('keydown',e=>{if(e.key==='Escape')closeMenu();});
+
+document.getElementById('refresh').onclick=()=>location.reload();
+document.getElementById('homeBtn').onclick=()=>{location.href='index.html';};
+document.getElementById('cartBtn').onclick=()=>{
+  if(!cart.length){alert('Keranjang masih kosong.');return;}
+  location.href='keranjang.html';
+};
+document.getElementById('historyBtn').onclick=()=>{location.href='riwayat-pelanggan.html';};
+document.getElementById('profileBtn').onclick=()=>{location.href='profil.html';};
+
+// Tombol header: aktif/nonaktifkan mode gelap dan simpan pilihan pengguna.
+const themeToggle = document.getElementById('themeToggle');
+function applyTheme(isDark){
+  document.body.classList.toggle('dark-mode', isDark);
+  themeToggle.textContent = isDark ? '☀️' : '🌙';
+  themeToggle.setAttribute('aria-label', isDark ? 'Aktifkan mode terang' : 'Aktifkan mode gelap');
+  themeToggle.title = isDark ? 'Mode terang' : 'Mode gelap';
+  try { localStorage.setItem('tsa_dark_mode', isDark ? '1' : '0'); } catch(e) {}
+}
+let savedDarkMode = false;
+try { savedDarkMode = localStorage.getItem('tsa_dark_mode') === '1'; } catch(e) {}
+applyTheme(savedDarkMode);
+themeToggle.onclick = () => applyTheme(!document.body.classList.contains('dark-mode'));
+
+document.getElementById('facebook').onclick=e=>{e.preventDefault();alert('Tambahkan tautan Facebook toko pada HTML.');};
+document.getElementById('instagram').onclick=e=>{e.preventDefault();alert('Tambahkan tautan Instagram toko pada HTML.');};
+document.getElementById('whatsapp').onclick=e=>{e.preventDefault();window.open('https://wa.me/','_blank','noopener');};
+
+function parseGviz(raw) {
+  const start=raw.indexOf('{'), end=raw.lastIndexOf('}');
+  if(start<0||end<start) throw new Error('Format data Google Sheets tidak dikenali.');
+  return JSON.parse(raw.slice(start,end+1));
+}
+
+async function loadProductsFromSheet(){
+  try{
+    const res=await fetch(SHEET_URL, {cache:'no-store'});
+    if(!res.ok) throw new Error('HTTP '+res.status);
+    const raw=await res.text();
+    const json=parseGviz(raw);
+    const rows=json.table && json.table.rows;
+    if(!rows) throw new Error('Sheet tidak ada data');
+
+    // Ambil gambar sponsor dari kolom N sebelum memproses daftar produk.
+    renderSponsorSlides(rows);
+
+    // Kolom Spreadsheet: tanggal(0), kode produk(1), nama(2), deskripsi(3),
+    // harga(4), foto(5), uid(6), nama mitra(7), kategori(8), cod(9),
+    // kurir(10), ekspedisi(11), stock(12), sponsor(13).
+    allProducts=rows.map((row,index)=>{
+      const c=row.c||[];
+      const getVal = (i)=>c[i]?.v??'';
+      let id=getVal(1)||String(index);
+      let name='', desc='', price='', image='', mUid='', mNama='', cat='', cod='', kurir='', expedisi='', stock='';
+      if(c.length>=9){
+        name=getVal(2); desc=getVal(3); price=getVal(4); image=getVal(5);
+        mUid=getVal(6); mNama=getVal(7); cat=getVal(8);
+        cod=getVal(9); kurir=getVal(10); expedisi=getVal(11); stock=getVal(12);
+      } else {
+        // Format lama
+        name=getVal(1)||getVal(0); desc=getVal(2); price=getVal(3); image=getVal(4);
+      }
+      if(!String(name).trim()) return null;
+      return {
+        id:String(id).trim(),
+        name:String(name).trim(),
+        description:String(desc).trim(),
+        price:price,
+        image:convertImage(String(image).trim()),
+        mitraUid:String(mUid).trim(),
+        mitraNama:String(mNama).trim()||'Mitra',
+        category:String(cat).trim()||'Makanan',
+        cod, kurir, expedisi, stock,
+        searchText:(String(name)+' '+String(desc)+' '+String(mNama)+' '+String(mUid)).toLowerCase()
+      };
+    }).filter(Boolean);
+
+    if(!allProducts.length) throw new Error('Tidak ada produk');
+    renderProducts();
+  }catch(err){
+    productsEl.innerHTML='<div class="notice" style="grid-column:1/-1;color:#b42318">Produk gagal dimuat: '+escapeHtml(err.message)+'<br><span style="font-size:11px">Pastikan Sheet ID benar & Sheet dipublish publik. Sheet lama masih bisa dibaca, tapi untuk input mitra butuh Apps Script.</span></div>';
+  }
+}
+
+// Index hanya membaca katalog. Pengelolaan/input produk dilakukan di halaman terpisah.
+onAuthStateChanged(auth, u=>{
+  currentUser = u || null;
+  mitraUid = u ? u.uid : '';
+  loadProductsFromSheet();
+});
+
+updateCart();
+
+/* Popup foto produk */
+const productZoom = document.getElementById('productZoom');
+const productZoomImage = document.getElementById('productZoomImage');
+const productZoomName = document.getElementById('productZoomName');
+const productZoomPrice = document.getElementById('productZoomPrice');
+let zoomProductId = null;
+
+function closeProductZoom() {
+  productZoom.classList.remove('show');
+  productZoomImage.src = '';
+  zoomProductId = null;
+  document.body.style.overflow = '';
+}
+
+productsEl.addEventListener('click', function(e) {
+  if (e.target.closest('button')) return;
+  const img = e.target.closest('.product-photo img');
+  if (!img || !img.src) return;
+  const card = img.closest('.product');
+  const id = card?.dataset.productId;
+  const p = allProducts.find(item => item.id === id);
+  if (!p) return;
+  zoomProductId = p.id;
+  productZoomImage.src = img.src;
+  productZoomImage.alt = p.name;
+  productZoomName.textContent = p.name + ' - ' + (p.mitraNama||'Mitra');
+  productZoomPrice.textContent = formatPrice(p.price);
+  productZoom.classList.add('show');
+  document.body.style.overflow = 'hidden';
+});
+
+productZoom.addEventListener('click', function(e) {
+  if (e.target === productZoom) { closeProductZoom(); return; }
+  const btn = e.target.closest('[data-zoom-action]');
+  if (!btn) return;
+  const p = allProducts.find(item => item.id === zoomProductId);
+  if (!p) return;
+  const action = btn.dataset.zoomAction;
+  if (action === 'wa') { openOwnerWhatsApp(p, 'Halo, saya mau tanya produk: '); return; }
+  if (action === 'cart' || action === 'buy') {
+    addProductToCart(p);
+    if (action === 'buy') { location.href = 'keranjang.html'; return; }
+    btn.textContent = '✓'; btn.disabled = true;
+    setTimeout(() => { if (btn.isConnected) { btn.textContent = '🛒'; btn.disabled = false; } }, 700);
+  }
+});
+
+document.getElementById('productZoomClose').addEventListener('click', closeProductZoom);
+document.addEventListener('keydown', function(e) { if (e.key === 'Escape') closeProductZoom(); });
+</script>
+<script>
+/* REFRESH INDEX SAAT KEMBALI DARI HALAMAN LAIN */
+(function () {
+  let isReloading = false;
+
+  window.addEventListener('pageshow', function (event) {
+    // Halaman dipulihkan dari Back/Forward Cache.
+    if (event.persisted && !isReloading) {
+      isReloading = true;
+      window.location.reload();
+    }
+  });
+})();
+</script>
+
+<script>
+/* PENYELAMAT SPONSOR SAJA - tidak sentuh produk sama sekali. Hanya isi promoTrack dari kolom N. */
+(function(){
+  function conv(u){if(!u)return '';var s=String(u).trim();if(s.indexOf('data:image')===0)return s;var m=s.match(/(?:[?&]id=|\/d\/)([A-Za-z0-9_-]{15,})/);if(m&&/drive\.google\.com/i.test(s))return 'https://drive.google.com/thumbnail?id='+m[1]+'&sz=w800';return s;}
+  function esc(v){return String(v??'').replace(/[&<>"']/g,function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c];});}
+  setTimeout(function(){
+    var track=document.getElementById('promoTrack');if(!track)return;
+    // Kalau promo masih tulisan Slide promo / kosong, ambil alih sponsor aja
+    if(!track.querySelector('img')){
+      var URL='https://docs.google.com/spreadsheets/d/1H23wsTKmR1grQgSAqULbUCM9wQdfx5u6RHJwrrbROG0/gviz/tq?sheet=MEMBER';
+      fetch(URL,{cache:'no-store'}).then(function(r){return r.text();}).catch(function(){return fetch('https://api.allorigins.win/raw?url='+encodeURIComponent(URL)).then(function(r2){return r2.text();});}).then(function(raw){
+        var a=raw.indexOf('{'),b=raw.lastIndexOf('}');var j=JSON.parse(raw.slice(a,b+1));var rows=(j.table&&j.table.rows)||[];
+        var links=[];rows.forEach(function(row){var c=row.c||[];var cell=c[13];if(!cell)return;[cell.v,cell.f,cell.p].forEach(function(val){if(!val)return;if(typeof val==='object'){Object.values(val).forEach(function(v2){if(typeof v2==='string')(v2.match(/https?:\/\/[^\s"'<>,\n]+/ig)||[]).forEach(function(u){links.push(u);});});return;}if(typeof val!=='string')return;(val.replace(/&amp;/g,'&').match(/https?:\/\/[^\s"'<>,\n]+/ig)||[]).forEach(function(u){u=u.replace(/[),.;]+$/,'');if(/docs\.google\.com\/spreadsheets/i.test(u))return;if(u.toLowerCase()==='column 14')return;links.push(u);});});});
+        var imgs=[...new Set(links.map(conv))].filter(Boolean);
+        if(imgs.length){var slides=imgs.length===1?[imgs[0],imgs[0],imgs[0],imgs[0]]:[...imgs,...imgs];track.innerHTML=slides.map(function(u){return '<img src="'+esc(u)+'" alt="Sponsor" loading="eager" referrerpolicy="no-referrer" onerror="this.style.display=\'none\'">';}).join('');track.style.animation='';}
+      }).catch(function(){});
+    }
+  },1200);
+})();
+</script>
+
+
+<script>
+/* PENYELAMAT PRODUK SAJA - tidak sentuh sponsor sama sekali. Hanya isi #products kalau masih stuck Memuat. */
+(function(){
+  function esc(v){return String(v??'').replace(/[&<>"']/g,function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c];});}
+  function fmt(v){var n=Number(String(v??'').replace(/[^\d,-]/g,'').replace(/\./g,'').replace(',','.'));return Number.isFinite(n)&&n?'Rp '+n.toLocaleString('id-ID'):(v?String(v):'Hubungi kami');}
+  function conv(u){if(!u)return '';var s=String(u).trim();if(/^data:image\//i.test(s))return s;if(/^\/9j\//i.test(s))return 'data:image/jpeg;base64,'+s;if(/^iVBORw0KGgo/.test(s))return 'data:image/png;base64,'+s;var m=s.match(/(?:[?&]id=|\/d\/)([A-Za-z0-9_-]{15,})/);if(m&&/drive\.google\.com/i.test(s))return 'https://drive.google.com/uc?export=view&id='+m[1];return s;}
+  function initials(name){var w=String(name||'Mitra').trim().split(/\s+/).filter(Boolean);return w.map(function(x){return Array.from(x)[0].toUpperCase();}).join('').slice(0,5)||'M';}
+  function flag(v){var x=String(v??'').trim().toLowerCase();return v===true||x==='1'||x==='true'||x==='ya'||x==='yes'||x==='aktif';}
+  function labels(pr){var l=[];if(flag(pr.cod))l.push('COD');if(flag(pr.kurir))l.push('Kurir');if(flag(pr.expedisi))l.push('Ekspedisi');return l.length?l.join(' · '):'Belum tersedia';}
+  function getCart(){try{var c=JSON.parse(localStorage.getItem('tsa_cart')||'[]');return Array.isArray(c)?c:[];}catch(e){return [];}}
+  function saveCart(c){try{localStorage.setItem('tsa_cart',JSON.stringify(c));}catch(e){} var el=document.getElementById('cartCount');if(el)el.textContent=c.reduce(function(s,it){return s+(Number(it.qty)||0);},0);}
+  setTimeout(function(){
+    var el=document.getElementById('products');if(!el)return;
+    var stuck=/Memuat|gagal/i.test(el.textContent||'')||!el.querySelector('.product');
+    if(!stuck) return;
+    var URL='https://docs.google.com/spreadsheets/d/1H23wsTKmR1grQgSAqULbUCM9wQdfx5u6RHJwrrbROG0/gviz/tq?sheet=MEMBER';
+    function fetchSheet(){return fetch(URL,{cache:'no-store'}).then(function(r){return r.text();}).catch(function(){return fetch('https://api.allorigins.win/raw?url='+encodeURIComponent(URL)).then(function(r2){return r2.text();});});}
+    fetchSheet().then(function(raw){
+      var j;try{j=JSON.parse(raw.substring(47).slice(0,-2));}catch(e){var a=raw.indexOf('{'),b=raw.lastIndexOf('}');j=JSON.parse(raw.slice(a,b+1));}
+      var rows=(j.table&&j.table.rows)||[];
+      var prods=rows.map(function(row,idx){var c=row.c||[];var g=function(i){return (c[i]&&c[i].v)??'';};var name=String(g(2)||'').trim();if(!name)return null;return {id:String(g(1)||idx).trim(),name:name,description:String(g(3)||'').trim(),price:g(4),image:conv(String(g(5)||'').trim()),mitraUid:String(g(6)||'').trim(),mitraNama:String(g(7)||'').trim()||'Mitra',category:String(g(8)||'').trim()||'Makanan',cod:g(9),kurir:g(10),expedisi:g(11),stock:g(12)};}).filter(Boolean).filter(function(pr, i, arr){return arr.findIndex(function(x){return x.id===pr.id;})===i;});
+      if(!prods.length) return;
+      window.__fallbackProds=prods;
+      el.innerHTML=prods.map(function(pr){return '<article class="product" data-product-id="'+esc(pr.id)+'"><div class="product-photo">'+(pr.image?'<img loading="lazy" src="'+esc(pr.image)+'" alt="'+esc(pr.name)+'" onerror="this.style.display=\'none\'">':'<span>📦</span>')+'<span class="mitra-tag">🏪 '+esc(initials(pr.mitraNama))+'</span></div><div class="product-info"><div class="product-name">'+esc(pr.name)+'</div><div class="product-desc">'+esc(pr.description||'Pesanan siap antar ±1 jam').slice(0,80)+'</div><div class="price">'+esc(fmt(pr.price))+'</div><div class="product-meta"><strong>Pengiriman:</strong> '+esc(labels(pr))+'</div><div class="actions"><button class="wa" data-action="wa" data-id="'+esc(pr.id)+'">☏</button><button class="cart" data-action="cart" data-id="'+esc(pr.id)+'">🛒</button><button class="buy" data-action="buy" data-id="'+esc(pr.id)+'">Beli</button></div></div></article>';}).join('');
+      // Klik WA / Keranjang / Beli - versi fallback tanpa Firestore, WA ke admin
+      el.addEventListener('click',function(e){
+        var btn=e.target.closest('button[data-action]');if(!btn)return;
+        var pr=prods.find(function(x){return x.id===btn.dataset.id;});if(!pr)return;
+        if(btn.dataset.action==='wa'){window.open('https://wa.me/62895707182299?text='+encodeURIComponent('Halo, saya mau tanya produk: '+pr.name+' - '+fmt(pr.price)+' (Mitra: '+pr.mitraNama+')'),'_blank');return;}
+        var cart=getCart();var ex=cart.find(function(x){return x.id===pr.id;});
+        if(ex){ex.qty=(Number(ex.qty)||0)+1;}else{cart.push({id:pr.id,name:pr.name,price:pr.price,qty:1,mitraUid:pr.mitraUid,mitraNama:pr.mitraNama,image:pr.image,cod:pr.cod,kurir:pr.kurir,expedisi:pr.expedisi,stock:pr.stock,category:pr.category});}
+        saveCart(cart);
+        if(btn.dataset.action==='buy'){location.href='keranjang.html';return;}
+        btn.textContent='✓';setTimeout(function(){if(btn.isConnected)btn.textContent='🛒';},700);
+      });
+      // Search + kategori di fallback
+      var search=document.getElementById('searchInput');
+      if(search){search.addEventListener('input',function(){var q=search.value.trim().toLowerCase();var list=prods.filter(function(pr){return !q||(pr.name+' '+pr.description+' '+pr.mitraNama).toLowerCase().includes(q);});if(!list.length){el.innerHTML='<div class="notice" style="grid-column:1/-1">Produk tidak ditemukan.</div>';return;}el.innerHTML=list.map(function(pr){return '<article class="product" data-product-id="'+esc(pr.id)+'"><div class="product-photo">'+(pr.image?'<img loading="lazy" src="'+esc(pr.image)+'" alt="'+esc(pr.name)+'" onerror="this.style.display=\'none\'">':'<span>📦</span>')+'<span class="mitra-tag">🏪 '+esc(initials(pr.mitraNama))+'</span></div><div class="product-info"><div class="product-name">'+esc(pr.name)+'</div><div class="product-desc">'+esc(pr.description||'Pesanan siap antar ±1 jam').slice(0,80)+'</div><div class="price">'+esc(fmt(pr.price))+'</div><div class="product-meta"><strong>Pengiriman:</strong> '+esc(labels(pr))+'</div><div class="actions"><button class="wa" data-action="wa" data-id="'+esc(pr.id)+'">☏</button><button class="cart" data-action="cart" data-id="'+esc(pr.id)+'">🛒</button><button class="buy" data-action="buy" data-id="'+esc(pr.id)+'">Beli</button></div></div></article>';}).join('');});}
+      saveCart(getCart());
+    }).catch(function(){});
+  },1200);
+})();
+</script>
+
+
+<script>
+/* PENYELAMAT NAVIGASI SAJA - kategori, menu, navigasi bawah, header. Tidak sentuh sponsor & produk. */
+(function(){
+  function esc(v){return String(v??'').replace(/[&<>"']/g,function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c];});}
+  function fmt(v){var n=Number(String(v??'').replace(/[^\d,-]/g,'').replace(/\./g,'').replace(',','.'));return Number.isFinite(n)&&n?'Rp '+n.toLocaleString('id-ID'):(v?String(v):'Hubungi kami');}
+  function initials(name){var w=String(name||'Mitra').trim().split(/\s+/).filter(Boolean);return w.map(function(x){return Array.from(x)[0].toUpperCase();}).join('').slice(0,5)||'M';}
+  function flag(v){var x=String(v??'').trim().toLowerCase();return v===true||x==='1'||x==='true'||x==='ya'||x==='yes'||x==='aktif';}
+  function labels(pr){var l=[];if(flag(pr.cod))l.push('COD');if(flag(pr.kurir))l.push('Kurir');if(flag(pr.expedisi))l.push('Ekspedisi');return l.length?l.join(' · '):'Belum tersedia';}
+  var activeCat='Semua';
+  function getProds(){return window.__fallbackProds||[];}
+  function renderFiltered(){
+    var el=document.getElementById('products');if(!el)return;
+    var prods=getProds();if(!prods.length)return;
+    var q=(document.getElementById('searchInput')?.value||'').trim().toLowerCase();
+    var list=prods.filter(function(pr){
+      var okText=!q||(pr.name+' '+pr.description+' '+pr.mitraNama).toLowerCase().includes(q);
+      var okCat=true;
+      if(activeCat!=='Semua'&&activeCat!=='__menu'&&activeCat!=='MitraSaya'){okCat=(String(pr.category||'').toLowerCase().includes(activeCat.toLowerCase())||(pr.name+' '+pr.description).toLowerCase().includes(activeCat.toLowerCase()));}
+      return okText&&okCat;
+    });
+    if(!list.length){el.innerHTML='<div class="notice" style="grid-column:1/-1">Produk tidak ditemukan. Kategori: '+esc(activeCat)+'</div>';return;}
+    el.innerHTML=list.map(function(pr){return '<article class="product" data-product-id="'+esc(pr.id)+'"><div class="product-photo">'+(pr.image?'<img loading="lazy" src="'+esc(pr.image)+'" alt="'+esc(pr.name)+'" onerror="this.style.display=\'none\'">':'<span>📦</span>')+'<span class="mitra-tag">🏪 '+esc(initials(pr.mitraNama))+'</span></div><div class="product-info"><div class="product-name">'+esc(pr.name)+'</div><div class="product-desc">'+esc(pr.description||'Pesanan siap antar ±1 jam').slice(0,80)+'</div><div class="price">'+esc(fmt(pr.price))+'</div><div class="product-meta"><strong>Pengiriman:</strong> '+esc(labels(pr))+'</div><div class="actions"><button class="wa" data-action="wa" data-id="'+esc(pr.id)+'">☏</button><button class="cart" data-action="cart" data-id="'+esc(pr.id)+'">🛒</button><button class="buy" data-action="buy" data-id="'+esc(pr.id)+'">Beli</button></div></div></article>';}).join('');
+  }
+  // Kategori - tunggu sampai produk fallback ke-load, cek tiap detik sampai ada
+  var catTries=0;
+  var catTimer=setInterval(function(){
+    var wrap=document.getElementById('categories');if(!wrap)return;
+    if(!getProds().length){catTries++;if(catTries>15)clearInterval(catTimer);return;}
+    clearInterval(catTimer);
+    wrap.addEventListener('click',function(e){
+      var btn=e.target.closest('[data-cat]');if(!btn)return;
+      activeCat=btn.dataset.cat;
+      wrap.querySelectorAll('.cat[data-cat]').forEach(function(el){el.classList.toggle('active',el===btn);});
+      renderFiltered();
+    });
+    var search=document.getElementById('searchInput');
+    if(search){search.addEventListener('input',function(){renderFiltered();});}
+  },1000);
+  // Menu hamburger
+  var backdrop=document.getElementById('menuBackdrop');
+  function openMenu(){if(!backdrop)return;backdrop.classList.add('show');backdrop.setAttribute('aria-hidden','false');document.body.style.overflow='hidden';}
+  function closeMenu(){if(!backdrop)return;backdrop.classList.remove('show');backdrop.setAttribute('aria-hidden','true');document.body.style.overflow='';}
+  document.getElementById('openMenu')?.addEventListener('click',openMenu);
+  document.getElementById('closeMenu')?.addEventListener('click',closeMenu);
+  backdrop?.addEventListener('click',function(e){if(e.target===backdrop)closeMenu();});
+  document.addEventListener('keydown',function(e){if(e.key==='Escape')closeMenu();});
+  // Header
+  document.getElementById('refresh')?.addEventListener('click',function(){location.reload();});
+  var themeBtn=document.getElementById('themeToggle');
+  function applyTheme(dark){document.body.classList.toggle('dark-mode',dark);if(themeBtn){themeBtn.textContent=dark?'☀️':'🌙';}try{localStorage.setItem('tsa_dark_mode',dark?'1':'0');}catch(e){}}
+  try{applyTheme(localStorage.getItem('tsa_dark_mode')==='1');}catch(e){}
+  themeBtn?.addEventListener('click',function(){applyTheme(!document.body.classList.contains('dark-mode'));});
+  // Navigasi bawah
+  document.getElementById('homeBtn')?.addEventListener('click',function(){location.href='index.html';});
+  document.getElementById('historyBtn')?.addEventListener('click',function(){location.href='riwayat-pelanggan.html';});
+  document.getElementById('cartBtn')?.addEventListener('click',function(){
+    var cart=[];try{cart=JSON.parse(localStorage.getItem('tsa_cart')||'[]');}catch(e){}
+    if(!cart.length){alert('Keranjang masih kosong.');return;}
+    location.href='keranjang.html';
+  });
+  document.getElementById('profileBtn')?.addEventListener('click',function(){location.href='profil.html';});
+  // Footer sosial
+  document.getElementById('facebook')?.addEventListener('click',function(e){e.preventDefault();alert('Tambahkan tautan Facebook toko pada HTML.');});
+  document.getElementById('instagram')?.addEventListener('click',function(e){e.preventDefault();alert('Tambahkan tautan Instagram toko pada HTML.');});
+  document.getElementById('whatsapp')?.addEventListener('click',function(e){e.preventDefault();window.open('https://wa.me/62895707182299','_blank','noopener');});
+})();
+</script>
+
+<script>(function(){var loc=location.href.replace(/#.*$/,"");var ATTR_NAMES=["data-product-id","data-productid","data-product_id","product-id","productid","product_id","data-source-entity-id","source-entity-id","source_entity_id","data-product","data-metadata","data-meta"];var DATASET_KEYS=["productId","productid","product_id","sourceEntityId","sourceentityid","source_entity_id","product","metadata","meta"];function readProductId(value){if(typeof value!=="string"||value.length===0)return null;if(/^[0-9]{6,}$/.test(value))return value;var match=value.match(/(?:product(?:_|-)?id|source(?:_|-)?entity(?:_|-)?id)["'=:\s]+([0-9]{6,})/i);return match?match[1]:null}function extractProductId(start){for(var node=start;node&&node!==document.body;node=node.parentElement){for(var i=0;i<ATTR_NAMES.length;i++){var attrValue=node.getAttribute&&node.getAttribute(ATTR_NAMES[i]);var attrProductId=readProductId(attrValue);if(attrProductId)return attrProductId}var dataset=node.dataset||null;if(dataset){for(var j=0;j<DATASET_KEYS.length;j++){var dataValue=dataset[DATASET_KEYS[j]];var dataProductId=readProductId(dataValue);if(dataProductId)return dataProductId}}}return null}function isInlineMediaSlotElement(node){return !!(node&&node.getAttribute&&node.getAttribute("data-clippy-inline-media-slot")!==null)}function findInlineMediaSlot(start){for(var node=start;node&&node!==document.body;node=node.parentElement){if(isInlineMediaSlotElement(node))return node}return null}function readInlineMediaUrl(node){if(!node)return null;return node.getAttribute&&((node.getAttribute("data-clippy-inline-media-url")||node.getAttribute("data-url")||node.getAttribute("data_url")))||node.href||null}function stripHash(url){return String(url).replace(/#.*$/,"")}function urlsMatch(a,b){if(!a||!b)return false;try{return stripHash(new URL(a,loc).href)===stripHash(new URL(b,loc).href)}catch(_){return stripHash(a)===stripHash(b)}}function isFirstPartyReelUrl(value){try{var url=new URL(value,loc);if(url.protocol!=="https:")return false;var host=url.hostname.toLowerCase();var supported=host==="instagram.com"||host.endsWith(".instagram.com")||host==="facebook.com"||host.endsWith(".facebook.com");return supported&&/\/reels?\//i.test(url.pathname)}catch(_){return false}}function isInlineMediaUrlClick(node,href){var slot=findInlineMediaSlot(node);if(!slot)return false;var slotUrl=readInlineMediaUrl(slot);if(slotUrl)return urlsMatch(href,slotUrl);return isFirstPartyReelUrl(href)}function findDataHref(start){for(var node=start;node&&node!==document.body;node=node.parentElement){if(node.getAttribute){var href=node.getAttribute("data-href")||node.getAttribute("data-url");if(href)return{href:href,node:node}}}return null}var nativeOpen=window.open;window.open=function(url){if(parent!==window&&typeof url==="string"&&/^https?:\/\//.test(url)){parent.postMessage({type:"ecto:usercontent-link-click",href:url},"*");return null}return nativeOpen?nativeOpen.apply(window,arguments):null};document.addEventListener("click",function(e){var target=e.target instanceof Element?e.target:null;if(!target)return;if(parent===window)return;var a=target.closest?target.closest("a[href]"):null;if(a&&a.href&&/^https?:\/\//.test(a.href)&&a.href.replace(/#.*$/,"")!==loc){if(isInlineMediaUrlClick(a,a.href))return;var productId=extractProductId(target)||extractProductId(a);if(productId){e.preventDefault();parent.postMessage({type:"ecto-artifact-link-click",productId:productId},"*");return}e.preventDefault();parent.postMessage({type:"ecto:usercontent-link-click",href:a.href},"*");return}var dataHref=findDataHref(target);if(dataHref&&/^https?:\/\//.test(dataHref.href)&&dataHref.href.replace(/#.*$/,"")!==loc){if(isInlineMediaUrlClick(dataHref.node,dataHref.href))return;e.preventDefault();parent.postMessage({type:"ecto:usercontent-link-click",href:dataHref.href},"*")}},true)})();</script><script>(function(){var FOCUS_TYPE="ecto:artifact-focus-request";var CLOSE_TYPE="ecto:artifact-close-request";function focusArtifactDocument(){var body=document.body;if(!body)return;try{window.focus();}catch(e){}if(!body.hasAttribute("tabindex"))body.setAttribute("tabindex","-1");try{body.focus({preventScroll:true});}catch(e){try{body.focus();}catch(e2){}}}window.addEventListener("message",function(event){if(event.source!==window.parent)return;var data=event.data;if(!data||typeof data!=="object"||data.type!==FOCUS_TYPE)return;if(document.readyState==="loading"){document.addEventListener("DOMContentLoaded",focusArtifactDocument,{once:true});return;}focusArtifactDocument();});window.addEventListener("keydown",function(event){if(event.key!=="Escape")return;window.setTimeout(function(){if(event.defaultPrevented)return;window.parent.postMessage({type:CLOSE_TYPE},"*");},0);});})();</script></body>
+</html>
