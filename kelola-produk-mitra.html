@@ -1,0 +1,299 @@
+<!doctype html>
+<html lang="id"><head><style>
+@font-face {
+  font-family: "Optimistic";
+  font-style: normal;
+  font-weight: 400 600;
+  font-display: swap;
+  src: url("/fonts/OptimisticAI_VF_Optimized.woff2") format("woff2");
+}
+@font-face {
+  font-family: "Optimistic Mono";
+  font-style: normal;
+  font-weight: 400;
+  font-display: swap;
+  src: url("/fonts/OptimisticMono_W_TextRegular.woff2") format("woff2");
+}
+:where(html) {
+  font-family: "Optimistic", system-ui, sans-serif;
+}
+:where(code, pre, kbd, samp) {
+  font-family: "Optimistic Mono", ui-monospace, monospace;
+}
+</style><style>
+@font-face {
+  font-family: "Optimistic";
+  font-style: normal;
+  font-weight: 400 600;
+  font-display: swap;
+  src: url("/fonts/OptimisticAI_VF_Optimized.woff2") format("woff2");
+}
+@font-face {
+  font-family: "Optimistic Mono";
+  font-style: normal;
+  font-weight: 400;
+  font-display: swap;
+  src: url("/fonts/OptimisticMono_W_TextRegular.woff2") format("woff2");
+}
+:where(html) {
+  font-family: "Optimistic", system-ui, sans-serif;
+}
+:where(code, pre, kbd, samp) {
+  font-family: "Optimistic Mono", ui-monospace, monospace;
+}
+</style>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Input Produk Mitra V7 - Tanpa COD (Hanya Siap Antar & Expedisi)</title>
+<style>
+*{box-sizing:border-box}body{background:#f8fdf9;margin:0;padding:12px;font-family:system-ui;max-width:480px;margin:auto}
+.card-mitra{background:#eef6ee;border:1px solid #c8e6c9;border-radius:16px;padding:16px;margin:8px 0}
+.card-form{background:#fff;border:1px solid #e0e0e0;border-radius:18px;padding:16px;margin:12px 0;box-shadow:0 2px 8px #0001}
+label{font-weight:700;font-size:14px;margin:14px 0 6px;display:block;color:#0a2a12}
+input,select{width:100%;border:1px solid #cfe5d8;border-radius:12px;padding:14px;font-size:14px;background:#fff}
+.preview{width:100%;height:200px;background:#f6f6e8;border-radius:12px;display:grid;place-items:center;margin:10px 0;overflow:hidden;border:1px dashed #bbb}
+.check-wrap{display:flex;gap:8px;margin:10px 0}
+.check-box{border:2px solid #ddd;border-radius:12px;padding:12px;display:flex;align-items:center;gap:8px;flex:1;cursor:pointer;background:#fafafa;font-weight:700;font-size:13px}
+.check-box.active{border-color:#00a85a;background:#e8f5e9;color:#0a5a2a}
+.check-box input{width:20px;height:20px;accent-color:#00a85a}
+.btn{width:100%;background:linear-gradient(90deg,#00a85a,#00c8d7);color:#fff;border:0;border-radius:14px;padding:16px;font-weight:900;font-size:16px;margin-top:14px;cursor:pointer}
+.btn:disabled{opacity:0.6}
+.msg-ok{background:#e5fff0;color:#087b45;border:1px solid #a7e8c5;padding:12px;border-radius:12px;margin:10px 0;font-size:13px;font-weight:600}
+.msg-err{background:#fff0ed;color:#b42318;border:1px solid #f5c6c1;padding:12px;border-radius:12px;margin:10px 0}
+</style></head><body>
+<h2 style="margin:16px 6px;font-size:24px">📦 Input Produk Mitra V7 - Tanpa COD (Hanya Siap Antar & Expedisi)</h2>
+<div id="msg"></div>
+<div class="card-mitra">
+  <div style="display:flex;justify-content:space-between;align-items:center">
+    <div>
+      <div style="font-size:12px;color:#666">Login sebagai:</div>
+      <b id="mitraLabel" style="font-size:16px">Memuat...</b><br>
+      <span id="mitraUidLabel" style="font-size:10px;color:#888;word-break:break-all"></span>
+    </div>
+    <a href="ewallet-mitra.html" id="btnLogin" style="display:none;background:#00a85a;color:#fff;padding:8px 16px;border-radius:24px;text-decoration:none;font-size:12px;font-weight:700">Login</a>
+  </div>
+</div>
+
+<div class="card-form">
+  <label>Nama Produk *</label>
+  <input id="nama" placeholder="Ayam goreng">
+  
+  <label>Harga *</label>
+  <input id="harga" type="number" placeholder="15000">
+  
+  <label>Stok</label>
+  <input id="stok" type="number" value="100">
+  
+  <label>Deskripsi / Model</label>
+  <input id="deskripsi" placeholder="jbl / Roko herbal">
+  
+  <label>Kategori</label>
+  <select id="kategori"><option>Makanan</option><option>Minuman</option><option>Sparepart</option><option>Lainnya</option><option>Elektronik</option><option>Pakaian</option></select>
+  
+  <label>Foto Produk (auto kompres &lt;45KB)</label>
+  <input id="foto" type="file" accept="image/*">
+  <div class="preview" id="preview">📸 Pilih foto</div>
+
+  <label style="margin-top:18px;background:#fff3cd;padding:8px 12px;border-radius:8px;border:1px solid #ffe082">🚚 Batas Pengiriman (bisa diubah pemilik)</label>
+  <div class="check-wrap">
+    <label class="check-box active" id="box_kurir"><input type="checkbox" id="bisa_kurir" checked> 🛵 Siap Antar</label>
+    <label class="check-box active" id="box_expedisi"><input type="checkbox" id="bisa_expedisi" checked> 📦 Expedisi</label>
+  </div>
+  <div style="font-size:11px;color:#666;background:#fffde7;border:1px dashed #ffe082;padding:8px;border-radius:8px;margin-bottom:6px">
+  ✅ COD dihapus. Hanya Siap Antar & Expedisi yang tersedia.<br>
+  Contoh: Makanan basah matikan Expedisi.
+  </div>
+
+  <button class="btn" id="btnSimpan">💾 Simpan ke Spreadsheet MEMBER</button>
+  <div style="font-size:11px;color:#999;margin-top:8px;text-align:center">Sheet ID: 1H23wsTKmR1grQgSAqULbUCM9wQdfx5u6RHJwrrbROG0 | Col 10 = 0 (COD nonaktif) | Col 11-12 = Siap Antar/Expedisi</div>
+</div>
+
+<script type="module">
+import {initializeApp} from "https://www.gstatic.com/firebasejs/12.4.0/firebase-app.js";
+import {getAuth,onAuthStateChanged} from "https://www.gstatic.com/firebasejs/12.4.0/firebase-auth.js";
+import {getFirestore,doc,getDoc} from "https://www.gstatic.com/firebasejs/12.4.0/firebase-firestore.js";
+const firebaseConfig={apiKey:"AIzaSyBxqZhl6t3RwrXMwVdJeIkg0NzGfwvlweM",authDomain:"toko-siap-antar-9a7bb.firebaseapp.com",projectId:"toko-siap-antar-9a7bb",storageBucket:"toko-siap-antar-9a7bb.firebasestorage.app",messagingSenderId:"351335838712",appId:"1:351335838712:web:14cc2c7b91bb0c9e1b5c0d"};
+const app=initializeApp(firebaseConfig);
+const auth=getAuth(app);
+const db=getFirestore(app);
+const SCRIPT_URL="https://script.google.com/macros/s/AKfycbxtjGln5huyGFVGz7muW4SQGOsAOroDLj0seCnd41pOXFF39Iee0EmjA09KljV4Ahk/exec";
+
+let mitraNama='',mitraUid='',fotoPolos='',fotoSizeKB=0;
+
+function singkatan(n){if(!n)return 'MM';let w=n.trim().split(/\s+/);if(w.length>=2)return (w[0][0]+w[1][0]).toUpperCase();return n.slice(0,2).toUpperCase();}
+
+async function kompres(file){
+ return new Promise((res,rej)=>{
+  const img=new Image();
+  const url=URL.createObjectURL(file);
+  img.onload=()=>{
+   let max=300,w=img.width,h=img.height;
+   if(w>max){h=Math.round(h*max/w);w=max}
+   if(h>300){w=Math.round(w*300/h);h=300}
+   const cv=document.createElement('canvas');
+   cv.width=w;cv.height=h;
+   const ctx=cv.getContext('2d');
+   ctx.drawImage(img,0,0,w,h);
+   let q=0.5;
+   let d=cv.toDataURL('image/jpeg',q);
+   let a=0;
+   while(d.length>40000 && a<10){
+     q-=0.05;
+     if(q<0.08) break;
+     d=cv.toDataURL('image/jpeg',q);
+     a++;
+   }
+   URL.revokeObjectURL(url);
+   const polos=d.split(',')[1]||'';
+   const sizeKB=Math.round(polos.length*0.75/1024);
+   // Jika masih >30KB, paksa resize lagi ke 200px
+   if(sizeKB>30){
+     const cv2=document.createElement('canvas');
+     cv2.width=200;cv2.height=200;
+     cv2.getContext('2d').drawImage(img,0,0,200,200);
+     d=cv2.toDataURL('image/jpeg',0.4);
+   }
+   const polos2=d.split(',')[1]||'';
+   const sizeKB2=Math.round(polos2.length*0.75/1024);
+   res({dataUrl:d,polos:polos2,sizeKB:sizeKB2});
+  };
+  img.onerror=()=>{URL.revokeObjectURL(url);rej('gagal load');};
+  img.src=url;
+ });
+}
+
+document.getElementById('foto').addEventListener('change',async e=>{
+ const f=e.target.files[0];
+ if(!f) return;
+ const prev=document.getElementById('preview');
+ prev.innerHTML='⏳ Kompres...';
+ try{
+   const r=await kompres(f);
+   fotoPolos=r.polos;
+   fotoSizeKB=r.sizeKB;
+   prev.innerHTML=`<img src="${r.dataUrl}" style="width:100%;height:100%;object-fit:contain"><span style="position:absolute;bottom:6px;right:6px;background:#000a;color:#fff;font-size:11px;padding:3px 8px;border-radius:20px">${r.sizeKB}KB</span>`;
+   prev.style.position='relative';
+ }catch{
+   prev.innerHTML='❌ Gagal kompres';
+ }
+});
+
+function syncCheck(){
+ ['kurir','expedisi'].forEach(k=>{
+   const c=document.getElementById('bisa_'+k);
+   const b=document.getElementById('box_'+k);
+   if(c.checked) b.classList.add('active'); else b.classList.remove('active');
+ });
+}
+document.querySelectorAll('.check-box input').forEach(el=>el.addEventListener('change',syncCheck));
+
+document.getElementById('btnSimpan').onclick=async()=>{
+ const nama=document.getElementById('nama').value.trim();
+ const harga=Number(document.getElementById('harga').value);
+ const stok=Number(document.getElementById('stok').value)||100;
+ const desk=document.getElementById('deskripsi').value.trim();
+ const kat=document.getElementById('kategori').value;
+ const bisaCOD=0; // COD dihapus permanen
+ const bisaKurir=document.getElementById('bisa_kurir').checked?1:0;
+ const bisaExp=document.getElementById('bisa_expedisi').checked?1:0;
+ 
+ if(!nama||!harga){alert('Nama & Harga wajib diisi');return}
+ if(!fotoPolos){alert('Pilih foto dulu');return}
+ if(!mitraUid){alert('Belum login, buka e-wallet dulu');location.href='ewallet-mitra.html';return}
+ if(fotoSizeKB>50){alert('Foto masih kegedean '+fotoSizeKB+'KB, pilih foto lain');return}
+
+ const btn=document.getElementById('btnSimpan');
+ btn.disabled=true;
+ btn.textContent='⏳ Menyimpan ke MEMBER...';
+ const msg=document.getElementById('msg');
+ 
+ try{
+   const id='prcd_'+Date.now();
+   const payload={
+     action:'add_product',
+     Column1:new Date().toLocaleString('id-ID'),
+     Column2:id,
+     Column3:nama,
+     Column4:desk,
+     Column5:harga,
+     Column6:fotoPolos,
+     Column7:mitraUid,
+     Column8:mitraNama,
+     Column9:kat,
+     Column10:bisaCOD,
+     Column11:bisaKurir,
+     Column12:bisaExp,
+     Column13:stok,
+     // fallback keys
+     ID:id,Nama:nama,Harga:harga,Deskripsi:desk,Kategori:kat,Stok:stok,Image:fotoPolos,MitraUid:mitraUid,MitraNama:mitraNama,Singkatan:singkatan(mitraNama),BisaCOD:bisaCOD,BisaKurir:bisaKurir,BisaExpedisi:bisaExp
+   };
+   await fetch(SCRIPT_URL,{method:'POST',mode:'no-cors',body:JSON.stringify(payload)});
+   msg.innerHTML=`<div class="msg-ok">✅ Masuk Sheet MEMBER! <b>${nama}</b><br>Siap Antar:${bisaKurir?'Ya':'Tidak'} | Exp:${bisaExp?'Ya':'Tidak'} | Stok:${stok} | COD: Nonaktif<br><small>Jika foto >30KB, akan auto kecilin ke 200px biar masuk Sheet</small></div>`;
+   document.getElementById('nama').value='';
+   document.getElementById('harga').value='';
+   document.getElementById('deskripsi').value='';
+   fotoPolos='';
+   document.getElementById('preview').innerHTML='📸 Pilih foto';
+   window.scrollTo({top:0,behavior:'smooth'});
+ }catch(e){
+   msg.innerHTML=`<div class="msg-err">❌ Gagal: ${e.message}</div>`;
+ }
+ btn.disabled=false;
+ btn.textContent='💾 Simpan ke Spreadsheet MEMBER';
+};
+
+function setMitraUI(user,src){
+ const lab=document.getElementById('mitraLabel');
+ const uidL=document.getElementById('mitraUidLabel');
+ const log=document.getElementById('btnLogin');
+ if(!user){
+   lab.textContent='⚠️ Belum login - buka e-wallet dulu';
+   uidL.textContent=src||'no user';
+   log.style.display='inline-block';
+   log.textContent='Buka E-Wallet';
+   log.href='ewallet-mitra.html';
+   mitraUid='';mitraNama='';
+   return;
+ }
+ mitraUid=user.uid||'';
+ uidL.textContent=mitraUid+' ('+src+')';
+ log.style.display='none';
+ mitraNama=user.email||user.displayName||'Mitra';
+ lab.textContent='👤 '+mitraNama;
+ if(user.uid){
+   getDoc(doc(db,'users',user.uid)).then(snap=>{
+     if(snap.exists()){
+       const d=snap.data();
+       mitraNama=d.nama||d.namaToko||d.namaUsaha||user.email||'Mitra';
+       lab.textContent='👤 '+mitraNama+' ('+singkatan(mitraNama)+')';
+     }
+   }).catch(()=>{});
+ }
+}
+
+// AUTH LISTENER + FALLBACK PAKSA
+onAuthStateChanged(auth,user=>{
+ console.log('authState',user);
+ setMitraUI(user,'authState');
+});
+
+setTimeout(()=>{
+ const lab=document.getElementById('mitraLabel');
+ if(lab && lab.textContent.includes('Memuat')){
+   console.log('Fallback 1.5s check currentUser',auth.currentUser);
+   if(auth.currentUser){
+     setMitraUI(auth.currentUser,'fallback 1.5s');
+   }else{
+     setMitraUI(null,'fallback no user 1.5s');
+   }
+ }
+},1500);
+
+setTimeout(()=>{
+ const lab=document.getElementById('mitraLabel');
+ if(lab && lab.textContent.includes('Memuat')){
+   lab.textContent='⚠️ Login belum kebaca - tap Buka E-Wallet';
+   document.getElementById('btnLogin').style.display='inline-block';
+ }
+},3500);
+</script>
+<script>(function(){var loc=location.href.replace(/#.*$/,"");var ATTR_NAMES=["data-product-id","data-productid","data-product_id","product-id","productid","product_id","data-source-entity-id","source-entity-id","source_entity_id","data-product","data-metadata","data-meta"];var DATASET_KEYS=["productId","productid","product_id","sourceEntityId","sourceentityid","source_entity_id","product","metadata","meta"];function readProductId(value){if(typeof value!=="string"||value.length===0)return null;if(/^[0-9]{6,}$/.test(value))return value;var match=value.match(/(?:product(?:_|-)?id|source(?:_|-)?entity(?:_|-)?id)["'=:\s]+([0-9]{6,})/i);return match?match[1]:null}function extractProductId(start){for(var node=start;node&&node!==document.body;node=node.parentElement){for(var i=0;i<ATTR_NAMES.length;i++){var attrValue=node.getAttribute&&node.getAttribute(ATTR_NAMES[i]);var attrProductId=readProductId(attrValue);if(attrProductId)return attrProductId}var dataset=node.dataset||null;if(dataset){for(var j=0;j<DATASET_KEYS.length;j++){var dataValue=dataset[DATASET_KEYS[j]];var dataProductId=readProductId(dataValue);if(dataProductId)return dataProductId}}}return null}function isInlineMediaSlotElement(node){return !!(node&&node.getAttribute&&node.getAttribute("data-clippy-inline-media-slot")!==null)}function findInlineMediaSlot(start){for(var node=start;node&&node!==document.body;node=node.parentElement){if(isInlineMediaSlotElement(node))return node}return null}function readInlineMediaUrl(node){if(!node)return null;return node.getAttribute&&((node.getAttribute("data-clippy-inline-media-url")||node.getAttribute("data-url")||node.getAttribute("data_url")))||node.href||null}function stripHash(url){return String(url).replace(/#.*$/,"")}function urlsMatch(a,b){if(!a||!b)return false;try{return stripHash(new URL(a,loc).href)===stripHash(new URL(b,loc).href)}catch(_){return stripHash(a)===stripHash(b)}}function isFirstPartyReelUrl(value){try{var url=new URL(value,loc);if(url.protocol!=="https:")return false;var host=url.hostname.toLowerCase();var supported=host==="instagram.com"||host.endsWith(".instagram.com")||host==="facebook.com"||host.endsWith(".facebook.com");return supported&&/\/reels?\//i.test(url.pathname)}catch(_){return false}}function isInlineMediaUrlClick(node,href){var slot=findInlineMediaSlot(node);if(!slot)return false;var slotUrl=readInlineMediaUrl(slot);if(slotUrl)return urlsMatch(href,slotUrl);return isFirstPartyReelUrl(href)}function findDataHref(start){for(var node=start;node&&node!==document.body;node=node.parentElement){if(node.getAttribute){var href=node.getAttribute("data-href")||node.getAttribute("data-url");if(href)return{href:href,node:node}}}return null}var nativeOpen=window.open;window.open=function(url){if(parent!==window&&typeof url==="string"&&/^https?:\/\//.test(url)){parent.postMessage({type:"ecto:usercontent-link-click",href:url},"*");return null}return nativeOpen?nativeOpen.apply(window,arguments):null};document.addEventListener("click",function(e){var target=e.target instanceof Element?e.target:null;if(!target)return;if(parent===window)return;var a=target.closest?target.closest("a[href]"):null;if(a&&a.href&&/^https?:\/\//.test(a.href)&&a.href.replace(/#.*$/,"")!==loc){if(isInlineMediaUrlClick(a,a.href))return;var productId=extractProductId(target)||extractProductId(a);if(productId){e.preventDefault();parent.postMessage({type:"ecto-artifact-link-click",productId:productId},"*");return}e.preventDefault();parent.postMessage({type:"ecto:usercontent-link-click",href:a.href},"*");return}var dataHref=findDataHref(target);if(dataHref&&/^https?:\/\//.test(dataHref.href)&&dataHref.href.replace(/#.*$/,"")!==loc){if(isInlineMediaUrlClick(dataHref.node,dataHref.href))return;e.preventDefault();parent.postMessage({type:"ecto:usercontent-link-click",href:dataHref.href},"*")}},true)})();</script><script>(function(){var FOCUS_TYPE="ecto:artifact-focus-request";var CLOSE_TYPE="ecto:artifact-close-request";function focusArtifactDocument(){var body=document.body;if(!body)return;try{window.focus();}catch(e){}if(!body.hasAttribute("tabindex"))body.setAttribute("tabindex","-1");try{body.focus({preventScroll:true});}catch(e){try{body.focus();}catch(e2){}}}window.addEventListener("message",function(event){if(event.source!==window.parent)return;var data=event.data;if(!data||typeof data!=="object"||data.type!==FOCUS_TYPE)return;if(document.readyState==="loading"){document.addEventListener("DOMContentLoaded",focusArtifactDocument,{once:true});return;}focusArtifactDocument();});window.addEventListener("keydown",function(event){if(event.key!=="Escape")return;window.setTimeout(function(){if(event.defaultPrevented)return;window.parent.postMessage({type:CLOSE_TYPE},"*");},0);});})();</script><script>(function(){var loc=location.href.replace(/#.*$/,"");var ATTR_NAMES=["data-product-id","data-productid","data-product_id","product-id","productid","product_id","data-source-entity-id","source-entity-id","source_entity_id","data-product","data-metadata","data-meta"];var DATASET_KEYS=["productId","productid","product_id","sourceEntityId","sourceentityid","source_entity_id","product","metadata","meta"];function readProductId(value){if(typeof value!=="string"||value.length===0)return null;if(/^[0-9]{6,}$/.test(value))return value;var match=value.match(/(?:product(?:_|-)?id|source(?:_|-)?entity(?:_|-)?id)["'=:\s]+([0-9]{6,})/i);return match?match[1]:null}function extractProductId(start){for(var node=start;node&&node!==document.body;node=node.parentElement){for(var i=0;i<ATTR_NAMES.length;i++){var attrValue=node.getAttribute&&node.getAttribute(ATTR_NAMES[i]);var attrProductId=readProductId(attrValue);if(attrProductId)return attrProductId}var dataset=node.dataset||null;if(dataset){for(var j=0;j<DATASET_KEYS.length;j++){var dataValue=dataset[DATASET_KEYS[j]];var dataProductId=readProductId(dataValue);if(dataProductId)return dataProductId}}}return null}function isInlineMediaSlotElement(node){return !!(node&&node.getAttribute&&node.getAttribute("data-clippy-inline-media-slot")!==null)}function findInlineMediaSlot(start){for(var node=start;node&&node!==document.body;node=node.parentElement){if(isInlineMediaSlotElement(node))return node}return null}function readInlineMediaUrl(node){if(!node)return null;return node.getAttribute&&((node.getAttribute("data-clippy-inline-media-url")||node.getAttribute("data-url")||node.getAttribute("data_url")))||node.href||null}function stripHash(url){return String(url).replace(/#.*$/,"")}function urlsMatch(a,b){if(!a||!b)return false;try{return stripHash(new URL(a,loc).href)===stripHash(new URL(b,loc).href)}catch(_){return stripHash(a)===stripHash(b)}}function isFirstPartyReelUrl(value){try{var url=new URL(value,loc);if(url.protocol!=="https:")return false;var host=url.hostname.toLowerCase();var supported=host==="instagram.com"||host.endsWith(".instagram.com")||host==="facebook.com"||host.endsWith(".facebook.com");return supported&&/\/reels?\//i.test(url.pathname)}catch(_){return false}}function isInlineMediaUrlClick(node,href){var slot=findInlineMediaSlot(node);if(!slot)return false;var slotUrl=readInlineMediaUrl(slot);if(slotUrl)return urlsMatch(href,slotUrl);return isFirstPartyReelUrl(href)}function findDataHref(start){for(var node=start;node&&node!==document.body;node=node.parentElement){if(node.getAttribute){var href=node.getAttribute("data-href")||node.getAttribute("data-url");if(href)return{href:href,node:node}}}return null}var nativeOpen=window.open;window.open=function(url){if(parent!==window&&typeof url==="string"&&/^https?:\/\//.test(url)){parent.postMessage({type:"ecto:usercontent-link-click",href:url},"*");return null}return nativeOpen?nativeOpen.apply(window,arguments):null};document.addEventListener("click",function(e){var target=e.target instanceof Element?e.target:null;if(!target)return;if(parent===window)return;var a=target.closest?target.closest("a[href]"):null;if(a&&a.href&&/^https?:\/\//.test(a.href)&&a.href.replace(/#.*$/,"")!==loc){if(isInlineMediaUrlClick(a,a.href))return;var productId=extractProductId(target)||extractProductId(a);if(productId){e.preventDefault();parent.postMessage({type:"ecto-artifact-link-click",productId:productId},"*");return}e.preventDefault();parent.postMessage({type:"ecto:usercontent-link-click",href:a.href},"*");return}var dataHref=findDataHref(target);if(dataHref&&/^https?:\/\//.test(dataHref.href)&&dataHref.href.replace(/#.*$/,"")!==loc){if(isInlineMediaUrlClick(dataHref.node,dataHref.href))return;e.preventDefault();parent.postMessage({type:"ecto:usercontent-link-click",href:dataHref.href},"*")}},true)})();</script><script>(function(){var FOCUS_TYPE="ecto:artifact-focus-request";var CLOSE_TYPE="ecto:artifact-close-request";function focusArtifactDocument(){var body=document.body;if(!body)return;try{window.focus();}catch(e){}if(!body.hasAttribute("tabindex"))body.setAttribute("tabindex","-1");try{body.focus({preventScroll:true});}catch(e){try{body.focus();}catch(e2){}}}window.addEventListener("message",function(event){if(event.source!==window.parent)return;var data=event.data;if(!data||typeof data!=="object"||data.type!==FOCUS_TYPE)return;if(document.readyState==="loading"){document.addEventListener("DOMContentLoaded",focusArtifactDocument,{once:true});return;}focusArtifactDocument();});window.addEventListener("keydown",function(event){if(event.key!=="Escape")return;window.setTimeout(function(){if(event.defaultPrevented)return;window.parent.postMessage({type:CLOSE_TYPE},"*");},0);});})();</script></body></html>

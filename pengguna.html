@@ -1,0 +1,45 @@
+<!doctype html><html lang="id"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Kelola Pengguna | Toko Siap Antar</title><link rel="stylesheet" href="style.css"></head><body>
+<header><strong>TOKO SIAP ANTAR · PENGGUNA</strong><nav><a href="dashboard-admin.html">Pesanan</a><a href="produk-admin.html">Produk</a><a href="index.html">Toko</a><button id="logoutBtn" class="dark">Keluar</button></nav></header><main class="shell"><section class="panel"><h1>Data Pengguna Aktif</h1><p class="muted">Halaman ini hanya menampilkan pengguna yang sudah aktif. Persetujuan pendaftaran dilakukan di halaman Approval Pending.</p><div id="notice" class="notice" hidden></div><div class="table-wrap"><table><thead><tr><th>Nama</th><th>Email</th><th>Nomor WhatsApp</th><th>Role</th><th>Status</th></tr></thead><tbody id="users"><tr><td colspan="5">Memuat…</td></tr></tbody></table></div></section></main>
+<script type="module">
+import {db} from "./firebase-config.js";
+import {collection,getDocs} from "https://www.gstatic.com/firebasejs/12.4.0/firebase-firestore.js";
+import {requireRole,esc,notice} from "./common.js";
+
+function getPhone(u) {
+  return u.nomorWhatsApp || u.noWhatsApp || u.whatsapp || u.nomorWA ||
+         u.noWA || u.nomorHp || u.nomorHP || u.noHp || u.noHP ||
+         u.telepon || u.phone || u.phoneNumber || "";
+}
+function waLink(raw) {
+  let digits = String(raw || "").replace(/\D/g, "");
+  if (digits.startsWith("0")) digits = "62" + digits.slice(1);
+  else if (digits.startsWith("8")) digits = "62" + digits;
+  return digits ? "https://wa.me/" + digits : "";
+}
+
+requireRole(["admin"], async () => {
+  const tb = document.querySelector("#users");
+  try {
+    const snap = await getDocs(collection(db, "users"));
+    const activeUsers = snap.docs.filter(d => {
+      const u = d.data() || {};
+      return u.status === "aktif" && u.aktif !== false;
+    });
+    if (!activeUsers.length) {
+      tb.innerHTML = '<tr><td colspan="5">Belum ada pengguna aktif.</td></tr>';
+      return;
+    }
+    tb.innerHTML = activeUsers.map(d => {
+      const u = d.data() || {};
+      const link = waLink(getPhone(u));
+      const wa = link
+        ? `<a class="btn" href="${link}" target="_blank" rel="noopener noreferrer">Chat WhatsApp</a>`
+        : '<span class="muted">Nomor belum tersedia</span>';
+      return `<tr><td>${esc(u.nama || u.name || u.namaUsaha || "-")}</td><td>${esc(u.email || "-")}</td><td>${wa}</td><td>${esc(u.role || "-")}</td><td>Aktif</td></tr>`;
+    }).join("");
+  } catch (e) {
+    tb.innerHTML = `<tr><td colspan="5">Gagal memuat pengguna: ${esc(e?.message || e)}</td></tr>`;
+    notice("Gagal memuat data pengguna: " + (e?.message || e), "error");
+  }
+});
+</script></body></html>

@@ -1,0 +1,226 @@
+<!doctype html>
+<html lang="id">
+<head><style>
+@font-face {
+  font-family: "Optimistic";
+  font-style: normal;
+  font-weight: 400 600;
+  font-display: swap;
+  src: url("/fonts/OptimisticAI_VF_Optimized.woff2") format("woff2");
+}
+@font-face {
+  font-family: "Optimistic Mono";
+  font-style: normal;
+  font-weight: 400;
+  font-display: swap;
+  src: url("/fonts/OptimisticMono_W_TextRegular.woff2") format("woff2");
+}
+:where(html) {
+  font-family: "Optimistic", system-ui, sans-serif;
+}
+:where(code, pre, kbd, samp) {
+  font-family: "Optimistic Mono", ui-monospace, monospace;
+}
+</style>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>Riwayat Kurir | Toko Siap Antar</title>
+<style>
+:root{--yellow:#ffcc00;--muted:#64756f;--bg:#f1f2f4;--ok:#087443;--err:#b42318;--line:#e6e7e8}
+*{box-sizing:border-box}body{margin:0;background:var(--bg);color:#171717;font:14px/1.4 system-ui,sans-serif;padding-bottom:80px}
+button,input,select{font:inherit}
+.top{background:#111;color:#fff;padding:10px 14px 16px;border-radius:0 0 20px 20px;position:sticky;top:0;z-index:5}
+.topline{max-width:900px;margin:auto;display:flex;justify-content:space-between;align-items:center;gap:8px}
+.brandWrap{display:flex;align-items:center;gap:8px}
+.brandWrap img{width:36px;height:36px;border-radius:10px;background:#fff;padding:3px;object-fit:contain}
+.brand{color:var(--yellow);font-weight:900;font-size:15px;line-height:1.1}
+.sub{color:#c7cbd0;font-size:9px;font-weight:600}
+.greet{font-size:12px;color:#fff;font-weight:800;margin-top:1px}
+.logout{background:#202020;border:1px solid #444;color:white;border-radius:10px;padding:6px 10px;font-size:11px;font-weight:750;cursor:pointer}
+main{max-width:900px;margin:-10px auto 0;padding:0 10px 90px;position:relative;z-index:2}
+.panel{background:white;border-radius:16px;padding:12px;margin-bottom:8px;box-shadow:0 4px 16px #00000008}
+.section-title{display:flex;justify-content:space-between;gap:8px;margin:2px 2px 8px;align-items:center}
+.section-title h2{font-size:13px;margin:0;font-weight:800}
+.section-title span{font-size:10px;color:var(--muted);font-weight:700}
+.eyebrow{font-size:9px;letter-spacing:.5px;color:var(--muted);font-weight:800;text-transform:uppercase}
+.muted{color:var(--muted);font-size:11px}
+.notice{background:#fff8d8;border:1px solid #f4df80;border-radius:10px;padding:8px 10px;font-size:11px;color:#5c4b00;margin-top:8px;line-height:1.3}
+.list{display:grid;gap:8px}
+.item{border:1px solid var(--line);border-radius:12px;padding:10px;background:#fff;cursor:pointer}
+.itemtop{display:flex;justify-content:space-between;gap:8px;align-items:start}
+.order-id{font-weight:850;font-size:13px}
+.status{font-size:10px;font-weight:800;border-radius:999px;padding:4px 8px;white-space:nowrap;border:1px solid transparent}
+.status-selesai{background:#dcfce7;color:#166534;border-color:#bbf7d0}
+.status-antar{background:#dbeafe;color:#1e40af;border-color:#bfdbfe}
+.status-cair{background:#fef3c7;color:#92400e;border-color:#fde68a}
+.status-topup{background:#e0e7ff;color:#3730a3;border-color:#c7d2fe}
+.status-batal{background:#fee2e2;color:#991b1b;border-color:#fecaca}
+.meta{font-size:11px;color:var(--muted);margin-top:4px;line-height:1.3}
+.btn{border:0;border-radius:10px;background:var(--yellow);padding:10px 14px;font-weight:850;cursor:pointer;font-size:12px}
+.btn.dark{background:#111;color:var(--yellow)}
+.btn.small{padding:7px 10px;font-size:11px;border-radius:8px}
+.hidden{display:none!important}
+.err{color:var(--err);background:#fff0ed;border:1px solid #f5c6c1;border-radius:10px;padding:8px 10px;font-size:11px;margin-top:8px}
+.ok{color:var(--ok);background:#e6f7ef;border:1px solid #c3ead7;border-radius:10px;padding:8px 10px;font-size:11px;margin-top:8px}
+.filter-bar{display:flex;gap:6px;overflow-x:auto;padding:4px 0 6px;white-space:nowrap;scrollbar-width:none}
+.filter-bar::-webkit-scrollbar{display:none}
+.filter-bar button{border:1px solid #e0e4e2;border-radius:999px;background:#f2f4f3;padding:7px 12px;font-weight:750;font-size:11px;cursor:pointer;flex:0 0 auto}
+.filter-bar button.active{background:#111;color:var(--yellow);border-color:#111}
+.search-row{display:flex;gap:6px;margin-top:8px}
+.search-row input{flex:1;border:1px solid #cbd1d6;border-radius:10px;padding:10px 11px;background:white;font-size:13px}
+.tabs{display:grid;grid-template-columns:repeat(3,1fr);gap:6px;margin-bottom:10px}
+.tabs button{background:#f2f4f3;border:1px solid #e0e4e2;border-radius:10px;padding:8px 4px;font-weight:750;font-size:11px;cursor:pointer}
+.tabs button.active{background:#111;color:var(--yellow)}
+.bottom{position:fixed;bottom:0;left:0;right:0;background:#111;border-top:3px solid var(--yellow);display:flex;justify-content:space-around;padding:8px 5px calc(8px + env(safe-area-inset-bottom));z-index:5}
+.bottom a{color:var(--yellow);text-decoration:none;text-align:center;font-size:10px;font-weight:800;display:flex;flex-direction:column;align-items:center;gap:2px}
+.bottom a.active{color:#fff}
+.ico{display:block;font-size:18px;line-height:1}
+.wallet-stat{border:1px solid #e8e8e8;border-radius:10px;background:#f7f8f8;padding:8px 10px}
+.wallet-stat span{font-size:9px;color:#737d8b;font-weight:700;text-transform:uppercase}
+.wallet-stat strong{display:block;font-size:15px;margin-top:3px;color:#173b32}
+</style>
+</head>
+<body>
+<header class="top"><div class="topline"><div class="brandWrap">
+<img src="logo2.png" alt="Logo" onerror="this.src='logo3.png'">
+<div><div class="brand">🛵 TOKO SIAP ANTAR</div><div class="sub">Riwayat Kurir · Mode Bersih</div><div class="greet" id="welcomeTop">Halo, Kak, Kurir</div></div>
+</div><button id="logoutBtn" class="logout hidden" type="button">Keluar</button></div></header>
+
+<main>
+<section id="loginPanel" class="panel"><div class="eyebrow">AKSES AKUN KURIR</div><h1 style="font-size:18px;margin:4px 0 8px;font-weight:900">Masuk Kurir</h1><form id="loginForm"><label>Email</label><input id="email" type="email" required><label>Password</label><input id="password" type="password" required><button class="btn" style="width:100%;margin-top:10px" type="submit">Masuk</button></form><div id="loginMsg" class="err hidden"></div></section>
+
+<section id="dashboard" class="hidden">
+<div class="panel"><div class="section-title"><h2>Ringkasan Riwayat</h2><span id="countLabelTop">0 data</span></div>
+<div style="display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:6px;margin-top:6px">
+<div class="wallet-stat"><span>Pengantaran Selesai</span><strong id="statSelesai">0</strong></div>
+<div class="wallet-stat"><span>Total Top-up</span><strong id="statTopup">Rp 0</strong></div>
+<div class="wallet-stat"><span>Total Cair</span><strong id="statCair">Rp 0</strong></div>
+</div>
+<div class="notice">ℹ️ Riwayat mencakup: <b>riwayat pengantaran, pencairan & topup</b> — semua ada di 3 tab bawah.</div>
+</div>
+
+<div class="panel"><div class="tabs"><button class="active" data-tab="antar">📦 Pengantaran</button><button data-tab="topup">＋ Top-up</button><button data-tab="cair">↗ Pencairan</button></div>
+<div class="filter-bar" id="filterBar"><button class="active" data-f="semua">📋 Semua</button><button data-f="selesai">🟢 Selesai</button><button data-f="topup">＋ Top-up</button><button data-f="cair">↗ Cair</button></div>
+<div class="search-row"><input id="searchBox" placeholder="Cari nomor pesanan / nominal..."><button class="btn small dark" id="reloadBtn" type="button">↻ Muat</button></div>
+<div id="filterMsg" class="meta" style="margin-top:6px"></div>
+</div>
+
+<div class="panel"><div class="section-title"><h2>Daftar Riwayat</h2><span id="countLabel">0 data</span></div><div id="listAntar" class="list"></div><div id="listTopup" class="list hidden"></div><div id="listCair" class="list hidden"></div></div>
+</section>
+</main>
+
+<nav id="bottomNav" class="bottom hidden"><a href="./pesanan-tersedia-kurir.html"><span class="ico">📦</span>Pesanan Masuk</a><a href="./pengantaran-kurir.html"><span class="ico">🛵</span>Pengantaran</a><a href="./riwayat-pengantaran-kurir.html" class="active"><span class="ico">↻</span>Riwayat</a></nav>
+
+<script type="module">
+import {auth,db} from "./firebase-config.js";
+import {onAuthStateChanged,signInWithEmailAndPassword,signOut} from "https://www.gstatic.com/firebasejs/12.4.0/firebase-auth.js";
+import {doc,getDoc,collection,query,where,getDocs,limit} from "https://www.gstatic.com/firebasejs/12.4.0/firebase-firestore.js";
+const $=id=>document.getElementById(id), ROLE='kurir';
+let userNow=null, profile={}, currentFilter='semua', currentTab='antar';
+const esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const money=n=>'Rp '+Number(n||0).toLocaleString('id-ID');
+function formatDate(v){if(!v)return '-';let d=null;if(v.toDate)d=v.toDate();else if(v.seconds)d=new Date(v.seconds*1000);else d=new Date(v);return d.toLocaleString('id-ID',{dateStyle:'short',timeStyle:'short'});}
+function roleOf(p){let r=String(p.role||'').toLowerCase();return r==='courier'?'kurir':r;}
+async function getProfile(u){let s=await getDoc(doc(db,'users',u.uid));if(s.exists())return s.data();let q=await getDocs(query(collection(db,'users'),where('email','==',u.email||''),limit(1)));if(!q.empty)return q.docs[0].data();throw Error('Profil tidak ditemukan');}
+
+async function loadAll(){
+  const allAntar=[], allTopup=[], allCair=[];
+  try{
+    const col=collection(db,'orders');
+    const q1=query(col,where('kurirUid','==',userNow.uid),limit(100));
+    const snap1=await getDocs(q1);
+    snap1.docs.forEach(d=>allAntar.push({id:d.id,type:'antar',...d.data()}));
+  }catch{}
+  try{
+    const col2=collection(db,'ewallet_topups');
+    const snap2=await getDocs(query(col2,where('uid','==',userNow.uid),limit(100)));
+    snap2.docs.forEach(d=>allTopup.push({id:d.id,type:'topup',...d.data()}));
+  }catch{}
+  try{
+    const col3=collection(db,'ewallet_withdrawals');
+    const snap3=await getDocs(query(col3,where('uid','==',userNow.uid),limit(100)));
+    snap3.docs.forEach(d=>allCair.push({id:d.id,type:'cair',...d.data()}));
+  }catch{}
+  window._all={antar:allAntar, topup:allTopup, cair:allCair};
+  // stats
+  $('statSelesai').textContent=allAntar.filter(x=>String(x.status||'').includes('selesai')).length;
+  $('statTopup').textContent=money(allTopup.reduce((a,b)=>a+Number(b.amount||0),0));
+  $('statCair').textContent=money(allCair.reduce((a,b)=>a+Number(b.amount||0),0));
+  render();
+}
+
+function render(){
+  const q=$('searchBox').value.trim().toLowerCase();
+  const all=window._all||{antar:[],topup:[],cair:[]};
+  let totalShown=0;
+  // Antar
+  let filteredAntar=all.antar.filter(o=>{
+    const st=String(o.status||'').toLowerCase();
+    if(currentFilter==='selesai' && !st.includes('selesai')) return false;
+    if(currentFilter==='topup' || currentFilter==='cair') return false;
+    if(!q) return true;
+    return String(o.nomorPesanan||o.id||'').toLowerCase().includes(q);
+  });
+  // Topup
+  let filteredTopup=all.topup.filter(o=>{
+    if(currentFilter==='selesai' || currentFilter==='cair') return false;
+    if(currentFilter==='topup' || currentFilter==='semua'){ if(q){return String(o.amount||'').includes(q)||String(o.method||'').toLowerCase().includes(q);} return true; } return false;
+  });
+  // Cair
+  let filteredCair=all.cair.filter(o=>{
+    if(currentFilter==='selesai' || currentFilter==='topup') return false;
+    if(currentFilter==='cair' || currentFilter==='semua'){ if(q){return String(o.amount||'').includes(q)||String(o.bankName||'').toLowerCase().includes(q);} return true; } return false;
+  });
+
+  // Decide which list visible based on tab
+  $('listAntar').classList.toggle('hidden', currentTab!=='antar');
+  $('listTopup').classList.toggle('hidden', currentTab!=='topup');
+  $('listCair').classList.toggle('hidden', currentTab!=='cair');
+
+  if(currentTab==='antar'){
+    $('countLabel').textContent=filteredAntar.length+' pengantaran';
+    $('countLabelTop').textContent=(all.antar.length+all.topup.length+all.cair.length)+' data';
+    $('listAntar').innerHTML=filteredAntar.length?filteredAntar.map(o=>{
+      const nomor=esc(o.nomorPesanan||o.id.slice(0,8).toUpperCase());
+      const tgl=formatDate(o.createdAt||o.selesaiAt||o.updatedAt);
+      const alamat=esc(o.alamat||o.alamatPengiriman?.alamat||'-');
+      const st=esc(o.status||'selesai');
+      return `<div class="item"><div class="itemtop"><span class="order-id">${nomor}</span><span class="status status-selesai">${st}</span></div><div class="meta">🕒 ${esc(tgl)}</div><div class="meta">📍 ${alamat.slice(0,80)}</div></div>`;
+    }).join(''):`<div class="meta" style="text-align:center;padding:14px">Belum ada riwayat pengantaran untuk filter <b>${esc(currentFilter)}</b></div>`;
+    $('filterMsg').textContent=`Pengantaran: ${filteredAntar.length} dari ${all.antar.length}`;
+  } else if(currentTab==='topup'){
+    $('countLabel').textContent=filteredTopup.length+' top-up';
+    $('listTopup').innerHTML=filteredTopup.length?filteredTopup.map(o=>{
+      const amt=money(o.amount); const tgl=formatDate(o.createdAt); const st=esc(o.status||'menunggu');
+      return `<div class="item"><div class="itemtop"><strong>${amt}</strong><span class="status status-topup">${st}</span></div><div class="meta">🕒 ${esc(tgl)} · ${esc(o.method||'')}</div></div>`;
+    }).join(''):`<div class="meta" style="text-align:center;padding:14px">Belum ada top-up</div>`;
+    $('filterMsg').textContent=`Top-up: ${filteredTopup.length} dari ${all.topup.length}`;
+  } else {
+    $('countLabel').textContent=filteredCair.length+' pencairan';
+    $('listCair').innerHTML=filteredCair.length?filteredCair.map(o=>{
+      const amt=money(o.amount); const tgl=formatDate(o.createdAt); const st=esc(o.status||'menunggu');
+      return `<div class="item"><div class="itemtop"><strong>${amt}</strong><span class="status status-cair">${st}</span></div><div class="meta">🕒 ${esc(tgl)} · ${esc(o.bankName||'')} - ${esc(o.accountNumber||'')}</div></div>`;
+    }).join(''):`<div class="meta" style="text-align:center;padding:14px">Belum ada pencairan</div>`;
+    $('filterMsg').textContent=`Pencairan: ${filteredCair.length} dari ${all.cair.length}`;
+  }
+}
+
+document.querySelectorAll('[data-tab]').forEach(btn=>{
+  btn.onclick=()=>{document.querySelectorAll('[data-tab]').forEach(b=>b.classList.remove('active'));btn.classList.add('active');currentTab=btn.dataset.tab;render();};
+});
+document.getElementById('filterBar').querySelectorAll('button').forEach(btn=>{
+  btn.onclick=()=>{document.getElementById('filterBar').querySelectorAll('button').forEach(b=>b.classList.remove('active'));btn.classList.add('active');currentFilter=btn.dataset.f;render();};
+});
+$('searchBox').oninput=()=>render();
+$('reloadBtn').onclick=()=>loadAll();
+
+$('loginForm').onsubmit=async e=>{e.preventDefault();$('loginMsg').textContent='Memeriksa…';$('loginMsg').classList.remove('hidden');try{await signInWithEmailAndPassword(auth,$('email').value.trim(),$('password').value);}catch(x){$('loginMsg').textContent='Login gagal: '+x.message;}};
+$('logoutBtn').onclick=async()=>{try{await signOut(auth);}catch{}finally{location.href='./index.html';}};
+
+onAuthStateChanged(auth,async u=>{
+  if(!u){$('loginPanel').classList.remove('hidden');$('dashboard').classList.add('hidden');$('logoutBtn').classList.add('hidden');$('bottomNav').classList.add('hidden');return;}
+  try{userNow=u;profile=await getProfile(u);const actual=roleOf(profile);if(actual!==ROLE){$('loginMsg').textContent='Role harus kurir, Anda: '+actual;$('loginMsg').classList.remove('hidden');return;} $('welcomeTop').textContent='Halo, Kak, '+(profile.nama||u.email)+' · Riwayat'; $('loginPanel').classList.add('hidden');$('dashboard').classList.remove('hidden');$('logoutBtn').classList.remove('hidden');$('bottomNav').classList.remove('hidden');await loadAll();}catch(x){$('loginMsg').textContent='Gagal: '+x.message;$('loginMsg').classList.remove('hidden');}
+});
+</script>
+<script>(function(){var loc=location.href.replace(/#.*$/,"");var ATTR_NAMES=["data-product-id","data-productid","data-product_id","product-id","productid","product_id","data-source-entity-id","source-entity-id","source_entity_id","data-product","data-metadata","data-meta"];var DATASET_KEYS=["productId","productid","product_id","sourceEntityId","sourceentityid","source_entity_id","product","metadata","meta"];function readProductId(value){if(typeof value!=="string"||value.length===0)return null;if(/^[0-9]{6,}$/.test(value))return value;var match=value.match(/(?:product(?:_|-)?id|source(?:_|-)?entity(?:_|-)?id)["'=:\s]+([0-9]{6,})/i);return match?match[1]:null}function extractProductId(start){for(var node=start;node&&node!==document.body;node=node.parentElement){for(var i=0;i<ATTR_NAMES.length;i++){var attrValue=node.getAttribute&&node.getAttribute(ATTR_NAMES[i]);var attrProductId=readProductId(attrValue);if(attrProductId)return attrProductId}var dataset=node.dataset||null;if(dataset){for(var j=0;j<DATASET_KEYS.length;j++){var dataValue=dataset[DATASET_KEYS[j]];var dataProductId=readProductId(dataValue);if(dataProductId)return dataProductId}}}return null}function isInlineMediaSlotElement(node){return !!(node&&node.getAttribute&&node.getAttribute("data-clippy-inline-media-slot")!==null)}function findInlineMediaSlot(start){for(var node=start;node&&node!==document.body;node=node.parentElement){if(isInlineMediaSlotElement(node))return node}return null}function readInlineMediaUrl(node){if(!node)return null;return node.getAttribute&&((node.getAttribute("data-clippy-inline-media-url")||node.getAttribute("data-url")||node.getAttribute("data_url")))||node.href||null}function stripHash(url){return String(url).replace(/#.*$/,"")}function urlsMatch(a,b){if(!a||!b)return false;try{return stripHash(new URL(a,loc).href)===stripHash(new URL(b,loc).href)}catch(_){return stripHash(a)===stripHash(b)}}function isFirstPartyReelUrl(value){try{var url=new URL(value,loc);if(url.protocol!=="https:")return false;var host=url.hostname.toLowerCase();var supported=host==="instagram.com"||host.endsWith(".instagram.com")||host==="facebook.com"||host.endsWith(".facebook.com");return supported&&/\/reels?\//i.test(url.pathname)}catch(_){return false}}function isInlineMediaUrlClick(node,href){var slot=findInlineMediaSlot(node);if(!slot)return false;var slotUrl=readInlineMediaUrl(slot);if(slotUrl)return urlsMatch(href,slotUrl);return isFirstPartyReelUrl(href)}function findDataHref(start){for(var node=start;node&&node!==document.body;node=node.parentElement){if(node.getAttribute){var href=node.getAttribute("data-href")||node.getAttribute("data-url");if(href)return{href:href,node:node}}}return null}var nativeOpen=window.open;window.open=function(url){if(parent!==window&&typeof url==="string"&&/^https?:\/\//.test(url)){parent.postMessage({type:"ecto:usercontent-link-click",href:url},"*");return null}return nativeOpen?nativeOpen.apply(window,arguments):null};document.addEventListener("click",function(e){var target=e.target instanceof Element?e.target:null;if(!target)return;if(parent===window)return;var a=target.closest?target.closest("a[href]"):null;if(a&&a.href&&/^https?:\/\//.test(a.href)&&a.href.replace(/#.*$/,"")!==loc){if(isInlineMediaUrlClick(a,a.href))return;var productId=extractProductId(target)||extractProductId(a);if(productId){e.preventDefault();parent.postMessage({type:"ecto-artifact-link-click",productId:productId},"*");return}e.preventDefault();parent.postMessage({type:"ecto:usercontent-link-click",href:a.href},"*");return}var dataHref=findDataHref(target);if(dataHref&&/^https?:\/\//.test(dataHref.href)&&dataHref.href.replace(/#.*$/,"")!==loc){if(isInlineMediaUrlClick(dataHref.node,dataHref.href))return;e.preventDefault();parent.postMessage({type:"ecto:usercontent-link-click",href:dataHref.href},"*")}},true)})();</script><script>(function(){var FOCUS_TYPE="ecto:artifact-focus-request";var CLOSE_TYPE="ecto:artifact-close-request";function focusArtifactDocument(){var body=document.body;if(!body)return;try{window.focus();}catch(e){}if(!body.hasAttribute("tabindex"))body.setAttribute("tabindex","-1");try{body.focus({preventScroll:true});}catch(e){try{body.focus();}catch(e2){}}}window.addEventListener("message",function(event){if(event.source!==window.parent)return;var data=event.data;if(!data||typeof data!=="object"||data.type!==FOCUS_TYPE)return;if(document.readyState==="loading"){document.addEventListener("DOMContentLoaded",focusArtifactDocument,{once:true});return;}focusArtifactDocument();});window.addEventListener("keydown",function(event){if(event.key!=="Escape")return;window.setTimeout(function(){if(event.defaultPrevented)return;window.parent.postMessage({type:CLOSE_TYPE},"*");},0);});})();</script></body>
+</html>

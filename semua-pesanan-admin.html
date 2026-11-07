@@ -1,0 +1,211 @@
+<!doctype html>
+<html lang="id"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Admin Pending - Hilang Setelah Disetujui - Mode Bersih Fix</title>
+<style>
+:root{--yellow:#ffcc00;--bg:#f8f9fa;--card:#fff;--line:#eef0f2;--muted:#8b8f97;--black:#111}
+*{box-sizing:border-box}body{margin:0;background:var(--bg);font:14px/1.5 system-ui}
+.top{background:var(--black);color:#fff;padding:14px 16px 24px;border-radius:0 0 24px 24px}
+.topline{max-width:1100px;margin:auto;display:flex;justify-content:space-between;align-items:center}
+.brand{color:var(--yellow);font-weight:900}
+main{max-width:1100px;margin:-14px auto 0;padding:0 12px 80px}
+.panel{background:var(--card);border:1px solid var(--line);border-radius:20px;padding:16px;margin-bottom:12px;box-shadow:0 8px 20px #0001}
+.btn{border:0;border-radius:12px;padding:10px 14px;font-weight:800;cursor:pointer;font-size:12px}
+.btn.yellow{background:var(--yellow);color:var(--black)}
+.btn.black{background:var(--black);color:var(--yellow)}
+.tabs{display:grid;grid-template-columns:1fr 1fr 1fr;gap:6px;margin:12px 0}
+.tabs button{border:1px solid var(--line);border-radius:14px;padding:10px;font-weight:800;background:#f9f9f9;cursor:pointer;font-size:11px}
+.tabs button.active{background:var(--black);color:var(--yellow);border-color:var(--yellow)}
+.list{display:grid;gap:10px}
+.item{border:1px solid var(--line);border-radius:16px;padding:12px;background:#fff}
+.meta{font-size:11px;color:var(--muted)}
+.badge{font-size:10px;font-weight:800;border-radius:999px;padding:4px 8px;background:#fff4c2}
+.ok{color:#087443;background:#e6f7ef;border:1px solid #c3ead7;border-radius:12px;padding:10px}
+.err{color:#b42318;background:#fdecea;border:1px solid #f5c6c1;border-radius:12px;padding:10px}
+.log{font-size:10px;background:#111;color:#0f0;padding:8px;border-radius:10px;white-space:pre-wrap;max-height:120px;overflow:auto}
+@keyframes fadeOut{from{opacity:1;transform:translateY(0)} to{opacity:0;transform:translateY(-10px)}}
+.item.hiding{animation:fadeOut .4s forwards}
+</style></head><body>
+<div class="top"><div class="topline"><div><div class="brand">TOKO SIAP ANTAR</div><div style="color:var(--yellow);font-weight:800;font-size:12px">Admin • Pending & Verifikasi Keuangan</div><div style="color:#c7cbd0;font-size:10px">Pending → Disetujui (hilang dari pending) → Di Proses Mitra/Kurir → Selesai → Verifikasi Admin → Bagi Saldo 5%</div></div><a href="./index.html" style="color:var(--yellow);text-decoration:none;font-weight:800">← Menu</a></div></div>
+<main>
+<div class="panel">
+<h2 style="margin:0">Semua Pesanan</h2>
+<p class="meta">Setelah disetujui, status jadi <b>disetujui</b> → hilang dari tab Pending (karena tidak terbaca sama query pending) → muncul di tab <b>Di Proses</b> → muncul di Pesanan Masuk Mitra sesuai mitraUid. Setelah Mitra/Kurir selesai upload bukti ke Kolom J, baru muncul di Verifikasi Keuangan.</p>
+<div id="log" class="log" style="display:none"></div>
+<div class="tabs">
+<button id="tabPending" class="active" onclick="loadPending()">🟡 Pending <small id="countPending">0</small></button>
+<button id="tabProses" onclick="loadProses()">🔵 Di Proses <small id="countProses">0</small></button>
+<button id="tabVerifikasi" onclick="loadVerifikasi()">🟠 Verifikasi <small id="countVerifikasi">0</small></button>
+</div>
+<div style="display:flex;gap:6px"><button class="btn yellow" onclick="loadPending()">🔄 Muat Pending</button><button class="btn black" onclick="document.getElementById('log').style.display=document.getElementById('log').style.display==='none'?'block':'none'">📋 Log</button></div>
+</div>
+<div id="content" class="panel">Memuat...</div>
+</main>
+<script type="module">
+import {auth,db} from "./firebase-config.js";
+import {onAuthStateChanged} from "https://www.gstatic.com/firebasejs/12.4.0/firebase-auth.js";
+import {doc,getDoc,collection,getDocs,query,where,limit,updateDoc,serverTimestamp,runTransaction} from "https://www.gstatic.com/firebasejs/12.4.0/firebase-firestore.js";
+const $=id=>document.getElementById(id);
+const esc=s=>String(s??'').replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
+function log(m){const el=$("log"); el.style.display='block'; el.textContent+=`\n${new Date().toLocaleTimeString()} ${m}`; console.log(m);}
+function rupiah(n){return "Rp "+(Number(n)||0).toLocaleString("id-ID");}
+let currentUser=null;
+onAuthStateChanged(auth, async u=>{
+  if(!u){ $("content").innerHTML='<div class="err">Belum login admin. Login dulu di login-fix-session-persist.html</div>'; return; }
+  currentUser=u;
+  try{
+    const snap=await getDoc(doc(db,'users',u.uid));
+    const role=snap.exists()?snap.data().role:'';
+    log(`Login ${u.email} role=${role}`);
+    if(!['admin','superadmin'].includes(role)){
+      log(`⚠️ Role bukan admin, tapi tetap coba load (fallback)`);
+    }
+  }catch(e){ log('cek role error '+e.message); }
+  loadPending();
+});
+function getField(o,paths){for(let p of paths){let v=o; for(let k of p.split('.')){ if(v&&k in v) v=v[k]; else {v=undefined;break;} } if(v!==undefined&&v!==null&&v!=='') return v;} return null;}
+function num(v){const n=Number(v); return isNaN(n)?0:n;}
+function parseSplit(o){
+  const total=num(getField(o,['total'])||0);
+  let ongkir=num(getField(o,['ongkir','ongkosKirim'])||0);
+  let sub=num(getField(o,['subtotal'])||0);
+  if(sub===0&&total>0&&ongkir>0) sub=total-ongkir;
+  if(sub===0) sub=total;
+  const adminPct=0.05, mitraPct=0.95, kurirPct=0.95;
+  return {total,subtotal:sub,ongkir,mitra:Math.round(sub*mitraPct),kurir:Math.round(ongkir*kurirPct),admin:Math.round(sub*adminPct)+Math.round(ongkir*adminPct)};
+}
+async function fetchOrdersByStatus(statuses){
+  // statuses array lowercase
+  try{
+    const all=await getDocs(collection(db,'orders'));
+    const docs=all.docs.map(d=>({id:d.id,...d.data()})).filter(o=>{
+      const s=String(o.status||'').toLowerCase();
+      return statuses.includes(s);
+    });
+    return docs;
+  }catch(e){ log('fetch error '+e.message); return []; }
+}
+async function loadPending(){
+  $("tabPending").classList.add("active"); $("tabProses").classList.remove("active"); $("tabVerifikasi").classList.remove("active");
+  $("content").innerHTML='Memuat pending...';
+  log('loadPending mulai');
+  try{
+    let docs=[];
+    try{
+      const q=query(collection(db,'orders'), where('status','==','pending'), limit(100));
+      const snap=await getDocs(q);
+      docs=snap.docs.map(d=>({id:d.id,...d.data()}));
+      log(`query pending dapat ${docs.length}`);
+    }catch(e){
+      log(`query pending gagal ${e.message}, fallback all`);
+      docs=await fetchOrdersByStatus(['pending','pending_admin']);
+    }
+    // fallback jika 0, coba pending_admin juga
+    if(docs.length===0){
+      const more=await fetchOrdersByStatus(['pending','pending_admin']);
+      docs=more;
+      log(`fallback pending_admin dapat ${docs.length}`);
+    }
+    docs.sort((a,b)=>(b.createdAt?.seconds||0)-(a.createdAt?.seconds||0));
+    $("countPending").textContent=docs.length;
+    if(!docs.length){ $("content").innerHTML='<div class="ok">Tidak ada pending ✅ (setelah disetujui akan hilang dari sini karena status jadi disetujui)</div>'; return; }
+    $("content").innerHTML=`<div class="list">${docs.map(o=>{
+      const s=parseSplit(o);
+      const lat=o.lat||o.alamatPengiriman?.lat, lng=o.lng||o.alamatPengiriman?.lng;
+      const gps=lat&&lng?`<a href="https://www.google.com/maps?q=${lat},${lng}" target="_blank" style="color:#087443;font-weight:800">📍 ${Number(lat).toFixed(5)},${Number(lng).toFixed(5)}</a>`:'GPS -';
+      return `<div class="item" id="order_${o.id}"><div style="display:flex;justify-content:space-between"><b>#${esc(o.nomorPesanan||o.id.slice(0,6))}</b><span class="badge">PENDING</span></div>
+      <div class="meta">Pelanggan: ${esc(o.namaPelanggan||'-')} • Total: ${rupiah(s.total)} • Bayar: ${esc(o.metodePembayaran||'-')}</div>
+      <div class="meta">Alamat: ${esc(o.alamat||o.alamatPengiriman?.alamat||'-')}</div>
+      <div class="meta">${gps} • Mitra: ${esc(o.mitraUid||'-').slice(0,8)}</div>
+      <div style="margin-top:8px;display:flex;gap:6px"><button class="btn yellow" onclick="approveOrder('${o.id}')">✅ Setujui - Hilang dari Pending → Masuk Mitra</button><button class="btn black" onclick="detailOrder('${o.id}')">Detail</button></div></div>`;
+    }).join('')}</div>`;
+  }catch(e){ $("content").innerHTML=`<div class="err">Gagal: ${esc(e.message)}</div>`; }
+}
+window.loadPending=loadPending;
+async function loadProses(){
+  $("tabPending").classList.remove("active"); $("tabProses").classList.add("active"); $("tabVerifikasi").classList.remove("active");
+  $("content").innerHTML='Memuat di proses...';
+  try{
+    const docs=await fetchOrdersByStatus(['disetujui','diterima_mitra','dikemas','menunggu_kurir','siap_antar','dalam_pengiriman','dikirim']);
+    $("countProses").textContent=docs.length;
+    if(!docs.length){ $("content").innerHTML='<div class="ok">Tidak ada pesanan di proses mitra/kurir</div>'; return; }
+    $("content").innerHTML=`<div class="list">${docs.map(o=>{
+      const s=parseSplit(o);
+      return `<div class="item"><b>#${esc(o.nomorPesanan||o.id.slice(0,6))} - ${esc(o.status)}</b><div class="meta">${esc(o.namaPelanggan||'-')} • ${rupiah(s.total)} • Mitra: ${esc(o.mitraUid||'').slice(0,8)} • Kurir: ${esc(o.kurirUid||'').slice(0,8)||'-'}</div>
+      <div class="meta">Metode Penyerahan: ${esc(o.metodePenyerahan||'-')} • Bukti Kolom J: ${o.buktiGambarDiSpreadsheet?'✅ Sudah di Sheet':o.buktiFotoUrl||o.buktiPenyerahanOcr?'Ada OCR':'Belum'}</div></div>`;
+    }).join('')}</div>`;
+  }catch(e){ $("content").innerHTML=`<div class="err">${esc(e.message)}</div>`; }
+}
+window.loadProses=loadProses;
+async function loadVerifikasi(){
+  $("tabPending").classList.remove("active"); $("tabProses").classList.remove("active"); $("tabVerifikasi").classList.add("active");
+  $("content").innerHTML='Memuat verifikasi...';
+  try{
+    const docs=await fetchOrdersByStatus(['menunggu_verifikasi','selesai_mitra','selesai_kurir','selesai']).filter(o=>o.saldoDibagi!==true);
+    $("countVerifikasi").textContent=docs.length;
+    if(!docs.length){ $("content").innerHTML='<div class="ok">Tidak ada menunggu verifikasi keuangan ✅</div>'; return; }
+    $("content").innerHTML=`<div class="list">${docs.map(o=>{
+      const s=parseSplit(o);
+      return `<div class="item" style="border:2px solid var(--yellow)"><b>#${esc(o.nomorPesanan||o.id.slice(0,6))} - ${esc(o.status)}</b><div class="meta">OCR: ${esc((o.buktiPenyerahanOcr||o.buktiResiOcr||'').slice(0,80))}... | Foto Sheet Kolom J: ${o.buktiGambarDiSpreadsheet?'✅':'-'}</div>
+      <div style="margin-top:6px"><button class="btn yellow" onclick="verifikasiKeuangan('${o.id}')">✅ Verifikasi & Bagi (Mitra 95% + Kurir 95% + Admin 5%+5%)</button></div></div>`;
+    }).join('')}</div>`;
+  }catch(e){ $("content").innerHTML=`<div class="err">${esc(e.message)}</div>`; }
+}
+window.loadVerifikasi=loadVerifikasi;
+window.approveOrder=async id=>{
+  const el=document.getElementById('order_'+id);
+  if(!confirm('Setujui? Status jadi disetujui → hilang dari Pending → muncul di Pesanan Masuk Mitra.')) return;
+  try{
+    // Optimistic: langsung hilangkan dari UI dulu biar terasa hilang
+    if(el){ el.classList.add('hiding'); setTimeout(()=>{ el.style.display='none'; const c=Number($("countPending").textContent||1); $("countPending").textContent=Math.max(0,c-1); }, 350); }
+    log(`Menyetujui ${id}...`);
+    const ref=doc(db,'orders',id);
+    await updateDoc(ref,{status:'disetujui',disetujuiAt:serverTimestamp(),disetujuiOleh:currentUser.uid,updatedAt:serverTimestamp()});
+    log(`✅ ${id} disetujui - status jadi disetujui, hilang dari pending`);
+    // Tampilkan toast
+    setTimeout(()=>{ alert('✅ Disetujui! Order hilang dari Pending (karena status jadi disetujui) → sekarang ada di tab Di Proses dan di Pesanan Masuk Mitra.'); loadPending(); loadProses(); }, 500);
+  }catch(e){ log('approve gagal '+e.message); alert('Gagal setujui: '+e.message); if(el){ el.classList.remove('hiding'); el.style.display=''; } }
+};
+window.detailOrder=async id=>{
+  const snap=await getDoc(doc(db,'orders',id));
+  alert(JSON.stringify(snap.data(),null,2).slice(0,3000));
+};
+window.verifikasiKeuangan=async id=>{
+  if(!confirm('Verifikasi & bagi saldo 95%+95%+5%?')) return;
+  try{
+    const ref=doc(db,'orders',id);
+    const snap=await getDoc(ref);
+    const o=snap.data(); const s=parseSplit(o);
+    await runTransaction(db, async tx=>{
+      const orderSnap=await tx.get(ref);
+      if(!orderSnap.exists()) throw Error('Order hilang');
+      if(orderSnap.data().saldoDibagi===true) throw Error('Sudah dibagi');
+      const mitraUid=o.mitraUid, kurirUid=o.kurirUid;
+      const isSendiri=['mitra_kirim_sendiri','via_expedisi','proses_sendiri'].includes(String(o.metodePenyerahan||'').toLowerCase());
+      if(mitraUid){
+        const r=doc(db,'users',mitraUid); const rs=await tx.get(r);
+        if(rs.exists()){
+          const old=Number(rs.data().saldoEwallet??rs.data().saldo??0)||0;
+          const credit=isSendiri?Math.round((s.subtotal+s.ongkir)*0.95):s.mitra;
+          tx.update(r,{saldoEwallet:old+credit, saldo:old+credit, updatedAt:serverTimestamp()});
+        }
+      }
+      if(kurirUid && !isSendiri){
+        const r=doc(db,'users',kurirUid); const rs=await tx.get(r);
+        if(rs.exists()){
+          const old=Number(rs.data().saldoEwallet??rs.data().saldo??0)||0;
+          tx.update(r,{saldoEwallet:old+s.kurir, saldo:old+s.kurir, updatedAt:serverTimestamp()});
+        }
+      }
+      const adminRef=doc(db,'users',currentUser.uid); const adminSnap=await tx.get(adminRef);
+      if(adminSnap.exists()){
+        const old=Number(adminSnap.data().saldoEwallet??adminSnap.data().saldo??0)||0;
+        const adminCredit=isSendiri?Math.round((s.subtotal+s.ongkir)*0.05):s.admin;
+        tx.update(adminRef,{saldoEwallet:old+adminCredit, saldo:old+adminCredit, updatedAt:serverTimestamp()});
+      }
+      tx.update(ref,{status:'selesai', saldoDibagi:true, diverifikasiAt:serverTimestamp(), updatedAt:serverTimestamp()});
+    });
+    alert('✅ Saldo dibagi!');
+    loadVerifikasi();
+  }catch(e){ alert('Gagal: '+e.message); }
+};
+</script></body></html>

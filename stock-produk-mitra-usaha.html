@@ -1,0 +1,638 @@
+<!doctype html>
+<html lang="id">
+<head><style>
+@font-face {
+  font-family: "Optimistic";
+  font-style: normal;
+  font-weight: 400 600;
+  font-display: swap;
+  src: url("/fonts/OptimisticAI_VF_Optimized.woff2") format("woff2");
+}
+@font-face {
+  font-family: "Optimistic Mono";
+  font-style: normal;
+  font-weight: 400;
+  font-display: swap;
+  src: url("/fonts/OptimisticMono_W_TextRegular.woff2") format("woff2");
+}
+:where(html) {
+  font-family: "Optimistic", system-ui, sans-serif;
+}
+:where(code, pre, kbd, samp) {
+  font-family: "Optimistic Mono", ui-monospace, monospace;
+}
+</style>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>Stok Produk Mitra Usaha | Toko Siap Antar</title>
+<style>
+:root{--yellow:#ffcc00;--muted:#64756f;--bg:#f1f2f4;--green:#0a7a42;--red:#b42318;--line:#e8e8e8}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:#171717;font:16px/1.45 system-ui,-apple-system,Segoe UI,Roboto,sans-serif}
+button,input,select,textarea{font:inherit}
+.top{background:#111;color:#fff;padding:20px 16px 58px;border-radius:0 0 38px 38px;position:relative}
+.topline{display:flex;justify-content:space-between;align-items:center;max-width:900px;margin:auto}
+.brand{font-weight:850;font-size:20px;color:var(--yellow);line-height:1.2}
+.sub{font-size:13px;color:#c7cbd0;margin-top:3px}
+.logout{background:#202020;border:1px solid #444;color:white;border-radius:14px;padding:10px 14px;cursor:pointer}
+main{max-width:760px;margin:-28px auto 0;padding:0 14px 110px;position:relative}
+.panel{background:white;border-radius:28px;padding:19px;margin-bottom:14px;box-shadow:0 8px 24px #00000008;position:relative}
+.eyebrow{color:var(--muted);font-size:11px;font-weight:800;letter-spacing:.6px}
+.title{font-size:clamp(22px,6vw,30px);margin:7px 0 8px;font-weight:900;letter-spacing:-.2px}
+.subtle{color:var(--muted);font-size:13px;margin:0 0 10px}
+.hidden{display:none!important}
+.err{color:#b42318;font-size:13px;margin-top:10px;overflow-wrap:anywhere;background:#fff1f0;border:1px solid #f5c6c1;border-radius:12px;padding:10px 12px}
+.ok{color:#087443;font-size:13px;margin-top:10px;overflow-wrap:anywhere;background:#e8fdf1;border:1px solid #b7e8c9;border-radius:12px;padding:10px 12px}
+label{display:block;font-size:14px;font-weight:750;margin:12px 0 5px}
+input,select,textarea{width:100%;border:1px solid #cbd1d6;border-radius:12px;padding:12px;background:white;outline:none}
+textarea{min-height:84px;resize:vertical}
+input:focus,select:focus,textarea:focus{border-color:#111;box-shadow:0 0 0 3px #ffcc0033}
+.submit,.btn{margin-top:12px;background:var(--yellow);border:0;border-radius:12px;padding:12px 14px;font-weight:850;cursor:pointer;transition:.15s transform}
+.submit{width:100%}
+.submit:active,.btn:active{transform:scale(.98)}
+.btn.dark{background:#111;color:var(--yellow)}
+.btn.outline{background:white;border:1px solid #ddd}
+.btn.danger{background:#fff0ee;color:var(--red);border:1px solid #f7c6c1}
+.btn.small{padding:8px 10px;font-size:13px;border-radius:10px;margin-top:6px}
+.section-title{display:flex;justify-content:space-between;gap:12px;margin:2px 2px 12px;align-items:center}
+.section-title h2{font-size:18px;margin:0;font-weight:850}
+.section-title span{font-size:11px;color:var(--muted);font-weight:800;letter-spacing:.5px}
+.notice{background:#fff8d8;border:1px solid #f4df80;border-radius:12px;padding:11px 13px;font-size:13px;color:#5c4b00;margin-top:12px;line-height:1.4}
+
+/* role menu - same as induk */
+#roleNavigation{margin:14px 0}
+.role-menu{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px}
+.role-menu .menu{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:6px;text-align:center;padding:10px 5px;border:1px solid #e5e7eb;border-radius:14px;min-width:0;text-decoration:none;color:inherit;background:#fff;transition:.15s}
+.role-menu .menu b{font-size:12px;line-height:1.35;font-weight:750}
+.role-menu .menu-icon{font-size:23px;line-height:1.2;width:48px;height:48px;border-radius:14px;background:#111;color:var(--yellow);display:grid;place-items:center}
+.role-menu .menu.active{border-color:#111;background:#111;color:#fff;box-shadow:0 6px 16px #1113}
+.role-menu .menu.active .menu-icon{background:var(--yellow);color:#111}
+@media(min-width:560px){.role-menu{grid-template-columns:repeat(4,minmax(0,1fr))}}
+.role-navigation-flat{background:transparent!important;box-shadow:none!important;border:0!important;padding:0!important;margin:14px 0!important}
+.role-navigation-flat .section-title{margin:2px 2px 12px}
+
+/* stats */
+.stats-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px;margin-top:6px}
+.stat-card{border:1px solid #ececec;border-radius:18px;padding:14px;background:#f8faf9}
+.stat-card b{display:block;font-size:22px;margin-top:4px}
+.stat-card span{font-size:11px;color:var(--muted);font-weight:800}
+.stat-card.warn{background:#fffbe6;border-color:#f6e49c}
+.stat-card.danger{background:#fff2f1;border-color:#f5c2be}
+
+/* form grid */
+.form-grid{display:grid;gap:2px}
+.form-row{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+@media(max-width:520px){.form-row{grid-template-columns:1fr}}
+
+/* product list */
+.toolbar{display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin-bottom:10px}
+.search{flex:1;min-width:160px;position:relative}
+.search input{padding-left:38px}
+.search i{position:absolute;left:12px;top:50%;transform:translateY(-50%);font-style:normal;opacity:.6}
+.filter-tabs{display:flex;gap:6px;flex-wrap:wrap}
+.filter-tabs button{border:1px solid #e0e0e0;background:#f7f7f7;border-radius:999px;padding:7px 12px;font-size:12px;font-weight:750;cursor:pointer}
+.filter-tabs button.active{background:#111;color:var(--yellow);border-color:#111}
+
+.prod-grid{display:grid;gap:12px}
+@media(min-width:600px){.prod-grid{grid-template-columns:repeat(2,minmax(0,1fr))}}
+.prod-card{border:1px solid #e6e7e8;border-radius:20px;overflow:hidden;background:white;display:flex;flex-direction:column;transition:.15s box-shadow}
+.prod-card:hover{box-shadow:0 10px 24px #0000000f}
+.prod-img{aspect-ratio:4/3;background:#f3f4f5;position:relative;overflow:hidden;display:grid;place-items:center}
+.prod-img img{width:100%;height:100%;object-fit:cover;display:block}
+.prod-img .placeholder{font-size:42px;opacity:.4}
+.badge{position:absolute;top:10px;left:10px;background:#111;color:var(--yellow);border-radius:999px;padding:5px 9px;font-size:11px;font-weight:800}
+.badge.low{background:#fff3bf;color:#6b5900;border:1px solid #f3de86}
+.badge.out{background:#ffd7d2;color:#7d1d18;border:1px solid #f5b1ab}
+.prod-body{padding:13px 14px 12px;display:flex;flex-direction:column;gap:6px;flex:1}
+.prod-name{font-weight:850;font-size:15px;line-height:1.3;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+.prod-desc{font-size:12px;color:var(--muted);line-height:1.4;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;min-height:34px}
+.prod-meta{display:flex;justify-content:space-between;align-items:center;gap:8px;margin-top:4px}
+.price{font-weight:900;color:#0a7a42;font-size:15px}
+.stock{font-size:12px;font-weight:800;background:#f2f4f3;border-radius:999px;padding:5px 9px}
+.prod-actions{display:grid;grid-template-columns:auto auto 1fr auto;gap:6px;margin-top:8px;align-items:center}
+.prod-actions .qty-btn{width:34px;height:34px;border-radius:10px;border:1px solid #ddd;background:white;font-weight:900;cursor:pointer}
+.prod-actions .edit-btn{flex:1}
+.modal-overlay{position:fixed;inset:0;background:#0008;display:none;place-items:center;z-index:50;padding:16px}
+.modal-overlay.open{display:grid}
+.modal{background:white;border-radius:24px;padding:18px;max-width:520px;width:100%;max-height:90vh;overflow:auto;box-shadow:0 20px 40px #0003}
+.modal h3{margin:0 0 8px;font-size:20px;font-weight:900}
+.close-x{float:right;background:#f2f2f2;border:0;width:32px;height:32px;border-radius:999px;cursor:pointer;font-weight:800}
+
+/* bottom nav black yellow */
+.bottom{position:fixed;bottom:0;left:0;right:0;background:#111;border-top:3px solid var(--yellow);display:flex;justify-content:space-around;padding:9px 5px calc(9px + env(safe-area-inset-bottom));z-index:20}
+.bottom a{color:var(--yellow);text-decoration:none;text-align:center;font-size:11px;font-weight:750;min-width:56px;padding:4px 2px;border-radius:10px}
+.bottom a.active{background:#212121}
+.ico{display:block;font-size:22px;line-height:1}
+
+.empty{border:1px dashed #d8dadc;border-radius:18px;padding:22px;text-align:center;background:#fbfbfb;color:var(--muted)}
+.empty b{color:#111;display:block;margin-bottom:4px}
+</style>
+</head>
+<body>
+<header class="top">
+  <div class="topline">
+    <div>
+      <div class="brand" id="welcomeTop">Halo, Kak!</div>
+      <div class="sub">Stok Produk & Inventaris · Mitra Usaha</div>
+    </div>
+    <button id="logoutBtn" class="logout hidden">Keluar</button>
+  </div>
+</header>
+
+<main>
+  <section id="loginPanel" class="panel">
+    <div class="eyebrow">AKSES AKUN MITRA USAHA</div>
+    <h1 class="title">Masuk Stok Produk</h1>
+    <p class="subtle">Kelola daftar produk Anda. Login untuk melihat produk dengan ownerUid Anda.</p>
+    <form id="loginForm">
+      <label>Email</label>
+      <input id="email" type="email" autocomplete="username" required>
+      <label>Password</label>
+      <input id="password" type="password" autocomplete="current-password" required>
+      <button class="submit">Masuk</button>
+    </form>
+    <div id="loginMsg" class="err hidden"></div>
+  </section>
+
+  <section id="dashboard" class="hidden">
+    <!-- Navigasi 8 menu - konsisten dengan ewallet-mitra-usaha -->
+    <div class="panel role-navigation-flat" id="roleNavigation">
+      <div class="section-title"><h2>Navigasi Halaman</h2><span>MENU SESUAI AKUN</span></div>
+      <div class="menu-grid role-menu">
+        <a class="menu" href="./index.html"><span class="menu-icon">🏡</span><b>Halaman Utama</b></a>
+        <a class="menu" href="./dashboard-mitra-usaha.html"><span class="menu-icon">🏠</span><b>Dashboard Mitra</b></a>
+        <a class="menu" href="./pesanan-masuk-mitra-usaha.html"><span class="menu-icon">📥</span><b>Pesanan Masuk</b></a>
+        <a class="menu active" href="./stok-produk-mitra-usaha.html"><span class="menu-icon">📦</span><b>Stok Produk</b></a>
+        <a class="menu" href="./harga-modal-mitra-usaha.html"><span class="menu-icon">💵</span><b>Harga Modal</b></a>
+        <a class="menu" href="./riwayat-pesanan-mitra-usaha.html"><span class="menu-icon">🧾</span><b>Riwayat Pesanan</b></a>
+        <a class="menu" href="./profil-mitra-usaha.html"><span class="menu-icon">👤</span><b>Profil Mitra</b></a>
+        <a class="menu" href="./ewallet-mitra-usaha.html"><span class="menu-icon">💰</span><b>E-Wallet</b></a>
+      </div>
+      <div class="notice" style="margin-top:10px">Mitra hanya melihat <b>nama & qty</b> untuk pesanan. Di halaman ini Anda kelola stok produk milik Anda (ownerUid = UID Anda).</div>
+    </div>
+
+    <div class="panel">
+      <div class="eyebrow">DASHBOARD MITRA USAHA</div>
+      <h1 class="title" id="welcome">Stok Produk Mitra</h1>
+      <p class="subtle" id="welcomeSub">Kelola inventaris produk toko Anda. Produk disimpan di koleksi <code>products</code> dengan ownerUid.</p>
+      <div class="stats-grid">
+        <div class="stat-card"><span>Total Produk</span><b id="statTotal">0</b><span>item terdaftar</span></div>
+        <div class="stat-card warn"><span>Total Stok</span><b id="statStock">0</b><span>qty tersedia</span></div>
+        <div class="stat-card danger"><span>Habis / Rendah</span><b id="statLow">0</b><span>perlu isi ulang</span></div>
+      </div>
+    </div>
+
+    <div class="panel" id="formPanel">
+      <div class="section-title"><h2>Tambah Produk Baru</h2><span>FORM MITRA</span></div>
+      <form id="productForm">
+        <div class="form-grid">
+          <label>Nama produk *</label>
+          <input id="pNama" required maxlength="120" placeholder="Contoh: LCD UNIVERSAL OPPO A3S">
+          <label>Deskripsi</label>
+          <textarea id="pDeskripsi" maxlength="500" placeholder="Detail produk, kualitas, garansi..."></textarea>
+          <div class="form-row">
+            <div><label>Harga jual (Rp) *</label><input id="pHarga" type="number" min="0" step="100" required placeholder="222578"></div>
+            <div><label>Stok qty *</label><input id="pStok" type="number" min="0" step="1" required placeholder="25"></div>
+          </div>
+          <div class="form-row">
+            <div><label>Harga modal (opsional)</label><input id="pModal" type="number" min="0" step="100" placeholder="180000 - untuk laporan internal"></div>
+            <div><label>Kategori</label><select id="pKategori"><option value="umum">Umum</option><option value="lcd">LCD</option><option value="baterai">Baterai</option><option value="aksesoris">Aksesoris</option><option value="sparepart">Sparepart</option><option value="pakaian">Pakaian</option><option value="buah">Buah Segar</option><option value="bibit">Bibit Tanaman</option><option value="kebutuhan">Kebutuhan Harian</option></select></div>
+          </div>
+          <label>URL Gambar Produk</label>
+          <input id="pGambar" type="url" placeholder="https://.../image.jpg atau kosong untuk placeholder">
+          <div id="formMsg" class="hidden"></div>
+          <button class="submit" type="submit" id="submitBtn">Simpan Produk ke Firestore</button>
+          <div class="notice">Produk akan tersimpan dengan <b>ownerUid = UID Anda</b>, agar muncul di marketplace dan checkout pelanggan. Gambar menggunakan URL publik (bisa dari hosting atau CDN).</div>
+        </div>
+      </form>
+    </div>
+
+    <div class="panel">
+      <div class="section-title"><h2>Daftar Produk Anda</h2><span id="countInfo">0 PRODUK</span></div>
+      <div class="toolbar">
+        <div class="search"><i>🔍</i><input id="searchInput" placeholder="Cari nama, deskripsi, kategori..."></div>
+        <div class="filter-tabs">
+          <button data-filter="all" class="active">Semua</button>
+          <button data-filter="low">Stok rendah ≤5</button>
+          <button data-filter="out">Habis</button>
+        </div>
+        <button class="btn small outline" id="refreshBtn">↻ Refresh</button>
+      </div>
+      <div id="productList" class="prod-grid"><div class="empty"><b>Memuat produk...</b>Mengambil data dari Firestore...</div></div>
+    </div>
+
+  </section>
+</main>
+
+<div class="modal-overlay" id="editModal">
+  <div class="modal">
+    <button class="close-x" id="closeModal">✕</button>
+    <h3>Edit Produk</h3>
+    <p class="subtle">Ubah detail produk milik Anda.</p>
+    <form id="editForm">
+      <input type="hidden" id="eId">
+      <label>Nama produk *</label><input id="eNama" required>
+      <label>Deskripsi</label><textarea id="eDeskripsi"></textarea>
+      <div class="form-row">
+        <div><label>Harga jual (Rp) *</label><input id="eHarga" type="number" min="0" step="100" required></div>
+        <div><label>Stok qty *</label><input id="eStok" type="number" min="0" step="1" required></div>
+      </div>
+      <div class="form-row">
+        <div><label>Harga modal</label><input id="eModal" type="number" min="0" step="100"></div>
+        <div><label>Kategori</label><select id="eKategori"><option value="umum">Umum</option><option value="lcd">LCD</option><option value="baterai">Baterai</option><option value="aksesoris">Aksesoris</option><option value="sparepart">Sparepart</option><option value="pakaian">Pakaian</option><option value="buah">Buah Segar</option><option value="bibit">Bibit Tanaman</option><option value="kebutuhan">Kebutuhan Harian</option></select></div>
+      </div>
+      <label>URL Gambar</label><input id="eGambar" type="url">
+      <div id="editMsg" class="hidden"></div>
+      <button class="submit" type="submit">Simpan Perubahan</button>
+    </form>
+  </div>
+</div>
+
+<nav id="bottomNav" class="bottom hidden">
+  <a href="./index.html"><span class="ico">⌂</span>Beranda</a>
+  <a href="./pesanan-masuk-mitra-usaha.html"><span class="ico">📥</span>Pesanan</a>
+  <a href="./stok-produk-mitra-usaha.html" class="active"><span class="ico">📦</span>Stok</a>
+  <a href="./ewallet-mitra-usaha.html"><span class="ico">💰</span>E-Wallet</a>
+</nav>
+
+<script type="module">
+import {auth, db} from './firebase-config.js';
+import {onAuthStateChanged, signInWithEmailAndPassword, signOut} from 'https://www.gstatic.com/firebasejs/12.4.0/firebase-auth.js';
+import {doc, getDoc, collection, query, where, getDocs, addDoc, updateDoc, deleteDoc, serverTimestamp, limit, orderBy} from 'https://www.gstatic.com/firebasejs/12.4.0/firebase-firestore.js';
+
+const $ = id => document.getElementById(id);
+const ROLE = 'mitra_usaha';
+let user=null, profile={}, productsCache=[];
+
+const money = n => 'Rp ' + Number(n||0).toLocaleString('id-ID');
+const esc = s => String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const fmtStock = s => Number(s||0);
+function roleOf(p){
+  let r=String(p.role??p.peran??p.jenisAkun??p.tipeAkun??'').toLowerCase().replace(/[\s-]+/g,'_');
+  return ({customer:'pelanggan',user:'pelanggan',pembeli:'pelanggan',mitra:'mitra_usaha',merchant:'mitra_usaha',seller:'mitra_usaha',courier:'kurir',driver:'kurir',administrator:'admin',super_admin:'superadmin'})[r]||r;
+}
+async function getProfile(u){
+  let s=await getDoc(doc(db,'users',u.uid));
+  if(s.exists()) return s.data();
+  let q=await getDocs(query(collection(db,'users'),where('email','==',u.email||''),limit(1)));
+  if(!q.empty) return q.docs[0].data();
+  throw Error('Profil akun tidak ditemukan pada koleksi users.');
+}
+function showMsg(el, text, ok=false){
+  el.classList.remove('hidden');
+  el.className = ok ? 'ok' : 'err';
+  el.textContent = text;
+}
+function hideMsg(el){ el.classList.add('hidden'); }
+
+// Auth UI
+$('loginForm').onsubmit = async e=>{
+  e.preventDefault();
+  const em=$('email').value.trim(), pw=$('password').value;
+  $('loginMsg').classList.remove('hidden');
+  $('loginMsg').textContent='Memeriksa akun...';
+  try{ await signInWithEmailAndPassword(auth, em, pw); }
+  catch(x){ $('loginMsg').className='err'; $('loginMsg').textContent='Login gagal: '+x.message; }
+};
+$('logoutBtn').onclick = async ()=>{
+  try{ await signOut(auth);}catch(err){ console.error(err); }
+  finally{ location.assign(new URL('./index.html', location.href).href); }
+};
+
+// Render helpers
+function getProdImage(p){
+  return p.gambar || p.gambarUrl || p.fotoUrl || p.imageUrl || p.foto || p.image || '';
+}
+function getProdName(p){ return p.nama || p.name || p.title || 'Produk Tanpa Nama'; }
+function getProdPrice(p){ return Number(p.hargaJual ?? p.harga ?? p.price ?? 0); }
+function getProdStock(p){ return Number(p.stok ?? p.stock ?? p.qty ?? p.jumlah ?? 0); }
+
+function renderList(filterText='', stockFilter='all'){
+  const listEl = $('productList');
+  let filtered = productsCache.slice();
+
+  if(filterText){
+    const q = filterText.toLowerCase();
+    filtered = filtered.filter(({data:p})=>{
+      const hay = [getProdName(p), p.deskripsi||p.description||'', p.kategori||p.category||''].join(' ').toLowerCase();
+      return hay.includes(q);
+    });
+  }
+  if(stockFilter==='low'){ filtered = filtered.filter(({data:p})=>{ const s=getProdStock(p); return s>0 && s<=5; }); }
+  if(stockFilter==='out'){ filtered = filtered.filter(({data:p})=> getProdStock(p)<=0 ); }
+
+  $('countInfo').textContent = filtered.length + ' PRODUK';
+  // stats
+  const totalStock = productsCache.reduce((a,{data:p})=>a+getProdStock(p),0);
+  const lowCount = productsCache.filter(({data:p})=>getProdStock(p)<=5).length;
+  $('statTotal').textContent = productsCache.length;
+  $('statStock').textContent = totalStock;
+  $('statLow').textContent = lowCount;
+
+  if(!filtered.length){
+    listEl.innerHTML = `<div class="empty"><b>Tidak ada produk</b>${stockFilter!=='all'?'Coba ubah filter stok.':'Tambahkan produk baru lewat form di atas atau periksa ownerUid.'}</div>`;
+    return;
+  }
+
+  listEl.innerHTML = filtered.map(({id, data:p})=>{
+    const name = esc(getProdName(p));
+    const desc = esc((p.deskripsi||p.description||'').slice(0,120));
+    const price = money(getProdPrice(p));
+    const stok = getProdStock(p);
+    const modal = p.hargaModal ?? p.modal ?? null;
+    const img = getProdImage(p);
+    const badge = stok<=0 ? '<span class="badge out">HABIS</span>' : stok<=5 ? '<span class="badge low">RENDAH: '+stok+'</span>' : '<span class="badge">'+stok+' tersedia</span>';
+    const imgTag = img ? `<img src="${esc(img)}" alt="${name}" loading="lazy" onerror="this.style.display='none'; this.nextElementSibling.style.display='grid'"><div class="placeholder" style="display:none">📦</div>` : '<div class="placeholder">📦</div>';
+    return `<div class="prod-card" data-id="${id}">
+      <div class="prod-img">${imgTag}${badge}</div>
+      <div class="prod-body">
+        <div class="prod-name">${name}</div>
+        <div class="prod-desc">${desc || 'Tanpa deskripsi'}</div>
+        <div class="prod-meta">
+          <span class="price">${price}</span>
+          <span class="stock">Stok: ${stok}</span>
+        </div>
+        ${modal!==null?`<div class="subtle" style="font-size:11px">Modal: ${money(modal)}</div>`:''}
+        <div class="prod-actions">
+          <button class="qty-btn" data-act="dec" data-id="${id}">−</button>
+          <button class="qty-btn" data-act="inc" data-id="${id}">+</button>
+          <button class="btn small dark edit-btn" data-act="edit" data-id="${id}">✏️ Edit</button>
+          <button class="btn small danger" data-act="del" data-id="${id}">🗑️</button>
+        </div>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+// Firestore operations
+async function loadProducts(){
+  if(!user) return;
+  $('productList').innerHTML = '<div class="empty"><b>Memuat produk...</b>Mengambil data...</div>';
+  try{
+    // Primary query ownerUid == uid
+    let queries = [
+      query(collection(db,'products'), where('ownerUid','==',user.uid), limit(200)),
+      query(collection(db,'products'), where('mitraId','==',user.uid), limit(200)),
+      query(collection(db,'products'), where('ownerId','==',user.uid), limit(200)),
+      query(collection(db,'products'), where('uid','==',user.uid), limit(200))
+    ];
+    let resultsMap = new Map();
+    for(let q of queries){
+      try{
+        let snap = await getDocs(q);
+        snap.docs.forEach(d=>{
+          if(!resultsMap.has(d.id)) resultsMap.set(d.id, {id:d.id, data:d.data()});
+        });
+      }catch(e){ console.warn('query fail', e.message); }
+    }
+    // If still empty, fallback scan where email matches (costly but small)
+    if(resultsMap.size===0){
+      try{
+        let snap = await getDocs(query(collection(db,'products'), where('ownerEmail','==', user.email||''), limit(200)));
+        snap.docs.forEach(d=>{ if(!resultsMap.has(d.id)) resultsMap.set(d.id,{id:d.id,data:d.data()}); });
+      }catch(e){ console.warn('fallback email fail'); }
+    }
+    productsCache = Array.from(resultsMap.values()).sort((a,b)=>{
+      const ta=a.data.updatedAt?.seconds||a.data.createdAt?.seconds||0;
+      const tb=b.data.updatedAt?.seconds||b.data.createdAt?.seconds||0;
+      return tb-ta;
+    });
+    renderList($('searchInput').value.trim(), document.querySelector('.filter-tabs button.active')?.dataset.filter||'all');
+  }catch(e){
+    $('productList').innerHTML = `<div class="err">Gagal memuat produk: ${esc(e.message)}<br><small>Periksa Firestore Rules untuk products collection.</small></div>`;
+  }
+}
+
+async function addProduct(formData){
+  const ref = await addDoc(collection(db,'products'), {
+    nama: formData.nama,
+    name: formData.nama,
+    deskripsi: formData.deskripsi,
+    description: formData.deskripsi,
+    harga: formData.harga,
+    hargaJual: formData.harga,
+    hargaModal: formData.modal || null,
+    stok: formData.stok,
+    stock: formData.stok,
+    qty: formData.stok,
+    kategori: formData.kategori,
+    category: formData.kategori,
+    gambar: formData.gambar,
+    gambarUrl: formData.gambar,
+    fotoUrl: formData.gambar,
+    imageUrl: formData.gambar,
+    ownerUid: user.uid,
+    ownerId: user.uid,
+    mitraId: user.uid,
+    ownerEmail: user.email||'',
+    pemilik: profile.nama || profile.namaUsaha || profile.name || user.email || '',
+    toko: profile.namaUsaha || profile.namaToko || '',
+    status: 'aktif',
+    isActive: true,
+    createdAt: serverTimestamp(),
+    updatedAt: serverTimestamp()
+  });
+  return ref.id;
+}
+
+async function updateStock(id, deltaOrNew, isDelta=false){
+  const item = productsCache.find(x=>x.id===id);
+  if(!item) throw Error('Produk tidak ditemukan');
+  let newStock;
+  if(isDelta){
+    newStock = getProdStock(item.data) + deltaOrNew;
+  } else {
+    newStock = deltaOrNew;
+  }
+  if(newStock<0) newStock=0;
+  await updateDoc(doc(db,'products', id), {
+    stok: newStock,
+    stock: newStock,
+    qty: newStock,
+    updatedAt: serverTimestamp()
+  });
+  item.data.stok = newStock;
+  item.data.stock = newStock;
+  item.data.qty = newStock;
+}
+
+async function deleteProduct(id){
+  await deleteDoc(doc(db,'products', id));
+  productsCache = productsCache.filter(x=>x.id!==id);
+}
+
+// Events
+$('productForm').onsubmit = async e=>{
+  e.preventDefault();
+  const btn=$('submitBtn'), msg=$('formMsg');
+  hideMsg(msg);
+  if(!user){ showMsg(msg,'Anda belum login.'); return; }
+  const payload = {
+    nama: $('pNama').value.trim(),
+    deskripsi: $('pDeskripsi').value.trim(),
+    harga: Number($('pHarga').value),
+    stok: Number($('pStok').value),
+    modal: $('pModal').value ? Number($('pModal').value) : null,
+    kategori: $('pKategori').value,
+    gambar: $('pGambar').value.trim()
+  };
+  if(!payload.nama) { showMsg(msg,'Nama produk wajib diisi.'); return; }
+  if(payload.harga < 0 || isNaN(payload.harga)){ showMsg(msg,'Harga tidak valid.'); return; }
+  if(payload.stok < 0 || isNaN(payload.stok)){ showMsg(msg,'Stok tidak valid.'); return; }
+  btn.disabled=true; btn.textContent='Menyimpan...';
+  try{
+    await addProduct(payload);
+    showMsg(msg,'Produk berhasil disimpan!', true);
+    e.target.reset();
+    await loadProducts();
+  }catch(err){
+    showMsg(msg,'Gagal simpan: '+err.message);
+  }finally{ btn.disabled=false; btn.textContent='Simpan Produk ke Firestore'; }
+};
+
+$('searchInput').oninput = e=>{
+  const filter = document.querySelector('.filter-tabs button.active')?.dataset.filter||'all';
+  renderList(e.target.value.trim(), filter);
+};
+document.querySelectorAll('.filter-tabs button').forEach(b=>{
+  b.onclick = ()=>{
+    document.querySelectorAll('.filter-tabs button').forEach(x=>x.classList.toggle('active', x===b));
+    renderList($('searchInput').value.trim(), b.dataset.filter);
+  };
+});
+$('refreshBtn').onclick = loadProducts;
+
+$('productList').onclick = async e=>{
+  const btn = e.target.closest('[data-act]');
+  if(!btn) return;
+  const id = btn.dataset.id;
+  const act = btn.dataset.act;
+  try{
+    if(act==='inc'){ btn.disabled=true; await updateStock(id, 1, true); renderList($('searchInput').value.trim(), document.querySelector('.filter-tabs button.active')?.dataset.filter||'all'); }
+    else if(act==='dec'){ btn.disabled=true; await updateStock(id, -1, true); renderList($('searchInput').value.trim(), document.querySelector('.filter-tabs button.active')?.dataset.filter||'all'); }
+    else if(act==='del'){
+      if(!confirm('Hapus produk ini? Tindakan tidak bisa dibatalkan.')) return;
+      btn.textContent='...'; btn.disabled=true;
+      await deleteProduct(id);
+      renderList($('searchInput').value.trim(), document.querySelector('.filter-tabs button.active')?.dataset.filter||'all');
+    }
+    else if(act==='edit'){
+      openEditModal(id);
+    }
+  }catch(err){
+    alert('Gagal: '+err.message);
+  }finally{ if(btn) btn.disabled=false; }
+};
+
+// Edit modal
+function openEditModal(id){
+  const item = productsCache.find(x=>x.id===id);
+  if(!item) return;
+  const p=item.data;
+  $('eId').value=id;
+  $('eNama').value=getProdName(p);
+  $('eDeskripsi').value=p.deskripsi||p.description||'';
+  $('eHarga').value=getProdPrice(p);
+  $('eStok').value=getProdStock(p);
+  $('eModal').value=p.hargaModal??p.modal??'';
+  $('eKategori').value=p.kategori||p.category||'umum';
+  $('eGambar').value=getProdImage(p);
+  hideMsg($('editMsg'));
+  $('editModal').classList.add('open');
+}
+function closeEditModal(){ $('editModal').classList.remove('open'); }
+$('closeModal').onclick = closeEditModal;
+$('editModal').onclick = e=>{ if(e.target.id==='editModal') closeEditModal(); };
+
+$('editForm').onsubmit = async e=>{
+  e.preventDefault();
+  const id=$('eId').value;
+  const msg=$('editMsg');
+  hideMsg(msg);
+  const payload = {
+    nama: $('eNama').value.trim(),
+    deskripsi: $('eDeskripsi').value.trim(),
+    harga: Number($('eHarga').value),
+    stok: Number($('eStok').value),
+    modal: $('eModal').value ? Number($('eModal').value) : null,
+    kategori: $('eKategori').value,
+    gambar: $('eGambar').value.trim()
+  };
+  try{
+    await updateDoc(doc(db,'products', id), {
+      nama: payload.nama,
+      name: payload.nama,
+      deskripsi: payload.deskripsi,
+      description: payload.deskripsi,
+      harga: payload.harga,
+      hargaJual: payload.harga,
+      hargaModal: payload.modal,
+      modal: payload.modal,
+      stok: payload.stok,
+      stock: payload.stok,
+      qty: payload.stok,
+      kategori: payload.kategori,
+      category: payload.kategori,
+      gambar: payload.gambar,
+      gambarUrl: payload.gambar,
+      fotoUrl: payload.gambar,
+      imageUrl: payload.gambar,
+      updatedAt: serverTimestamp()
+    });
+    let cacheItem = productsCache.find(x=>x.id===id);
+    if(cacheItem){
+      cacheItem.data = {...cacheItem.data,
+        nama: payload.nama, name: payload.nama,
+        deskripsi: payload.deskripsi, description: payload.deskripsi,
+        harga: payload.harga, hargaJual: payload.harga,
+        hargaModal: payload.modal,
+        stok: payload.stok, stock: payload.stok, qty: payload.stok,
+        kategori: payload.kategori, category: payload.kategori,
+        gambar: payload.gambar, gambarUrl: payload.gambar, fotoUrl: payload.gambar, imageUrl: payload.gambar
+      };
+    }
+    showMsg(msg,'Perubahan tersimpan!', true);
+    setTimeout(()=>{ closeEditModal(); renderList($('searchInput').value.trim(), document.querySelector('.filter-tabs button.active')?.dataset.filter||'all'); }, 600);
+  }catch(err){ showMsg(msg,'Gagal update: '+err.message); }
+};
+
+// Auth check - hanya mitra_usaha
+onAuthStateChanged(auth, async u=>{
+  if(!u){
+    $('loginPanel').classList.remove('hidden');
+    $('dashboard').classList.add('hidden');
+    $('logoutBtn').classList.add('hidden');
+    $('bottomNav').classList.add('hidden');
+    return;
+  }
+  try{
+    user=u;
+    profile=await getProfile(u);
+    const actual = roleOf(profile);
+    if(actual!==ROLE){
+      throw Error('Halaman ini khusus role Mitra Usaha; role akun Anda '+(actual||'belum disetel')+'. Anda akan dialihkan ke profil.html');
+    }
+    // success
+    $('welcome').textContent = 'Stok Produk - ' + (profile.namaUsaha || profile.namaToko || profile.nama || profile.name || u.email || 'Mitra Usaha');
+    $('welcomeTop').textContent = 'Halo, Kak, ' + (profile.nama || profile.namaUsaha || profile.name || u.email || 'Mitra Usaha');
+    $('welcomeSub').textContent = 'Kelola produk milik UID: '+u.uid.slice(0,8)+'... · '+ (profile.email||u.email||'');
+    $('loginPanel').classList.add('hidden');
+    $('dashboard').classList.remove('hidden');
+    $('logoutBtn').classList.remove('hidden');
+    $('bottomNav').classList.remove('hidden');
+    await loadProducts();
+  }catch(x){
+    $('loginPanel').classList.remove('hidden');
+    $('dashboard').classList.add('hidden');
+    $('logoutBtn').classList.add('hidden');
+    $('bottomNav').classList.add('hidden');
+    const errEl = $('loginMsg');
+    errEl.classList.remove('hidden');
+    errEl.className='err';
+    errEl.textContent = 'Akses ditolak: '+x.message + ' . Mengalihkan ke profil.html dalam 3 detik...';
+    setTimeout(()=>{ window.location.href='./profil.html'; }, 3000);
+  }
+});
+</script>
+<script>(function(){var loc=location.href.replace(/#.*$/,"");var ATTR_NAMES=["data-product-id","data-productid","data-product_id","product-id","productid","product_id","data-source-entity-id","source-entity-id","source_entity_id","data-product","data-metadata","data-meta"];var DATASET_KEYS=["productId","productid","product_id","sourceEntityId","sourceentityid","source_entity_id","product","metadata","meta"];function readProductId(value){if(typeof value!=="string"||value.length===0)return null;if(/^[0-9]{6,}$/.test(value))return value;var match=value.match(/(?:product(?:_|-)?id|source(?:_|-)?entity(?:_|-)?id)["'=:\s]+([0-9]{6,})/i);return match?match[1]:null}function extractProductId(start){for(var node=start;node&&node!==document.body;node=node.parentElement){for(var i=0;i<ATTR_NAMES.length;i++){var attrValue=node.getAttribute&&node.getAttribute(ATTR_NAMES[i]);var attrProductId=readProductId(attrValue);if(attrProductId)return attrProductId}var dataset=node.dataset||null;if(dataset){for(var j=0;j<DATASET_KEYS.length;j++){var dataValue=dataset[DATASET_KEYS[j]];var dataProductId=readProductId(dataValue);if(dataProductId)return dataProductId}}}return null}function isInlineMediaSlotElement(node){return !!(node&&node.getAttribute&&node.getAttribute("data-clippy-inline-media-slot")!==null)}function findInlineMediaSlot(start){for(var node=start;node&&node!==document.body;node=node.parentElement){if(isInlineMediaSlotElement(node))return node}return null}function readInlineMediaUrl(node){if(!node)return null;return node.getAttribute&&((node.getAttribute("data-clippy-inline-media-url")||node.getAttribute("data-url")||node.getAttribute("data_url")))||node.href||null}function stripHash(url){return String(url).replace(/#.*$/,"")}function urlsMatch(a,b){if(!a||!b)return false;try{return stripHash(new URL(a,loc).href)===stripHash(new URL(b,loc).href)}catch(_){return stripHash(a)===stripHash(b)}}function isFirstPartyReelUrl(value){try{var url=new URL(value,loc);if(url.protocol!=="https:")return false;var host=url.hostname.toLowerCase();var supported=host==="instagram.com"||host.endsWith(".instagram.com")||host==="facebook.com"||host.endsWith(".facebook.com");return supported&&/\/reels?\//i.test(url.pathname)}catch(_){return false}}function isInlineMediaUrlClick(node,href){var slot=findInlineMediaSlot(node);if(!slot)return false;var slotUrl=readInlineMediaUrl(slot);if(slotUrl)return urlsMatch(href,slotUrl);return isFirstPartyReelUrl(href)}function findDataHref(start){for(var node=start;node&&node!==document.body;node=node.parentElement){if(node.getAttribute){var href=node.getAttribute("data-href")||node.getAttribute("data-url");if(href)return{href:href,node:node}}}return null}var nativeOpen=window.open;window.open=function(url){if(parent!==window&&typeof url==="string"&&/^https?:\/\//.test(url)){parent.postMessage({type:"ecto:usercontent-link-click",href:url},"*");return null}return nativeOpen?nativeOpen.apply(window,arguments):null};document.addEventListener("click",function(e){var target=e.target instanceof Element?e.target:null;if(!target)return;if(parent===window)return;var a=target.closest?target.closest("a[href]"):null;if(a&&a.href&&/^https?:\/\//.test(a.href)&&a.href.replace(/#.*$/,"")!==loc){if(isInlineMediaUrlClick(a,a.href))return;var productId=extractProductId(target)||extractProductId(a);if(productId){e.preventDefault();parent.postMessage({type:"ecto-artifact-link-click",productId:productId},"*");return}e.preventDefault();parent.postMessage({type:"ecto:usercontent-link-click",href:a.href},"*");return}var dataHref=findDataHref(target);if(dataHref&&/^https?:\/\//.test(dataHref.href)&&dataHref.href.replace(/#.*$/,"")!==loc){if(isInlineMediaUrlClick(dataHref.node,dataHref.href))return;e.preventDefault();parent.postMessage({type:"ecto:usercontent-link-click",href:dataHref.href},"*")}},true)})();</script><script>(function(){var FOCUS_TYPE="ecto:artifact-focus-request";var CLOSE_TYPE="ecto:artifact-close-request";function focusArtifactDocument(){var body=document.body;if(!body)return;try{window.focus();}catch(e){}if(!body.hasAttribute("tabindex"))body.setAttribute("tabindex","-1");try{body.focus({preventScroll:true});}catch(e){try{body.focus();}catch(e2){}}}window.addEventListener("message",function(event){if(event.source!==window.parent)return;var data=event.data;if(!data||typeof data!=="object"||data.type!==FOCUS_TYPE)return;if(document.readyState==="loading"){document.addEventListener("DOMContentLoaded",focusArtifactDocument,{once:true});return;}focusArtifactDocument();});window.addEventListener("keydown",function(event){if(event.key!=="Escape")return;window.setTimeout(function(){if(event.defaultPrevented)return;window.parent.postMessage({type:CLOSE_TYPE},"*");},0);});})();</script></body>
+</html>

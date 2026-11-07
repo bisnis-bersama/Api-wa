@@ -1,0 +1,214 @@
+<!doctype html>
+<html lang="id">
+<head><style>
+@font-face {
+  font-family: "Optimistic";
+  font-style: normal;
+  font-weight: 400 600;
+  font-display: swap;
+  src: url("/fonts/OptimisticAI_VF_Optimized.woff2") format("woff2");
+}
+@font-face {
+  font-family: "Optimistic Mono";
+  font-style: normal;
+  font-weight: 400;
+  font-display: swap;
+  src: url("/fonts/OptimisticMono_W_TextRegular.woff2") format("woff2");
+}
+:where(html) {
+  font-family: "Optimistic", system-ui, sans-serif;
+}
+:where(code, pre, kbd, samp) {
+  font-family: "Optimistic Mono", ui-monospace, monospace;
+}
+</style>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="theme-color" content="#00a85a">
+<title>Profil Akun | Toko Siap Antar</title>
+<style>
+:root{--g:#00a85a;--c:#00c8a0;--y:#ffd400;--ink:#18312b;--muted:#66756f;--line:#dceee5}
+*{box-sizing:border-box}body{margin:0;background:#f4fff7;color:var(--ink);font:15px Arial,sans-serif;padding-bottom:82px}
+header{background:linear-gradient(100deg,#00a85a 0%,#00c8a0 45%,#00c8d7 75%,#a9d900 100%);border-bottom:0;padding:13px 16px;display:flex;align-items:center;gap:12px;position:sticky;top:0;z-index:5;box-shadow:0 4px 12px rgba(0,80,40,.18);color:#fff}
+header img{width:48px;height:44px;object-fit:contain;background:#fff;border-radius:10px;padding:3px}header strong{color:#fff;font-size:17px;text-shadow:0 1px 2px rgba(0,0,0,.15)}header small{display:block;color:#eafff3;font-size:12px;margin-top:3px}
+main{max-width:820px;margin:auto;padding:16px 12px}.title{margin:4px 0;font-size:23px}.sub{color:var(--muted);font-size:13px;margin:6px 0 16px}
+.card{background:white;border:1px solid var(--line);border-radius:15px;padding:15px;margin:12px 0;box-shadow:0 2px 7px #18312b08}
+.muted{color:var(--muted);font-size:12px}.btn{display:inline-block;text-align:center;text-decoration:none;border:0;border-radius:10px;padding:12px 14px;background:linear-gradient(100deg,var(--g),var(--c));color:white;font-weight:700;cursor:pointer}
+.btn2{display:inline-block;text-align:center;text-decoration:none;border:1px solid #b9e5ce;background:#effbf3;color:#087b45;border-radius:10px;padding:10px 12px;font-weight:700;cursor:pointer}
+.danger{background:#fff0ed;color:#b42318;border:0;border-radius:9px;padding:8px 10px;cursor:pointer}.full{width:100%;margin-top:10px}
+input,textarea,select{display:block;width:100%;border:1px solid #cfe5d8;border-radius:10px;padding:12px;font:inherit;margin:6px 0 12px;background:#fff;color:var(--ink)}
+label{font-weight:700;font-size:13px}.note{padding:12px;border-radius:10px;background:#eef7ff;margin:10px 0;font-size:13px}.ok{background:#e5fff0;color:#087b45}.err{background:#fff0ed;color:#b42318}
+.bottom{position:fixed;bottom:0;left:0;right:0;background:#fff;border-top:1px solid #e5e7eb;display:flex;justify-content:space-around;padding:9px 4px calc(8px + env(safe-area-inset-bottom));z-index:10}
+.bottom a{text-decoration:none;color:#008b4c;font-size:19px;text-align:center;min-width:48px}.bottom small{display:block;font-size:10px;margin-top:3px}
+@media(max-width:480px){.title{font-size:20px}.card{padding:12px}header strong{font-size:15px}}
+</style>
+</head>
+<body>
+<header><img src="logo3.png" alt="Logo Toko Siap Antar"><div><strong>Toko Siap Antar</strong><small>Belanja sparepart dan aksesori HP lebih mudah</small></div></header>
+<main>
+<h1 class="title">👤 Profil Akun</h1>
+<p class="sub">Login atau buat akun untuk checkout, menyimpan alamat, dan melihat pesanan.</p>
+<div id="msg"></div>
+<div id="signedOut" class="card">
+  <div id="modeTitle"><h3>Login Akun</h3></div>
+  <form id="authForm">
+    <label>Email</label><input id="email" type="email" autocomplete="email" required>
+    <label>Password</label><input id="password" type="password" minlength="6" autocomplete="current-password" required>
+    <button id="authBtn" class="btn full" type="submit">Login</button>
+  </form>
+  <button id="switch" class="btn2 full" type="button">Belum punya akun pelanggan? Daftar di checkout</button>
+  <div class="card" style="background:#f7fcf9;margin-top:16px"><h3>Daftar sebagai mitra usaha</h3><p class="muted">Untuk toko atau distributor yang menyediakan produk. Tugas: memeriksa ketersediaan stok, memasukkan harga mitra, lalu menyiapkan barang setelah pesanan disetujui. Akun menunggu verifikasi admin.</p><a class="btn full" href="daftar-mitra-usaha.html">Pilih daftar mitra usaha</a></div>
+  <div class="card" style="background:#f7fcf9"><h3>Daftar sebagai kurir</h3><p class="muted">Untuk pengantar barang. Tugas: menerima tawaran pesanan, mengambil barang di mitra usaha, lalu mengantarkannya ke pelanggan. Akun menunggu verifikasi admin.</p><a class="btn full" href="daftar-mitra-pengantaran.html">Pilih daftar kurir</a></div>
+  <!-- Panel Login admin dihapus sesuai permintaan -->
+</div>
+<div id="signedIn" class="card" hidden>
+  <h3>Profil Saya</h3><div id="emailShow" class="muted"></div>
+  <form id="profileForm"><label>Nama lengkap</label><input id="nama" required><label>Nomor WhatsApp</label><input id="telepon" inputmode="tel"><label>Alamat pengiriman</label><textarea id="alamat" placeholder="Alamat lengkap"></textarea><button class="btn full" type="submit">Simpan Profil</button></form>
+  <button id="logout" class="danger full" type="button">Keluar dari akun</button>
+  <button class="btn2 full" type="button" onclick="location.href='riwayat.html'">Lihat Riwayat Pesanan</button>
+</div>
+</main>
+<nav class="bottom"><a href="index.html">⌂<small>Beranda</small></a><a href="keranjang.html">🛒<small>Keranjang</small></a><a href="pesanan.html">▤<small>Pesanan</small></a><a href="riwayat.html">◷<small>Riwayat</small></a><a href="profil.html">👤<small>Profil</small></a></nav>
+<script type="module">
+import {initializeApp} from "https://www.gstatic.com/firebasejs/12.4.0/firebase-app.js";
+import {getAuth,onAuthStateChanged,signInWithEmailAndPassword,signOut,updateProfile} from "https://www.gstatic.com/firebasejs/12.4.0/firebase-auth.js";
+import {getFirestore,doc,getDoc,setDoc,serverTimestamp,collection,query,where,getDocs} from "https://www.gstatic.com/firebasejs/12.4.0/firebase-firestore.js";
+
+const firebaseConfig = {
+  apiKey: "AIzaSyBxqZhl6t3RwrXMwVdJeIkg0NzGfwvlweM",
+  authDomain: "toko-siap-antar-9a7bb.firebaseapp.com",
+  projectId: "toko-siap-antar-9a7bb",
+  storageBucket: "toko-siap-antar-9a7bb.firebasestorage.app",
+  messagingSenderId: "351335838712",
+  appId: "1:351335838712:web:14cc2c7b91bb0c9e1b5c0d"
+};
+const app=initializeApp(firebaseConfig),auth=getAuth(app),db=getFirestore(app);
+const $=id=>document.getElementById(id);
+const esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+let user=null,currentProfile={},redirecting=false;
+const rolePages={pelanggan:'ewallet-pelanggan.html',mitra_usaha:'ewallet-mitra.html',kurir:'ewallet-kurir.html',admin:'ewallet-admin.html'};
+
+function note(msg,type='info'){$('msg').innerHTML=`<div class="note ${type}">${esc(msg)}</div>`}
+async function getUserProfile(uid){
+  // 1. Coba cari by UID (cara standar)
+  try{
+    const snap=await getDoc(doc(db,'users',uid));
+    if(snap.exists()){
+      const data=snap.data(),role=String(data.role||'').trim().toLowerCase();
+      if(!rolePages[role])throw new Error('Role akun tidak dikenal. Hubungi admin. Role='+role);
+      return {data,role,docId:snap.id};
+    }
+  }catch(e){ console.log('get by UID gagal', e); }
+
+  // 2. Fallback: cari by email (untuk kasus doc ID random seperti KdP2UCOVK0UwI7B1mEveniELiEU2 di foto)
+  try{
+    const email = (auth.currentUser?.email || '').trim().toLowerCase();
+    if(email){
+      const q = query(collection(db,'users'), where('email','==',email));
+      const qs = await getDocs(q);
+      if(!qs.empty){
+        // Ambil yang role admin dulu kalau ada
+        let found = null;
+        qs.forEach(d=>{ 
+          const data=d.data(); 
+          const r=String(data.role||'').toLowerCase();
+          if(r==='admin' && !found) found={id:d.id, data};
+          if(!found) found={id:d.id, data};
+        });
+        if(found){
+          const data=found.data, role=String(data.role||'').trim().toLowerCase();
+          if(!rolePages[role])throw new Error('Role akun tidak dikenal. Hubungi admin. Role='+role);
+          console.log('Profil ditemukan via email query, docId:', found.id);
+          return {data,role,docId:found.id};
+        }
+      }
+      // Coba juga where email lowercase variant
+      const q2 = query(collection(db,'users'), where('email','==',email.toLowerCase()));
+      const qs2 = await getDocs(q2);
+      if(!qs2.empty){
+        const d = qs2.docs[0];
+        const data=d.data(), role=String(data.role||'').trim().toLowerCase();
+        if(!rolePages[role])throw new Error('Role akun tidak dikenal.');
+        return {data,role,docId:d.id};
+      }
+    }
+  }catch(e){ console.log('query by email gagal', e); }
+
+  const err=new Error('Profil akun tidak ditemukan di Firestore. UID Auth='+uid+' tidak ada dokumen users/'+uid+' dan query email juga tidak ketemu. Buat dokumen users dengan ID = UID ini atau pastikan field email = '+ (auth.currentUser?.email||'') +' ada di dokumen dengan ID random seperti KdP2UCOVK0UwI7B1mEveniELiEU2.');
+  err.uid=uid;
+  throw err;
+}
+function redirectByRole(role){
+  const target=rolePages[role];
+  if(!target){note('Role akun tidak dikenal. Hubungi admin.','err');return}
+  if(redirecting)return;
+  redirecting=true;
+  location.replace(target);
+}
+$('switch').addEventListener('click',()=>location.href='checkout.html');
+
+$('authForm').addEventListener('submit',async e=>{
+  e.preventDefault();
+  const email=$('email').value.trim(),password=$('password').value;
+  $('authBtn').disabled=true;$('authBtn').textContent='Memeriksa akun...';
+  try{
+    const cred=await signInWithEmailAndPassword(auth,email,password);
+    const {role}=await getUserProfile(cred.user.uid);
+    redirectByRole(role);
+  }catch(err){
+    console.error(err);
+    let msg = err.message||'Login gagal.';
+    const code = err.code||'';
+    if(code.includes('invalid-credential') || code.includes('wrong-password') || code.includes('user-not-found')){
+      msg = 'Email atau password salah. Akun admin@gmail.com belum ada di Firebase Authentication atau password salah.<br><br><b>Cara fix:</b><br>1. Buka Firebase Console > Authentication > Users<br>2. Cek apakah admin@gmail.com ada<br>3. Jika belum, Add user > admin@gmail.com + password<br>4. Jika sudah ada, Reset password atau buat baru<br><br>Error asli: '+code;
+    } else if(msg.includes('Profil akun tidak ditemukan')){
+      msg = 'Login Auth berhasil, tapi data Firestore users/'+(err.uid||'UID')+' tidak ada.<br><br><b>Buat di Firestore:</b><br>Collection: users<br>Document ID: '+ (auth.currentUser?.uid||'UID dari Auth') +'<br>Fields: { email: "'+$('email').value.trim()+'", role: "admin", nama: "Admin" }';
+    } else if(msg.includes('Role akun tidak dikenal')){
+      msg = 'Role di Firestore bukan admin/pelanggan/mitra_usaha/kurir. Cek field role di users/'+auth.currentUser?.uid;
+    }
+    note(msg,'err');
+    $('authBtn').disabled=false;$('authBtn').textContent='Login';
+  }
+});
+
+onAuthStateChanged(auth,async u=>{
+  user=u;
+  if(!u){
+    redirecting=false;$('signedOut').hidden=false;$('signedIn').hidden=true;
+    return;
+  }
+  // Akun yang sudah login selalu diarahkan ke E-Wallet berdasarkan role Firestore.
+  $('signedOut').hidden=true;$('signedIn').hidden=true;
+  try{
+    const {data,role}=await getUserProfile(u.uid);
+    currentProfile=data;
+    redirectByRole(role);
+  }catch(err){
+    note(err.message||'Gagal memeriksa data akun.','err');
+    $('signedOut').hidden=false;$('signedIn').hidden=true;
+  }
+});
+
+$('profileForm').addEventListener('submit',async e=>{
+  e.preventDefault();if(!user)return;
+  const nama=$('nama').value.trim(),telepon=$('telepon').value.trim(),alamat=$('alamat').value.trim();
+  try{
+    const oldAddress=currentProfile.alamatPengiriman||{};
+    const newAddress={...(typeof oldAddress==='object'&&oldAddress?oldAddress:{}),nama,telepon,alamat};
+    await setDoc(doc(db,'users',user.uid),{
+      nama,telepon,noWA:telepon,alamat,alamatPengiriman:newAddress,
+      email:user.email||'',role:currentProfile.role||'pelanggan',updatedAt:serverTimestamp()
+    },{merge:true});
+    currentProfile={...currentProfile,nama,telepon,noWA:telepon,alamat,alamatPengiriman:newAddress};
+    if(nama!==user.displayName)await updateProfile(user,{displayName:nama});
+    note('Profil berhasil disimpan.','ok');
+  }catch(err){note('Gagal menyimpan profil: '+(err.message||'Kesalahan tidak diketahui.'),'err')}
+});
+
+$('logout').addEventListener('click',async()=>{
+  try{await signOut(auth);location.href='profil.html'}
+  catch(err){note('Gagal keluar dari akun: '+(err.message||''),'err')}
+});
+</script>
+<script>(function(){var loc=location.href.replace(/#.*$/,"");var ATTR_NAMES=["data-product-id","data-productid","data-product_id","product-id","productid","product_id","data-source-entity-id","source-entity-id","source_entity_id","data-product","data-metadata","data-meta"];var DATASET_KEYS=["productId","productid","product_id","sourceEntityId","sourceentityid","source_entity_id","product","metadata","meta"];function readProductId(value){if(typeof value!=="string"||value.length===0)return null;if(/^[0-9]{6,}$/.test(value))return value;var match=value.match(/(?:product(?:_|-)?id|source(?:_|-)?entity(?:_|-)?id)["'=:\s]+([0-9]{6,})/i);return match?match[1]:null}function extractProductId(start){for(var node=start;node&&node!==document.body;node=node.parentElement){for(var i=0;i<ATTR_NAMES.length;i++){var attrValue=node.getAttribute&&node.getAttribute(ATTR_NAMES[i]);var attrProductId=readProductId(attrValue);if(attrProductId)return attrProductId}var dataset=node.dataset||null;if(dataset){for(var j=0;j<DATASET_KEYS.length;j++){var dataValue=dataset[DATASET_KEYS[j]];var dataProductId=readProductId(dataValue);if(dataProductId)return dataProductId}}}return null}function isInlineMediaSlotElement(node){return !!(node&&node.getAttribute&&node.getAttribute("data-clippy-inline-media-slot")!==null)}function findInlineMediaSlot(start){for(var node=start;node&&node!==document.body;node=node.parentElement){if(isInlineMediaSlotElement(node))return node}return null}function readInlineMediaUrl(node){if(!node)return null;return node.getAttribute&&((node.getAttribute("data-clippy-inline-media-url")||node.getAttribute("data-url")||node.getAttribute("data_url")))||node.href||null}function stripHash(url){return String(url).replace(/#.*$/,"")}function urlsMatch(a,b){if(!a||!b)return false;try{return stripHash(new URL(a,loc).href)===stripHash(new URL(b,loc).href)}catch(_){return stripHash(a)===stripHash(b)}}function isFirstPartyReelUrl(value){try{var url=new URL(value,loc);if(url.protocol!=="https:")return false;var host=url.hostname.toLowerCase();var supported=host==="instagram.com"||host.endsWith(".instagram.com")||host==="facebook.com"||host.endsWith(".facebook.com");return supported&&/\/reels?\//i.test(url.pathname)}catch(_){return false}}function isInlineMediaUrlClick(node,href){var slot=findInlineMediaSlot(node);if(!slot)return false;var slotUrl=readInlineMediaUrl(slot);if(slotUrl)return urlsMatch(href,slotUrl);return isFirstPartyReelUrl(href)}function findDataHref(start){for(var node=start;node&&node!==document.body;node=node.parentElement){if(node.getAttribute){var href=node.getAttribute("data-href")||node.getAttribute("data-url");if(href)return{href:href,node:node}}}return null}var nativeOpen=window.open;window.open=function(url){if(parent!==window&&typeof url==="string"&&/^https?:\/\//.test(url)){parent.postMessage({type:"ecto:usercontent-link-click",href:url},"*");return null}return nativeOpen?nativeOpen.apply(window,arguments):null};document.addEventListener("click",function(e){var target=e.target instanceof Element?e.target:null;if(!target)return;if(parent===window)return;var a=target.closest?target.closest("a[href]"):null;if(a&&a.href&&/^https?:\/\//.test(a.href)&&a.href.replace(/#.*$/,"")!==loc){if(isInlineMediaUrlClick(a,a.href))return;var productId=extractProductId(target)||extractProductId(a);if(productId){e.preventDefault();parent.postMessage({type:"ecto-artifact-link-click",productId:productId},"*");return}e.preventDefault();parent.postMessage({type:"ecto:usercontent-link-click",href:a.href},"*");return}var dataHref=findDataHref(target);if(dataHref&&/^https?:\/\//.test(dataHref.href)&&dataHref.href.replace(/#.*$/,"")!==loc){if(isInlineMediaUrlClick(dataHref.node,dataHref.href))return;e.preventDefault();parent.postMessage({type:"ecto:usercontent-link-click",href:dataHref.href},"*")}},true)})();</script><script>(function(){var FOCUS_TYPE="ecto:artifact-focus-request";var CLOSE_TYPE="ecto:artifact-close-request";function focusArtifactDocument(){var body=document.body;if(!body)return;try{window.focus();}catch(e){}if(!body.hasAttribute("tabindex"))body.setAttribute("tabindex","-1");try{body.focus({preventScroll:true});}catch(e){try{body.focus();}catch(e2){}}}window.addEventListener("message",function(event){if(event.source!==window.parent)return;var data=event.data;if(!data||typeof data!=="object"||data.type!==FOCUS_TYPE)return;if(document.readyState==="loading"){document.addEventListener("DOMContentLoaded",focusArtifactDocument,{once:true});return;}focusArtifactDocument();});window.addEventListener("keydown",function(event){if(event.key!=="Escape")return;window.setTimeout(function(){if(event.defaultPrevented)return;window.parent.postMessage({type:CLOSE_TYPE},"*");},0);});})();</script></body>
+</html>

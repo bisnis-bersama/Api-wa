@@ -1,0 +1,267 @@
+<!doctype html>
+<html lang="id">
+<head>
+<style>
+@font-face{font-family:"Optimistic";font-style:normal;font-weight:400 600;font-display:swap;src:url("/fonts/OptimisticAI_VF_Optimized.woff2") format("woff2")}
+@font-face{font-family:"Optimistic Mono";font-style:normal;font-weight:400;font-display:swap;src:url("/fonts/OptimisticMono_W_TextRegular.woff2") format("woff2")}
+:where(html){font-family:"Optimistic",system-ui,sans-serif}
+:where(code,pre,kbd,samp){font-family:"Optimistic Mono",ui-monospace,monospace}
+</style>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>E-Wallet Mitra Usaha | Toko Siap Antar</title>
+<style>
+:root{--yellow:#ffcc00;--muted:#64756f;--bg:#f1f2f4;--ok:#087443;--err:#b42318}
+*{box-sizing:border-box}body{margin:0;background:var(--bg);color:#171717;font:16px/1.45 system-ui,sans-serif;padding-bottom:90px}
+.top{background:#111;color:#fff;padding:14px 16px 32px;border-radius:0 0 32px 32px;position:relative}
+.topline{max-width:900px;margin:auto;display:flex;justify-content:space-between;align-items:center;gap:12px}
+.brandWrap{display:flex;align-items:center;gap:10px}.brandWrap img{width:48px;height:48px;border-radius:14px;background:#fff;padding:4px;object-fit:contain}
+.brand{font-weight:900;font-size:18px;color:var(--yellow);line-height:1.1}.brandSmall{font-size:11px;color:#c7cbd0;font-weight:600}
+.greet{font-size:13px;color:#fff;font-weight:800;margin-top:2px}.greet b{color:var(--yellow)}
+.logout{background:#202020;border:1px solid #444;color:white;border-radius:12px;padding:8px 12px;font-size:12px;cursor:pointer}
+main{max-width:760px;margin:-18px auto 0;padding:0 14px 100px;position:relative;z-index:2}
+.panel{background:white;border-radius:24px;padding:18px;margin-bottom:12px;box-shadow:0 8px 24px #0000000d}
+.wallet{background:#fff;border-radius:24px;padding:18px;border:1px solid #ececec}
+.wallet-label{font-size:11px;color:#737d8b;font-weight:800;letter-spacing:.5px}
+.balance{font-size:34px;font-weight:900;margin:6px 0 14px;color:#111}
+.wallet-row{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px;border-top:1px solid #eee;padding-top:14px}
+.wallet-stat{border:1px solid #e8e8e8;border-radius:16px;background:#f7f8f8;padding:12px;min-width:0}
+.wallet-stat span{font-size:11px;color:#737d8b}.wallet-stat strong{display:block;font-size:17px;margin-top:4px;color:#173b32;overflow-wrap:anywhere}
+.iconMenu{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin:14px 0}
+.iconMenu a{position:relative;display:flex;flex-direction:column;align-items:center;gap:8px;text-decoration:none;color:#111;background:#fff;border:1px solid #ececec;border-radius:18px;padding:14px 6px;box-shadow:0 4px 12px #00000006;transition:.15s}
+.iconMenu a:active{transform:scale(.97)}.iconBox{width:54px;height:54px;border-radius:16px;background:#111;color:var(--yellow);display:grid;place-items:center;font-size:26px;position:relative}
+.iconMenu b{font-size:12px;font-weight:800;text-align:center;line-height:1.2}
+.badgeNotif{position:absolute;top:-6px;right:-6px;min-width:22px;height:22px;background:#ff2e2e;color:#fff;font-size:11px;font-weight:900;border-radius:999px;display:grid;place-items:center;padding:0 6px;border:2px solid #fff;box-shadow:0 2px 6px #0003}
+.badgeNotif.hidden{display:none!important}
+.drop{border-radius:18px;overflow:hidden;background:#fff;border:1px solid #ececec;margin-bottom:12px;box-shadow:0 4px 14px #00000005}
+.drop>summary{list-style:none;cursor:pointer;padding:16px 18px;font-weight:850;font-size:15px;display:flex;justify-content:space-between;align-items:center}
+.drop>summary::-webkit-details-marker{display:none}.drop>summary:after{content:"＋";font-size:20px;color:#d5a900}.drop[open]>summary:after{content:"−"}
+.dropContent{padding:0 12px 14px}.dropContent .panel{box-shadow:none;border:1px solid #edf0ed;margin:8px 0;border-radius:14px}
+.tabs{display:grid;grid-template-columns:repeat(3,1fr);gap:6px;margin-bottom:12px}
+.tabs button{background:#f2f4f3;border:1px solid #e0e4e2;border-radius:10px;padding:10px 4px;font-weight:750;font-size:12px;cursor:pointer}
+.tabs button.active{background:#111;color:var(--yellow)}
+.list{display:grid;gap:9px}.item{border:1px solid #e6e7e8;border-radius:14px;padding:12px}
+.itemtop{display:flex;justify-content:space-between;gap:10px}.status{font-size:11px;font-weight:800;border-radius:999px;padding:4px 8px;background:#fff4c2;color:#6d5700}
+.meta{font-size:12px;color:var(--muted);margin-top:4px;overflow-wrap:anywhere}
+.hidden{display:none!important}.err{color:var(--err);background:#fff0ed;border:1px solid #f5c6c1;border-radius:10px;padding:10px;font-size:13px;margin-top:10px}
+.ok{color:var(--ok);background:#e6f7ef;border:1px solid #c3ead7;border-radius:10px;padding:10px;font-size:13px;margin-top:10px}
+label{display:block;font-size:13px;font-weight:750;margin:10px 0 4px}
+input,select{width:100%;border:1px solid #cbd1d6;border-radius:12px;padding:12px;background:white;font:inherit}
+.submit{margin-top:12px;background:var(--yellow);border:0;border-radius:12px;padding:12px;font-weight:850;cursor:pointer;width:100%}
+.bottom{position:fixed;bottom:0;left:0;right:0;background:#111;border-top:3px solid var(--yellow);display:flex;justify-content:space-around;padding:9px 5px calc(9px + env(safe-area-inset-bottom));z-index:5}
+.bottom a{color:var(--yellow);text-decoration:none;text-align:center;font-size:11px;font-weight:750}
+.notice{background:#fff8d8;border:1px solid #f4df80;border-radius:12px;padding:10px 12px;font-size:12px;color:#5c4b00;margin-top:10px}
+.incomeBreakdown{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px;margin-top:12px}
+.breakItem{border:1px solid #e8e8e8;border-radius:13px;padding:10px;background:#fafafa}
+.breakItem span{font-size:11px;color:#737d8b}.breakItem strong{display:block;margin-top:3px;font-size:15px;overflow-wrap:anywhere}
+.txTitle{font-weight:850;font-size:13px}.txNet{font-weight:900;color:#087443}
+@media(max-width:380px){.balance{font-size:29px}.wallet-stat strong{font-size:15px}.iconMenu{gap:6px}.iconMenu a{padding:12px 3px}}
+</style>
+</head>
+<body>
+<header class="top"><div class="topline">
+  <div class="brandWrap"><img src="logo2.png" alt="Logo" onerror="this.src='logo3.png'"><div>
+    <div class="brand">TOKO SIAP ANTAR</div><div class="brandSmall">E-Wallet & Pusat Aktivitas</div><div class="greet" id="welcomeTop">Halo, Kak, Mitra Usaha</div>
+  </div></div>
+  <button id="logoutBtn" class="logout hidden">Keluar</button>
+</div></header>
+<main>
+<section id="loginPanel" class="panel">
+  <div style="font-size:11px;color:#66756f;font-weight:700">AKSES AKUN MITRA USAHA</div>
+  <h1 style="font-size:26px;margin:6px 0 12px;font-weight:850">Masuk E-Wallet</h1>
+  <form id="loginForm"><label>Email</label><input id="email" type="email" autocomplete="username" required>
+    <label>Password</label><input id="password" type="password" autocomplete="current-password" required><button class="submit">Masuk</button></form>
+  <div id="loginMsg" class="err hidden"></div>
+</section>
+<section id="dashboard" class="hidden">
+  <div class="wallet panel" id="balancePanel">
+    <div class="wallet-label">SALDO TERSEDIA</div><div class="balance" id="balance">Rp 0</div>
+    <div class="wallet-row">
+      <div class="wallet-stat"><span>Total pendapatan bersih</span><strong id="income">Rp 0</strong></div>
+      <div class="wallet-stat"><span>Total dicairkan</span><strong id="withdrawn">Rp 0</strong></div>
+    </div>
+    <div class="incomeBreakdown">
+      <div class="breakItem"><span>Penjualan produk (bruto)</span><strong id="grossSales">Rp 0</strong></div>
+      <div class="breakItem"><span>Ongkir hak mitra (bruto)</span><strong id="shippingIncome">Rp 0</strong></div>
+      <div class="breakItem"><span>Potongan admin 5%</span><strong id="adminCut">Rp 0</strong></div>
+      <div class="breakItem"><span>Hasil bersih penjualan</span><strong id="netSales">Rp 0</strong></div>
+    </div>
+    <div class="notice">Pembagian penjualan mengikuti metode pengiriman. Ongkir ekspedisi dan antar sendiri masuk hak mitra; ongkir kurir internal masuk hak kurir. Potongan admin sebesar 5% dari hak bruto.</div>
+  </div>
+
+  <div class="iconMenu" id="roleNavigation">
+    <a href="./index.html"><span class="iconBox">🏡</span><b>Halaman Utama</b></a>
+    <a href="./kelola-produk-mitra.html"><span class="iconBox">🧾</span><b>Kelola Produk</b></a>
+    <a href="./pesanan-masuk-mitra-usaha.html?v=20261031" id="menuPesanan"><span class="iconBox">📥<span id="pendingBadge" class="badgeNotif hidden">0</span></span><b>Pesanan Masuk</b></a>
+    <a href="./riwayat-pesanan-mitra-usaha.html"><span class="iconBox">🧾</span><b>Riwayat Pesanan</b></a>
+  </div>
+
+  <details class="drop" open><summary>Kelola Saldo</summary><div class="dropContent"><div class="panel" style="margin:0">
+    <div class="tabs"><button class="active" data-tab="topup">＋ Top-up</button><button data-tab="withdraw">↗ Pencairan</button><button data-tab="bank">🏦 Rekening</button></div>
+    <section id="topupPane"><form id="topupForm">
+      <label>Nominal top-up (Rp)</label><input id="topupAmount" type="number" min="1000" step="1000" required>
+      <label>Metode pembayaran</label><select id="method"><option value="transfer_bank">Transfer bank</option><option value="qris">QRIS</option><option value="metode_lain">Metode lain (konfirmasi admin)</option></select>
+      <label>Catatan (opsional)</label><input id="topupNote" maxlength="250"><button class="submit">Ajukan Top-up</button>
+    </form><div class="meta">Top-up menunggu verifikasi. Payment gateway otomatis belum dihubungkan.</div></section>
+    <section id="withdrawPane" class="hidden"><form id="withdrawForm">
+      <label>Nominal pencairan (Rp)</label><input id="withdrawAmount" type="number" min="1000" step="1000" required>
+      <label>Nama bank</label><input id="bankName" required><label>Nomor rekening</label><input id="accountNumber" inputmode="numeric" required>
+      <label>Nama pemilik rekening</label><input id="accountName" required><button class="submit">Ajukan Pencairan</button>
+    </form></section>
+    <section id="bankPane" class="hidden"><form id="bankForm">
+      <label>Nama bank</label><input id="savedBank" required><label>Nomor rekening</label><input id="savedNumber" inputmode="numeric" required>
+      <label>Nama pemilik rekening</label><input id="savedName" required><button class="submit">Simpan Rekening</button>
+    </form></section>
+    <div id="actionMsg"></div>
+  </div></div></details>
+
+  <details class="drop"><summary>Transaksi E-Wallet</summary><div class="dropContent">
+    <div class="panel" style="margin:0"><h3 style="margin:0 0 10px;font-size:16px">Riwayat Mutasi Penjualan & Saldo</h3><div id="transactions" class="list">Memuat mutasi...</div></div>
+    <div class="panel" style="margin:8px 0 0"><h3 style="margin:0 0 10px;font-size:16px">Riwayat Top-up & Pencairan</h3><div id="requests" class="list">Memuat pengajuan...</div></div>
+  </div></details>
+</section>
+</main>
+<nav id="bottomNav" class="bottom hidden">
+  <a href="./index.html">⌂<br><small>Beranda</small></a><a href="./pesanan-masuk-mitra-usaha.html?v=20261031">📥<br><small>Masuk</small></a>
+  <a href="./riwayat-pesanan-mitra-usaha.html">🧾<br><small>Riwayat</small></a><a href="./ewallet-mitra-usaha.html">💰<br><small>E-Wallet</small></a>
+</nav>
+
+<script type="module">
+import {initializeApp} from "https://www.gstatic.com/firebasejs/12.4.0/firebase-app.js";
+import {getAuth,onAuthStateChanged,signInWithEmailAndPassword,signOut} from "https://www.gstatic.com/firebasejs/12.4.0/firebase-auth.js";
+import {getFirestore,doc,getDoc,collection,query,where,getDocs,updateDoc,addDoc,serverTimestamp,limit} from "https://www.gstatic.com/firebasejs/12.4.0/firebase-firestore.js";
+const firebaseConfig={apiKey:"AIzaSyBxqZhl6t3RwrXMwVdJeIkg0NzGfwvlweM",authDomain:"toko-siap-antar-9a7bb.firebaseapp.com",projectId:"toko-siap-antar-9a7bb",storageBucket:"toko-siap-antar-9a7bb.firebasestorage.app",messagingSenderId:"351335838712",appId:"1:351335838712:web:14cc2c7b91bb0c9e1b5c0d"};
+const app=initializeApp(firebaseConfig),auth=getAuth(app),db=getFirestore(app);
+const $=id=>document.getElementById(id);
+const esc=s=>String(s??"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
+const ROLE="mitra_usaha";
+let user=null,profile={},balance=0,pendingTimer=null;
+const money=n=>"Rp "+(Number(n)||0).toLocaleString("id-ID");
+const num=v=>{const n=Number(v);return Number.isFinite(n)?n:0;};
+function roleOf(p){const r=String(p.role||"").toLowerCase();return ["mitra","mitra_usaha","mitra-usaha","seller"].includes(r)?"mitra_usaha":r;}
+function msg(s,ok=false){$("actionMsg").className=ok?"ok":"err";$("actionMsg").textContent=s;setTimeout(()=>{$("actionMsg").textContent="";},5000);}
+async function getProfile(u){
+  const s=await getDoc(doc(db,"users",u.uid));
+  if(s.exists())return s.data();
+  const q=await getDocs(query(collection(db,"users"),where("email","==",u.email||""),limit(1)));
+  if(!q.empty)return q.docs[0].data();
+  throw Error("Profil akun tidak ditemukan pada koleksi users.");
+}
+function dateText(d){return d?.toDate?d.toDate().toLocaleString("id-ID"):"Waktu belum tersedia";}
+async function own(col){
+  const s=await getDocs(query(collection(db,col),where("uid","==",user.uid),limit(200)));
+  return s.docs.map(d=>({id:d.id,...d.data()})).sort((a,b)=>(b.createdAt?.seconds||0)-(a.createdAt?.seconds||0));
+}
+function transactionCard(d){
+  const amount=num(d.jumlah??d.amount);
+  const gross=num(d.bruto??(num(d.subtotal)+num(d.ongkirFull)));
+  const product=num(d.subtotal),shipping=num(d.ongkirFull),cut=num(d.potonganAdmin);
+  const label=d.kategori==="ongkir_kurir"?"Ongkir kurir":(d.kategori==="komisi_pesanan"?"Komisi admin":"Hasil penjualan produk");
+  const method=d.metodePengiriman||d.method||"";
+  const order=d.orderId?`Pesanan: ${esc(d.orderId)}`:"";
+  return `<div class="item">
+    <div class="itemtop"><strong class="txTitle">${label}</strong><span class="txNet">+ ${money(amount)}</span></div>
+    <div class="meta">${esc(dateText(d.createdAt))}${method?" · "+esc(method):""}</div>
+    ${order?`<div class="meta">${order}</div>`:""}
+    <div class="meta">Penjualan produk: ${money(product)} · Ongkir mitra: ${money(shipping)}</div>
+    <div class="meta">Bruto hak: ${money(gross)} · Potongan admin 5%: ${money(cut)}</div>
+    <div class="meta" style="font-weight:800;color:#087443">Diterima bersih: ${money(amount)}</div>
+  </div>`;
+}
+function requestCard(kind,d){
+  const amount=num(d.amount),date=dateText(d.createdAt);
+  return `<div class="item"><div class="itemtop"><strong>${esc(kind)} · ${money(amount)}</strong><span class="status">${esc(d.status||"menunggu")}</span></div><div class="meta">${esc(date)} · ${esc(d.method||d.bankName||"")}</div></div>`;
+}
+async function refresh(){
+  const [tx,topups,withdrawals]=await Promise.all([
+    own("ewallet_transaksi").catch(()=>[]),
+    own("ewallet_topups").catch(()=>[]),
+    own("ewallet_withdrawals").catch(()=>[])
+  ]);
+  const sales=tx.filter(x=>x.type==="masuk"&&String(x.kategori||"").startsWith("penjualan_mitra"));
+  const grossSales=sales.reduce((s,x)=>s+num(x.subtotal),0);
+  const shippingIncome=sales.reduce((s,x)=>s+num(x.ongkirFull),0);
+  const adminCut=sales.reduce((s,x)=>s+num(x.potonganAdmin),0);
+  const netSales=sales.reduce((s,x)=>s+num(x.jumlah),0);
+  $("grossSales").textContent=money(grossSales);
+  $("shippingIncome").textContent=money(shippingIncome);
+  $("adminCut").textContent=money(adminCut);
+  $("netSales").textContent=money(netSales);
+  // Pendapatan bersih dari transaksi penjualan yang benar-benar masuk; fallback untuk data lama.
+  $("income").textContent=money(sales.length?netSales:num(profile.totalPendapatan??profile.totalPenghasilan??0));
+  $("transactions").innerHTML=tx.length?tx.map(transactionCard).join(""):'<div class="meta">Belum ada mutasi.</div>';
+  $("requests").innerHTML=[...topups.map(x=>({...x,k:"Top-up"})),...withdrawals.map(x=>({...x,k:"Pencairan"}))]
+    .sort((a,b)=>(b.createdAt?.seconds||0)-(a.createdAt?.seconds||0))
+    .map(x=>requestCard(x.k,x)).join("")||'<div class="meta">Belum ada pengajuan.</div>';
+}
+async function loadPendingCount(){
+  try{
+    const q=query(collection(db,"orders"),where("status","==","menunggu_harga_mitra"),limit(100));
+    const snap=await getDocs(q);let count=0;
+    snap.forEach(d=>{const data=d.data(),mitraUid=data.mitraUsahaUid||data.mitraUid||data.acceptedByMitraUid||"";if(!mitraUid||mitraUid===user.uid)count++;});
+    const badge=$("pendingBadge");
+    if(count>0){badge.textContent=count>99?"99+":count;badge.classList.remove("hidden");}
+    else badge.classList.add("hidden");
+  }catch(e){console.log("pending count error",e);}
+}
+$("loginForm").onsubmit=async e=>{
+  e.preventDefault();$("loginMsg").textContent="Memeriksa akun…";$("loginMsg").classList.remove("hidden");
+  try{await signInWithEmailAndPassword(auth,$("email").value.trim(),$("password").value);}
+  catch(x){$("loginMsg").textContent="Login gagal: "+x.message;}
+};
+$("logoutBtn").onclick=async()=>{try{await signOut(auth);}catch(err){}finally{window.location.assign(new URL("./index.html",window.location.href).href);}};
+document.querySelectorAll("[data-tab]").forEach(b=>b.onclick=()=>{
+  document.querySelectorAll("[data-tab]").forEach(x=>x.classList.toggle("active",x===b));
+  ["topup","withdraw","bank"].forEach(k=>$(k+"Pane").classList.toggle("hidden",k!==b.dataset.tab));
+});
+$("topupForm").onsubmit=async e=>{
+  e.preventDefault();const amount=Number($("topupAmount").value);if(amount<1000)return msg("Minimum top-up Rp1.000.");
+  try{
+    await addDoc(collection(db,"ewallet_topups"),{uid:user.uid,email:user.email||"",role:ROLE,amount,method:$("method").value,note:$("topupNote").value.trim(),status:"menunggu",createdAt:serverTimestamp()});
+    e.target.reset();msg("Pengajuan top-up tersimpan dan menunggu verifikasi. Saldo belum bertambah.",true);await refresh();
+  }catch(x){msg("Gagal mengajukan top-up: "+x.message);}
+};
+$("withdrawForm").onsubmit=async e=>{
+  e.preventDefault();const amount=Number($("withdrawAmount").value);if(amount<1000)return msg("Minimum pencairan Rp1.000.");
+  if(amount>balance)return msg("Saldo yang terbaca tidak mencukupi.");
+  try{
+    await addDoc(collection(db,"ewallet_withdrawals"),{uid:user.uid,email:user.email||"",role:ROLE,amount,bankName:$("bankName").value.trim(),accountNumber:$("accountNumber").value.trim(),accountName:$("accountName").value.trim(),status:"menunggu",createdAt:serverTimestamp()});
+    e.target.reset();msg("Permintaan pencairan tersimpan dan menunggu pemeriksaan. Saldo belum dipotong otomatis.",true);await refresh();
+  }catch(x){msg("Gagal mengajukan pencairan: "+x.message);}
+};
+$("bankForm").onsubmit=async e=>{
+  e.preventDefault();
+  try{await updateDoc(doc(db,"users",user.uid),{bankName:$("savedBank").value.trim(),bankAccountNumber:$("savedNumber").value.trim(),bankAccountName:$("savedName").value.trim()});msg("Data rekening tersimpan.",true);}
+  catch(x){msg("Rekening belum tersimpan. Periksa Firestore Rules: "+x.message);}
+};
+
+onAuthStateChanged(auth,async u=>{
+  if(pendingTimer){clearInterval(pendingTimer);pendingTimer=null;}
+  if(!u){
+    user=null;$("loginPanel").classList.remove("hidden");$("dashboard").classList.add("hidden");
+    $("logoutBtn").classList.add("hidden");$("bottomNav").classList.add("hidden");return;
+  }
+  try{
+    user=u;profile=await getProfile(u);
+    const actual=roleOf(profile);
+    if(actual!==ROLE)throw Error("Halaman ini khusus role Mitra Usaha; role akun Anda "+(actual||"belum disetel")+".");
+    balance=num(profile.saldoEwallet??profile.saldoWallet??profile.saldo??profile.walletBalance??0);
+    $("balance").textContent=money(balance);
+    $("withdrawn").textContent=money(profile.totalDicairkan??profile.totalPenarikanBerhasil??0);
+    const accountName=profile.nama||profile.namaUsaha||profile.name||u.email||"Mitra Usaha";
+    $("welcomeTop").innerHTML="Halo, Kak, <b>"+esc(accountName)+"</b>";
+    $("savedBank").value=profile.bankName||"";
+    $("savedNumber").value=profile.bankAccountNumber||"";
+    $("savedName").value=profile.bankAccountName||"";
+    $("loginPanel").classList.add("hidden");$("dashboard").classList.remove("hidden");
+    $("logoutBtn").classList.remove("hidden");$("bottomNav").classList.remove("hidden");
+    await refresh();await loadPendingCount();
+    pendingTimer=setInterval(loadPendingCount,30000);
+  }catch(x){
+    $("loginPanel").classList.remove("hidden");$("dashboard").classList.add("hidden");
+    $("loginMsg").textContent="Dashboard gagal dibuka: "+x.message;$("loginMsg").classList.remove("hidden");
+  }
+});
+</script>
+</body>
+</html>

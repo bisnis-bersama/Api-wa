@@ -1,0 +1,331 @@
+<!doctype html>
+<html lang="id"><head><style>
+@font-face {
+  font-family: "Optimistic";
+  font-style: normal;
+  font-weight: 400 600;
+  font-display: swap;
+  src: url("/fonts/OptimisticAI_VF_Optimized.woff2") format("woff2");
+}
+@font-face {
+  font-family: "Optimistic Mono";
+  font-style: normal;
+  font-weight: 400;
+  font-display: swap;
+  src: url("/fonts/OptimisticMono_W_TextRegular.woff2") format("woff2");
+}
+:where(html) {
+  font-family: "Optimistic", system-ui, sans-serif;
+}
+:where(code, pre, kbd, samp) {
+  font-family: "Optimistic Mono", ui-monospace, monospace;
+}
+</style><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Pesanan Masuk Mitra - Toko Siap Antar</title>
+<style>
+:root{--yellow:#ffcc00;--ink:#171717;--green:#008b5a;--muted:#64756f;--bg:#f1f2f4;--line:#e6e7e8}
+*{box-sizing:border-box}body{margin:0;background:var(--bg);color:#171717;font:14px/1.4 system-ui,sans-serif;padding-bottom:80px}
+button,input,select,textarea{font:inherit}
+
+/* MODE BERSIH ATAS - COMPACT KAYAK EWALLET-ADMIN 07.39 */
+header{background:#111;color:white;padding:10px 14px 16px;border-radius:0 0 20px 20px;position:sticky;top:0;z-index:5}
+.head{max-width:900px;margin:auto;display:flex;align-items:center;justify-content:space-between;gap:8px}
+.brandWrap{display:flex;align-items:center;gap:8px}
+.brandWrap img{width:36px;height:36px;border-radius:10px;background:#fff;padding:3px;object-fit:contain}
+.brand{color:var(--yellow);font-weight:900;font-size:15px;line-height:1.1}
+.sub{color:#c7cbd0;font-size:9px;font-weight:600}
+.greet{font-size:12px;color:#fff;font-weight:800;margin-top:1px}
+.greet b{color:var(--yellow)}
+.logout{background:#202020;border:1px solid #444;color:white;border-radius:10px;padding:6px 10px;font-size:11px;font-weight:750;cursor:pointer}
+
+main{max-width:900px;margin:-10px auto 0;padding:0 10px 90px;position:relative;z-index:2}
+.panel{background:white;border-radius:16px;padding:12px;margin-bottom:8px;box-shadow:0 4px 16px #00000008}
+h1{font-size:20px;line-height:1.2;margin:4px 0 8px;font-weight:900}h2{font-size:14px;margin:0;font-weight:800}
+.eyebrow{font-size:9px;letter-spacing:.5px;color:var(--muted);font-weight:800;text-transform:uppercase}.muted{color:var(--muted);font-size:12px}
+.notice{background:#fff8d8;border:1px solid #f4df80;border-radius:10px;padding:10px 12px;font-size:11px;color:#5c4b00;line-height:1.4}
+.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(145px,1fr));gap:8px}
+.tile{display:flex;flex-direction:column;gap:5px;text-decoration:none;color:inherit;border:1px solid var(--line);border-radius:12px;padding:10px;background:#fff;min-height:80px}
+.tile .ico{width:34px;height:34px;border-radius:10px;background:#111;color:var(--yellow);display:grid;place-items:center;font-size:18px}
+.btn{border:0;border-radius:10px;background:var(--yellow);padding:10px 14px;font-weight:850;cursor:pointer;font-size:13px}.btn.dark{background:#111;color:var(--yellow)}
+label{display:block;font-size:11px;font-weight:700;margin:8px 0 4px}input,select,textarea{width:100%;padding:10px 11px;border:1px solid #cbd1d6;border-radius:10px;background:white;font-size:13px}
+.actions{display:flex;gap:8px;flex-wrap:wrap;margin-top:10px}.list{display:grid;gap:8px}.item{border:1px solid var(--line);border-radius:12px;padding:10px;background:#fff;overflow-wrap:anywhere}
+.itemtop{display:flex;justify-content:space-between;gap:8px;align-items:start}.status{display:inline-block;border-radius:999px;background:#fff1b8;color:#6d5700;font-size:10px;font-weight:800;padding:3px 8px}
+.meta{font-size:11px;color:var(--muted);margin-top:3px}.bottom{position:fixed;bottom:0;left:0;right:0;background:#111;border-top:3px solid var(--yellow);display:flex;justify-content:center;gap:20px;padding:8px 8px calc(8px + env(safe-area-inset-bottom));z-index:5}
+.bottom a{color:var(--yellow);font-size:11px;font-weight:800;text-decoration:none;white-space:nowrap}.hidden{display:none!important}.err{color:#b42318;font-size:12px;margin-top:8px}.ok{color:#087443;font-size:12px;margin-top:8px}
+.product-row{display:grid;grid-template-columns:minmax(0,1.5fr) 60px 140px;gap:8px;padding:9px 0;border-bottom:1px solid var(--line);align-items:center}
+.product-name{font-weight:700;font-size:13px;line-height:1.3}.product-qty{font-size:11px;color:var(--muted);background:#f1f5f1;padding:3px 8px;border-radius:999px;text-align:center;font-weight:700}
+.modal-input{padding:8px 10px;border:2px solid #ffcc00;border-radius:10px;background:#fffef0;font-weight:800;text-align:right;font-size:13px}
+.modal-input:focus{outline:none;border-color:#008b5a;background:#fff;box-shadow:0 0 0 3px #008b5a22}
+.modal-input.err-input{border-color:#b42318;background:#fff0ed}
+.catatanModal{height:62px !important;min-height:62px !important;max-height:90px;resize:vertical;font-size:12px !important;padding:8px 10px !important;line-height:1.3}
+.catatanModal:focus{outline:none;border-color:#008b5a;box-shadow:0 0 0 2px #008b5a22}
+.products-box{margin-top:8px;border-top:1px solid var(--line);padding-top:6px}
+.price-total{font-weight:850;text-align:right;margin-top:10px;padding-top:8px;border-top:2px dashed var(--line);font-size:12px}
+@media(max-width:640px){.product-row{grid-template-columns:1fr 60px;}.product-row > div:last-child{grid-column:1 / -1}}
+</style></head>
+<body>
+<header><div class="head"><div class="brandWrap">
+<img src="logo2.png" alt="Logo" onerror="this.src='logo3.png'">
+<div><div class="brand">🛵 TOKO SIAP ANTAR</div><div class="sub">Mitra Usaha · Pesanan Masuk</div><div class="greet" id="greetingTop" style="display:none"></div></div>
+</div><button id="logoutBtn" class="logout hidden" type="button">Keluar</button></div></header>
+
+<main>
+<section id="loginPanel" class="panel"><div class="eyebrow">AKSES MITRA USAHA</div><h1>Masuk Mitra Usaha</h1><p class="muted">Role=mitra_usaha, status=aktif, aktif=true</p>
+<form id="loginForm"><label>Email</label><input id="email" type="email" required><label>Password</label><input id="password" type="password" required><button class="btn" style="width:100%;margin-top:12px" type="submit">Masuk</button></form><div id="loginMsg" class="err"></div></section>
+
+<section id="app" class="hidden">
+<div class="panel"><div class="eyebrow">PESANAN MASUK MITRA</div><h1>Daftar Pesanan Masuk</h1><p class="muted" id="greeting">Pesanan yang sudah disetujui akan tampil di sini. Tidak perlu mengisi harga mitra.</p></div>
+<div class="panel"><div class="itemtop"><h2>Daftar Pesanan Saya</h2></div><label for="filter">Cari nomor pesanan</label><input id="filter" placeholder="Cari nomor pesanan"><div class="actions"><button class="btn" id="reloadBtn" type="button">Muat Ulang</button></div><div id="records" class="list" style="margin-top:10px"><div class="muted">Memuat…</div></div></div>
+</section></main>
+<nav id="bottom" class="bottom hidden"><a href="./ewallet-mitra.html">⌂ Beranda</a></nav>
+
+<script type="module">
+import {auth,db} from "./firebase-config.js";
+import {onAuthStateChanged,signInWithEmailAndPassword,signOut} from "https://www.gstatic.com/firebasejs/12.4.0/firebase-auth.js";
+import {doc,getDoc,collection,getDocs,query,where,limit,runTransaction,serverTimestamp} from "https://www.gstatic.com/firebasejs/12.4.0/firebase-firestore.js";
+const $=id=>document.getElementById(id), EXPECTED="mitra_usaha";
+function norm(v){let x=String(v??"").trim().toLowerCase().replace(/[\s-]+/g,"_");const a={customer:"pelanggan",mitra:"mitra_usaha",mitrausaha:"mitra_usaha"};return a[x]||x;}
+async function profileFor(u){const s=await getDoc(doc(db,"users",u.uid));if(s.exists())return s.data();const q=query(collection(db,"users"),where("email","==",u.email||""),limit(1));const r=await getDocs(q);if(!r.empty)return r.docs[0].data();throw Error("Profil tidak ditemukan");}
+$("loginForm").addEventListener("submit",async e=>{e.preventDefault();$("loginMsg").textContent="Memeriksa…";try{await signInWithEmailAndPassword(auth,$("email").value.trim(),$("password").value);}catch(err){$("loginMsg").textContent="Login gagal: "+err.message;}});
+$("logoutBtn").onclick=()=>signOut(auth);
+let profile=null,userNow=null;
+onAuthStateChanged(auth,async u=>{
+  if(!u){$("loginPanel").classList.remove("hidden");$("app").classList.add("hidden");$("logoutBtn").classList.add("hidden");$("bottom").classList.add("hidden");return;}
+  try{userNow=u;profile=await profileFor(u);const role=norm(profile.role);if(role!==EXPECTED)throw Error("Role harus mitra_usaha, Anda: "+role);if(profile.status!=='aktif'||profile.aktif!==true)throw Error("Akun belum aktif");$("loginPanel").classList.add("hidden");$("app").classList.remove("hidden");$("logoutBtn").classList.remove("hidden");$("bottom").classList.remove("hidden");$("greeting").textContent="Halo, "+(profile.nama||profile.namaUsaha||u.email)+" — Periksa detail pesanan dan proses sesuai metode pengiriman.";$("greetingTop").textContent="Halo, "+(profile.nama||profile.namaUsaha||"Mitra");$("greetingTop").style.display="block";await loadRecords();}catch(err){$("loginPanel").classList.remove("hidden");$("app").classList.add("hidden");$("loginMsg").textContent=err.message;}
+});
+const esc=v=>String(v??"").replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
+function asDate(v){if(!v)return null;if(typeof v.toDate==="function")return v.toDate();if(v instanceof Date)return v;const d=new Date(v);return Number.isNaN(d.getTime())?null:d;}
+function firstDate(x,keys){for(const k of keys){const d=asDate(x[k]);if(d)return d;}return null;}
+function fmtLeft(ms){if(ms<=0)return "00:00";const sec=Math.floor(ms/1000);return String(Math.floor(sec/60)).padStart(2,"0")+":"+String(sec%60).padStart(2,"0");}
+function rupiah(n){return 'Rp '+(Number(n)||0).toLocaleString('id-ID')}
+function getOrderItems(x){
+  const arr=Array.isArray(x.items)?x.items:[];
+  return arr.map(it=>({
+    name:it.nama||it.namaProduk||it.name||it.nama_produk||'Produk',
+    qty:Number(it.qty??it.jumlah??it.quantity??1)||1
+  }));
+}
+function isAssignedToMe(x){
+  const uid=userNow?.uid;
+  if(!uid) return false;
+  return x.mitraUsahaUid===uid
+    || x.mitraUid===uid
+    || x.acceptedByMitraUid===uid
+    || (Array.isArray(x.mitraCandidateUids) && x.mitraCandidateUids.includes(uid))
+    || (Array.isArray(x.mitraGroups) && x.mitraGroups.includes(uid));
+}
+function isVisibleToMitra(x){
+  const status=String(x.status||'').trim().toLowerCase();
+  const pemenuhan=String(x.statusPemenuhan||'').trim().toLowerCase();
+  // Pesanan berstatus pending hanya untuk admin. Mitra menerima pesanan
+  // setelah admin mengubah status menjadi disetujui. Pesanan yang sudah
+  // diterima/diproses oleh mitra tetap tampil pada daftar pesanan miliknya.
+  const approved=status==='disetujui';
+  const alreadyOwned=x.acceptedByMitraUid===userNow?.uid
+    || ['diterima_mitra','dikemas','menunggu_kurir','dikirim','dalam_pengiriman','selesai'].includes(status)
+       && (x.mitraUsahaUid===userNow?.uid || x.mitraUid===userNow?.uid);
+  const progressed=['diterima_mitra','dikemas','menunggu_kurir','dikirim','dalam_pengiriman','selesai'].includes(pemenuhan)
+    && (x.acceptedByMitraUid===userNow?.uid || x.mitraUsahaUid===userNow?.uid || x.mitraUid===userNow?.uid);
+  return approved || alreadyOwned || progressed;
+}
+async function fetchAssignedOrders(){
+  const found=new Map(), uid=userNow.uid;
+  // Jangan mengambil status pending/pending_mitra untuk ditampilkan ke mitra.
+  // Ambil pesanan yang sudah disetujui admin serta pesanan lama yang sudah
+  // menjadi milik/diterima mitra agar status proses tetap bisa dipantau.
+  const attempts=[
+    query(collection(db,"orders"),where("status","==","disetujui")),
+    query(collection(db,"orders"),where("mitraUsahaUid","==",uid)),
+    query(collection(db,"orders"),where("mitraUid","==",uid)),
+    query(collection(db,"orders"),where("acceptedByMitraUid","==",uid))
+  ];
+  for(const q of attempts){try{const snap=await getDocs(q);snap.docs.forEach(d=>found.set(d.id,{id:d.id,...d.data()}));}catch(e){}}
+  return {orders:[...found.values()].filter(x=>isAssignedToMe(x)&&isVisibleToMitra(x))};
+}
+function coord(v){if(v===undefined||v===null||v==="")return null;const n=Number(v);return Number.isFinite(n)&&Math.abs(n)<=180?n:null;}
+function coordsFrom(obj){
+  if(!obj)return null;
+  const paths=[['lat','lng'],['latitude','longitude'],['currentLat','currentLng'],['lokasi.lat','lokasi.lng'],['gps.lat','gps.lng'],['alamatToko.lat','alamatToko.lng'],['alamatPengiriman.lat','alamatPengiriman.lng'],['tokoLat','tokoLng'],['latMitra','lngMitra']];
+  const get=(o,p)=>p.split('.').reduce((v,k)=>v?.[k],o);
+  for(const [a,b] of paths){const lat=coord(get(obj,a)),lng=coord(get(obj,b));if(lat!==null&&lng!==null)return {lat,lng};}
+  return null;
+}
+function distanceKm(a,b){const rad=n=>n*Math.PI/180,dLat=rad(b.lat-a.lat),dLng=rad(b.lng-a.lng),h=Math.sin(dLat/2)**2+Math.cos(rad(a.lat))*Math.cos(rad(b.lat))*Math.sin(dLng/2)**2;return 6371*2*Math.atan2(Math.sqrt(h),Math.sqrt(1-h));}
+async function ordersWithCourierAvailability(orders){
+  let users=[];
+  try{const snap=await getDocs(collection(db,'users'));users=snap.docs.map(d=>({uid:d.id,...d.data()}));}catch(e){return orders.map(o=>({...o,_kurirRadius25:false}));}
+  const couriers=users.filter(u=>['kurir','mitra_pengantaran','kurir_pengantaran'].includes(norm(u.role))&&(!u.status||String(u.status).toLowerCase()==='aktif')&&u.aktif!==false).map(u=>coordsFrom(u)).filter(Boolean);
+  return orders.map(o=>{
+    const alamat=o.alamatPengiriman||{};
+    const customer=coordsFrom({lat:o.lat??alamat.lat??o.lokasi?.lat,lng:o.lng??alamat.lng??o.lokasi?.lng});
+    const mitra=coordsFrom({lat:o.mitraLat??o.tokoLat??profile?.mitraLat??profile?.tokoLat??profile?.lat,lng:o.mitraLng??o.tokoLng??profile?.mitraLng??profile?.tokoLng??profile?.lng});
+    const available=!!(customer&&mitra&&couriers.some(c=>distanceKm(c,customer)<=25&&distanceKm(c,mitra)<=25));
+    return {...o,_kurirRadius25:available};
+  });
+}
+
+function renderOrderRecord(x){
+  const status=String(x.status||x.statusPemenuhan||"menunggu").replace(/_/g," ");
+  const no=esc(x.nomorPesanan||("Pesanan "+x.id));
+  const items=getOrderItems(x);
+  const shortId=esc(x.id).slice(0,16);
+  const alamatData=x.alamatPengiriman||{};
+  const namaPelanggan=x.ownerName||alamatData.nama||x.namaPelanggan||"Pelanggan";
+  const noWa=x.telepon||alamatData.telepon||alamatData.noWA||x.noWA||x.whatsapp||"-";
+  const alamat=x.alamat||alamatData.alamat||alamatData.alamatLengkap||"-";
+  const lat=x.lat??alamatData.lat??x.lokasi?.lat;
+  const lng=x.lng??alamatData.lng??x.lokasi?.lng;
+  const gpsUrl=x.gpsLink||(lat!==null&&lat!==undefined&&lng!==null&&lng!==undefined?`https://www.google.com/maps?q=${encodeURIComponent(lat)},${encodeURIComponent(lng)}`:"");
+  const gpsInfo=lat!==null&&lat!==undefined&&lng!==null&&lng!==undefined?`${esc(Number(lat).toFixed(6))}, ${esc(Number(lng).toFixed(6))}`:"GPS belum tersedia";
+  const gpsHtml=gpsUrl?`<a href="${esc(gpsUrl)}" target="_blank" rel="noopener" style="display:inline-block;margin-top:5px;color:#087443;font-weight:800;text-decoration:underline">📍 Buka lokasi pelanggan di Google Maps</a>`:`<span class="muted">📍 ${gpsInfo}</span>`;
+  const itemRows=items.length?items.map(it=>`<div class="product-row" style="grid-template-columns:1fr 60px"><div class="product-name">${esc(it.name)}</div><span class="product-qty">x ${it.qty}</span></div>`).join(""):'<div class="muted">Rincian produk tidak tersedia.</div>';
+  const shipRaw=String(x.metodePengiriman||x.shippingMethod||x.pengiriman||'').trim().toLowerCase();
+  const isExpedisi=shipRaw==='expedisi'||shipRaw==='ekspedisi';
+  const shipLabels={siap_antar:'Siap Antar (Kurir Toko)',expedisi:'Ekspedisi',ekspedisi:'Ekspedisi'};
+  const shipLabel=shipLabels[shipRaw]||(shipRaw?shipRaw.replace(/_/g,' '):'Belum tercatat');
+  const serviceRaw=String(x.expedisiName||x.expedisi||x.namaEkspedisi||'').trim();
+  const serviceLabels={jne_reg:'JNE Reguler',jne_yes:'JNE YES',jnt_reg:'J&T Reguler',sicepat_reg:'SiCepat Reguler',anteraja_reg:'AnterAja Reguler',jne_jtr:'JNE JTR'};
+  const serviceLabel=serviceLabels[serviceRaw]||serviceRaw;
+  const payRaw=String(x.metodePembayaran||x.paymentMethod||'').trim().toLowerCase();
+  const payLabels={transfer:'Transfer Bank',qris:'QRIS',cod:'COD (Bayar di Tempat)'};
+  const payLabel=payLabels[payRaw]||(payRaw?payRaw.toUpperCase():'Belum tercatat');
+  const infoCheckout=`<div style="margin-top:10px;padding:10px;background:#fffbea;border:1px solid #f4df80;border-radius:10px"><strong style="font-size:12px">🚚 METODE CHECKOUT PELANGGAN</strong><div class="meta" style="margin-top:6px">Pengiriman: <b>${esc(shipLabel)}</b></div>${isExpedisi&&serviceLabel?`<div class="meta">Nama ekspedisi: <b>${esc(serviceLabel)}</b></div>`:''}<div class="meta">Metode pembayaran: <b>${esc(payLabel)}</b></div><div class="meta">Ongkir: <b>${rupiah(x.ongkir||0)}</b></div><div class="meta">Total pesanan: <b>${rupiah(x.total||0)}</b></div></div>`;
+  const statusRaw=String(x.status||x.statusPemenuhan||'').trim().toLowerCase();
+  const sudahDikemas=statusRaw==='dikemas';
+  const menungguKurir=statusRaw==='menunggu_kurir';
+  const sudahDikirim=statusRaw==='dikirim'||statusRaw==='dalam_pengiriman';
+  const sudahSelesai=statusRaw==='selesai';
+  const milikSaya=x.acceptedByMitraUid===userNow?.uid||x.mitraUsahaUid===userNow?.uid||x.mitraUid===userNow?.uid;
+  const metodeSerah=String(x.metodePenyerahan||'');
+  const diprosesSendiri=metodeSerah==='mitra_kirim_sendiri'||metodeSerah==='via_expedisi';
+  let pilihanProses='';
+  if(milikSaya && statusRaw==='disetujui'){
+    pilihanProses=`<div class="actions" style="margin-top:10px"><button class="btn" type="button" data-order-action="pack-self" data-id="${esc(x.id)}">📦 ${isExpedisi?'Dikemas & Proses Ekspedisi':'Dikemas & Kirim Sendiri'}</button>${!isExpedisi&&x._kurirRadius25?`<button class="btn dark" type="button" data-order-action="pack-courier" data-id="${esc(x.id)}">📦 Dikemas & Serahkan ke Kurir</button>`:''}</div>${!isExpedisi&&!x._kurirRadius25?`<div class="meta" style="margin-top:7px;color:#b42318">Kurir tidak tersedia dalam radius 25 km dari pelanggan dan mitra. Opsi serahkan ke kurir disembunyikan.</div>`:''}<div class="order-action-message meta" data-message-for="${esc(x.id)}"></div>`;
+  } else if(milikSaya && sudahDikemas && diprosesSendiri){
+    pilihanProses=`<div class="actions" style="margin-top:10px"><button class="btn" type="button" data-order-action="mark-shipped" data-id="${esc(x.id)}">🚚 Dikirim</button></div><div class="order-action-message meta" data-message-for="${esc(x.id)}"></div>`;
+  } else if(milikSaya && sudahDikirim && diprosesSendiri){
+    pilihanProses=`<div class="actions" style="margin-top:10px"><button class="btn" type="button" data-order-action="finish-with-receipt" data-id="${esc(x.id)}">✅ Selesai</button></div><div class="order-action-message meta" data-message-for="${esc(x.id)}"></div>`;
+  }
+  const resiInfo=sudahSelesai && x.resiOcrText?`<div class="ok" style="margin-top:8px"><b>Resi tersimpan (hasil OCR)</b><div class="meta" style="white-space:pre-wrap;margin-top:5px">${esc(x.resiOcrText)}</div><div class="meta">Berkas: ${esc(x.resiNamaFile||'-')}</div></div>`:'';
+  const metodeLabel=x.metodePenyerahan==='mitra_kirim_sendiri'?'Dikirim sendiri oleh mitra':x.metodePenyerahan==='serahkan_ke_kurir'?'Diserahkan ke kurir':x.metodePenyerahan==='via_expedisi'?'Diproses melalui ekspedisi':'';
+  const infoPenyerahan=metodeLabel?`<div class="meta">Penyerahan: <b>${metodeLabel}</b></div>`:'';
+  const infoMenungguKurir=menungguKurir?'<div class="notice" style="margin-top:8px">Pesanan sudah diserahkan ke antrean kurir. Mitra hanya dapat memantau status; tidak ada aksi pengiriman lagi.</div>':'';
+  return `<article class="item order-collapse" data-id="${esc(x.id)}"><div class="itemtop"><strong style="font-size:13px">${no}</strong><span class="status">${esc(status)}</span></div><div class="meta">ID: ${shortId}...</div>${infoCheckout}<div style="margin-top:10px;padding:10px;background:#f7faf8;border:1px solid #e2eee7;border-radius:10px"><strong style="font-size:12px">👤 DATA PELANGGAN</strong><div style="margin-top:6px"><b>${esc(namaPelanggan)}</b></div><div class="meta">WhatsApp: <a href="https://wa.me/${esc(String(noWa).replace(/\D/g,''))}" target="_blank" rel="noopener" style="color:#087443;font-weight:800">${esc(noWa)}</a></div><div class="meta" style="margin-top:5px">Alamat: ${esc(alamat)}</div><div class="meta" style="margin-top:5px">GPS: ${gpsInfo}</div>${gpsHtml}</div><div style="margin-top:10px;padding:10px;background:#fff;border:1px solid #e6e7e8;border-radius:10px"><strong style="font-size:12px">📦 DATA PESANAN (${items.length} produk)</strong>${itemRows}${x.catatan?`<div class="meta">Catatan pelanggan: ${esc(x.catatan)}</div>`:''}</div>${infoPenyerahan}${infoMenungguKurir}${sudahDikemas?'<div class="ok" style="margin-top:8px">Pesanan sudah dikemas.</div>':''}${sudahDikirim?'<div class="ok" style="margin-top:8px">Pesanan sudah dikirim.</div>':''}${resiInfo}${pilihanProses}</article>`;
+}
+async function handleOrderPacking(id, mode, card){
+  if(mode==='finish-with-receipt'){
+    openReceiptModal(id);
+    return;
+  }
+  const buttons=card.querySelectorAll('button[data-order-action]');
+  buttons.forEach(b=>b.disabled=true);
+  const msg=card.querySelector('[data-message-for]');
+  if(msg){msg.className='meta';msg.textContent=mode==='mark-shipped'?'Mengubah status menjadi dikirim…':'Menyimpan status dikemas…';}
+  try{
+    const ref=doc(db,'orders',id);
+    await runTransaction(db,async tx=>{
+      const snap=await tx.get(ref);
+      if(!snap.exists()) throw new Error('Pesanan tidak ditemukan.');
+      const x=snap.data(), uid=userNow.uid;
+      if(x.acceptedByMitraUid!==uid && x.mitraUsahaUid!==uid && x.mitraUid!==uid) throw new Error('Pesanan ini bukan milik akun mitra Anda.');
+      const statusNow=String(x.status||x.statusPemenuhan||'').toLowerCase();
+      if(mode==='mark-shipped'){
+        if(statusNow!=='dikemas') throw new Error('Status harus dikemas sebelum dikirim.');
+        if(x.metodePenyerahan==='serahkan_ke_kurir') throw new Error('Pesanan ini sudah diserahkan kepada kurir.');
+        tx.update(ref,{status:'dikirim',statusPemenuhan:'dikirim',dikirimOlehUid:uid,dikirimAt:serverTimestamp(),updatedAt:serverTimestamp()});
+      }else{
+        if(statusNow!=='disetujui') throw new Error('Pesanan tidak lagi berstatus disetujui.');
+        const shipNow=String(x.metodePengiriman||x.shippingMethod||x.pengiriman||'').trim().toLowerCase();
+        const isExpedisi=shipNow==='expedisi'||shipNow==='ekspedisi';
+        if(mode==='pack-courier' && isExpedisi) throw new Error('Pesanan via ekspedisi tidak dapat dilempar ke kurir Siap Antar.');
+        if(mode==='pack-courier'){
+          tx.update(ref,{status:'menunggu_kurir',statusPemenuhan:'menunggu_kurir',metodePenyerahan:'serahkan_ke_kurir',diserahkanKeKurirOlehUid:uid,diserahkanKeKurirAt:serverTimestamp(),updatedAt:serverTimestamp()});
+        }else{
+          tx.update(ref,{status:'dikemas',statusPemenuhan:'dikemas',metodePenyerahan:isExpedisi?'via_expedisi':'mitra_kirim_sendiri',dikemasOlehUid:uid,dikemasAt:serverTimestamp(),updatedAt:serverTimestamp()});
+        }
+      }
+    });
+    await loadRecords();
+  }catch(err){if(msg){msg.className='err';msg.textContent=err.message;}buttons.forEach(b=>b.disabled=false);}
+}
+
+let tesseractLoader=null;
+function loadTesseract(){
+  if(window.Tesseract)return Promise.resolve(window.Tesseract);
+  if(tesseractLoader)return tesseractLoader;
+  tesseractLoader=new Promise((resolve,reject)=>{
+    const script=document.createElement('script');
+    script.src='https://cdn.jsdelivr.net/npm/tesseract.js@5/dist/tesseract.min.js';
+    script.onload=()=>window.Tesseract?resolve(window.Tesseract):reject(new Error('Library OCR tidak tersedia.'));
+    script.onerror=()=>reject(new Error('Gagal memuat library OCR. Periksa koneksi internet.'));
+    document.head.appendChild(script);
+  });
+  return tesseractLoader;
+}
+function openReceiptModal(orderId){
+  let modal=document.getElementById('receiptModal');
+  if(!modal){
+    modal=document.createElement('div');modal.id='receiptModal';
+    modal.style.cssText='position:fixed;inset:0;background:#0009;z-index:9999;display:flex;align-items:center;justify-content:center;padding:16px';
+    modal.innerHTML=`<div style="background:#fff;border-radius:16px;padding:16px;width:min(100%,480px);max-height:90vh;overflow:auto"><div style="display:flex;justify-content:space-between;align-items:center;gap:8px"><b>Upload Resi Pengiriman</b><button type="button" id="closeReceipt" class="btn dark">Tutup</button></div><p class="meta">Pilih foto resi yang jelas. Sistem akan mengambil tulisan menggunakan OCR, lalu menyimpan teksnya.</p><label for="receiptFile">Foto resi</label><input id="receiptFile" type="file" accept="image/*" capture="environment"><div id="receiptPreview" style="margin-top:8px"></div><div id="ocrProgress" class="meta" style="margin-top:8px"></div><label for="ocrText">Hasil pembacaan OCR (boleh diperiksa)</label><textarea id="ocrText" rows="6" placeholder="Hasil OCR akan tampil di sini"></textarea><div id="receiptError" class="err" style="display:none"></div><div class="actions"><button type="button" class="btn dark" id="runOcrBtn">Baca Resi (OCR)</button><button type="button" class="btn" id="saveReceiptBtn" disabled>Simpan & Selesaikan Pesanan</button></div></div>`;
+    document.body.appendChild(modal);
+    document.getElementById('closeReceipt').onclick=()=>modal.remove();
+    document.getElementById('receiptFile').onchange=e=>{
+      const file=e.target.files?.[0];document.getElementById('ocrText').value='';document.getElementById('saveReceiptBtn').disabled=true;
+      document.getElementById('receiptPreview').innerHTML=file?`<div class="meta">File dipilih: ${esc(file.name)} (${Math.round(file.size/1024)} KB)</div>`:'';
+    };
+    document.getElementById('runOcrBtn').onclick=async()=>{
+      const file=document.getElementById('receiptFile').files?.[0];const progress=document.getElementById('ocrProgress');const err=document.getElementById('receiptError');
+      err.style.display='none';if(!file){err.textContent='Pilih foto resi terlebih dahulu.';err.style.display='block';return;}
+      const runBtn=document.getElementById('runOcrBtn');runBtn.disabled=true;progress.textContent='Memuat OCR…';
+      try{
+        const T=await loadTesseract();
+        const result=await T.recognize(file,'ind+eng',{logger:m=>{if(m.status)progress.textContent=m.status+(m.progress!==undefined?' '+Math.round(m.progress*100)+'%':'');}});
+        document.getElementById('ocrText').value=String(result.data.text||'').trim();
+        if(!document.getElementById('ocrText').value)throw new Error('Tulisan pada resi tidak terbaca. Gunakan foto yang lebih jelas.');
+        progress.textContent='OCR selesai. Periksa hasil sebelum disimpan.';document.getElementById('saveReceiptBtn').disabled=false;
+      }catch(e){err.textContent=e.message||'OCR gagal.';err.style.display='block';progress.textContent='';}
+      finally{runBtn.disabled=false;}
+    };
+    document.getElementById('saveReceiptBtn').onclick=async()=>{
+      const file=document.getElementById('receiptFile').files?.[0];const textOcr=document.getElementById('ocrText').value.trim();const saveBtn=document.getElementById('saveReceiptBtn');const err=document.getElementById('receiptError');
+      if(!file||!textOcr){err.textContent='Foto resi dan hasil OCR wajib tersedia.';err.style.display='block';return;}
+      saveBtn.disabled=true;saveBtn.textContent='Menyimpan…';err.style.display='none';
+      try{
+        const ref=doc(db,'orders',orderId);
+        await runTransaction(db,async tx=>{
+          const snap=await tx.get(ref);if(!snap.exists())throw new Error('Pesanan tidak ditemukan.');
+          const x=snap.data(),uid=userNow.uid;
+          if(x.acceptedByMitraUid!==uid&&x.mitraUsahaUid!==uid&&x.mitraUid!==uid)throw new Error('Pesanan ini bukan milik akun mitra Anda.');
+          const statusNow=String(x.status||x.statusPemenuhan||'').toLowerCase();
+          if(statusNow!=='dikirim'&&statusNow!=='dalam_pengiriman')throw new Error('Pesanan harus berstatus dikirim sebelum diselesaikan.');
+          tx.update(ref,{status:'selesai',statusPemenuhan:'selesai',statusPembayaran:'menunggu_verifikasi',statusPembayaranAt:serverTimestamp(),resiOcrText:textOcr,resiNamaFile:file.name,resiMimeType:file.type||'image',resiUkuranBytes:file.size,resiDibacaOlehUid:uid,resiDibacaAt:serverTimestamp(),selesaiOlehUid:uid,selesaiAt:serverTimestamp(),updatedAt:serverTimestamp()});
+        });
+        modal.remove();await loadRecords();
+      }catch(e){err.textContent=e.message||'Gagal menyimpan resi.';err.style.display='block';saveBtn.disabled=false;saveBtn.textContent='Simpan & Selesaikan Pesanan';}
+    };
+  }
+}
+
+async function loadRecords(){
+  const box=$("records");box.innerHTML='<div class="muted">Memuat…</div>';
+  const filter=($("filter")?.value||"").trim().toLowerCase();
+  try{
+    const {orders}=await fetchAssignedOrders();
+    const filtered=orders.filter(x=>!filter||String(x.nomorPesanan||"").toLowerCase().includes(filter)).sort((a,b)=>(asDate(b.createdAt)?.getTime()||0)-(asDate(a.createdAt)?.getTime()||0));
+    const docs=await ordersWithCourierAvailability(filtered);
+    box.innerHTML=docs.length?docs.map(renderOrderRecord).join(""):'<div class="muted">Tidak ada.</div>';
+
+  }catch(err){box.innerHTML='<div class="err">'+esc(err.message)+'</div>';}
+}
+$("records")?.addEventListener("click",e=>{
+  const btn=e.target.closest("button[data-order-action]");
+  if(!btn) return;
+  const card=btn.closest(".order-collapse");
+  if(card) handleOrderPacking(btn.dataset.id,btn.dataset.orderAction,card);
+});
+$("reloadBtn")?.addEventListener("click",()=>loadRecords());$("filter")?.addEventListener("input",()=>{if(userNow)loadRecords();});
+
+// AUTO REFRESH pas balik
+window.addEventListener('pageshow', (e)=>{ if(e.persisted) location.reload(); });
+</script><script>(function(){var loc=location.href.replace(/#.*$/,"");var ATTR_NAMES=["data-product-id","data-productid","data-product_id","product-id","productid","product_id","data-source-entity-id","source-entity-id","source_entity_id","data-product","data-metadata","data-meta"];var DATASET_KEYS=["productId","productid","product_id","sourceEntityId","sourceentityid","source_entity_id","product","metadata","meta"];function readProductId(value){if(typeof value!=="string"||value.length===0)return null;if(/^[0-9]{6,}$/.test(value))return value;var match=value.match(/(?:product(?:_|-)?id|source(?:_|-)?entity(?:_|-)?id)["'=:\s]+([0-9]{6,})/i);return match?match[1]:null}function extractProductId(start){for(var node=start;node&&node!==document.body;node=node.parentElement){for(var i=0;i<ATTR_NAMES.length;i++){var attrValue=node.getAttribute&&node.getAttribute(ATTR_NAMES[i]);var attrProductId=readProductId(attrValue);if(attrProductId)return attrProductId}var dataset=node.dataset||null;if(dataset){for(var j=0;j<DATASET_KEYS.length;j++){var dataValue=dataset[DATASET_KEYS[j]];var dataProductId=readProductId(dataValue);if(dataProductId)return dataProductId}}}return null}function isInlineMediaSlotElement(node){return !!(node&&node.getAttribute&&node.getAttribute("data-clippy-inline-media-slot")!==null)}function findInlineMediaSlot(start){for(var node=start;node&&node!==document.body;node=node.parentElement){if(isInlineMediaSlotElement(node))return node}return null}function readInlineMediaUrl(node){if(!node)return null;return node.getAttribute&&((node.getAttribute("data-clippy-inline-media-url")||node.getAttribute("data-url")||node.getAttribute("data_url")))||node.href||null}function stripHash(url){return String(url).replace(/#.*$/,"")}function urlsMatch(a,b){if(!a||!b)return false;try{return stripHash(new URL(a,loc).href)===stripHash(new URL(b,loc).href)}catch(_){return stripHash(a)===stripHash(b)}}function isFirstPartyReelUrl(value){try{var url=new URL(value,loc);if(url.protocol!=="https:")return false;var host=url.hostname.toLowerCase();var supported=host==="instagram.com"||host.endsWith(".instagram.com")||host==="facebook.com"||host.endsWith(".facebook.com");return supported&&/\/reels?\//i.test(url.pathname)}catch(_){return false}}function isInlineMediaUrlClick(node,href){var slot=findInlineMediaSlot(node);if(!slot)return false;var slotUrl=readInlineMediaUrl(slot);if(slotUrl)return urlsMatch(href,slotUrl);return isFirstPartyReelUrl(href)}function findDataHref(start){for(var node=start;node&&node!==document.body;node=node.parentElement){if(node.getAttribute){var href=node.getAttribute("data-href")||node.getAttribute("data-url");if(href)return{href:href,node:node}}}return null}var nativeOpen=window.open;window.open=function(url){if(parent!==window&&typeof url==="string"&&/^https?:\/\//.test(url)){parent.postMessage({type:"ecto:usercontent-link-click",href:url},"*");return null}return nativeOpen?nativeOpen.apply(window,arguments):null};document.addEventListener("click",function(e){var target=e.target instanceof Element?e.target:null;if(!target)return;if(parent===window)return;var a=target.closest?target.closest("a[href]"):null;if(a&&a.href&&/^https?:\/\//.test(a.href)&&a.href.replace(/#.*$/,"")!==loc){if(isInlineMediaUrlClick(a,a.href))return;var productId=extractProductId(target)||extractProductId(a);if(productId){e.preventDefault();parent.postMessage({type:"ecto-artifact-link-click",productId:productId},"*");return}e.preventDefault();parent.postMessage({type:"ecto:usercontent-link-click",href:a.href},"*");return}var dataHref=findDataHref(target);if(dataHref&&/^https?:\/\//.test(dataHref.href)&&dataHref.href.replace(/#.*$/,"")!==loc){if(isInlineMediaUrlClick(dataHref.node,dataHref.href))return;e.preventDefault();parent.postMessage({type:"ecto:usercontent-link-click",href:dataHref.href},"*")}},true)})();</script><script>(function(){var FOCUS_TYPE="ecto:artifact-focus-request";var CLOSE_TYPE="ecto:artifact-close-request";function focusArtifactDocument(){var body=document.body;if(!body)return;try{window.focus();}catch(e){}if(!body.hasAttribute("tabindex"))body.setAttribute("tabindex","-1");try{body.focus({preventScroll:true});}catch(e){try{body.focus();}catch(e2){}}}window.addEventListener("message",function(event){if(event.source!==window.parent)return;var data=event.data;if(!data||typeof data!=="object"||data.type!==FOCUS_TYPE)return;if(document.readyState==="loading"){document.addEventListener("DOMContentLoaded",focusArtifactDocument,{once:true});return;}focusArtifactDocument();});window.addEventListener("keydown",function(event){if(event.key!=="Escape")return;window.setTimeout(function(){if(event.defaultPrevented)return;window.parent.postMessage({type:CLOSE_TYPE},"*");},0);});})();</script></body></html>
