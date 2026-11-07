@@ -1,0 +1,705 @@
+<!doctype html>
+<html lang="id"><head><style>
+@font-face {
+  font-family: "Optimistic";
+  font-style: normal;
+  font-weight: 400 600;
+  font-display: swap;
+  src: url("/fonts/OptimisticAI_VF_Optimized.woff2") format("woff2");
+}
+@font-face {
+  font-family: "Optimistic Mono";
+  font-style: normal;
+  font-weight: 400;
+  font-display: swap;
+  src: url("/fonts/OptimisticMono_W_TextRegular.woff2") format("woff2");
+}
+:where(html) {
+  font-family: "Optimistic", system-ui, sans-serif;
+}
+:where(code, pre, kbd, samp) {
+  font-family: "Optimistic Mono", ui-monospace, monospace;
+}
+</style>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"><meta name="theme-color" content="#00a85a">
+<title>Checkout Kelompok Mitra - COD 40km + Online 8 Jam Kerja</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{margin:0;background:#f4fff7;color:#18312b;font:14px/1.5 system-ui,sans-serif;padding-bottom:110px}
+header{background:#fff;border-bottom:2px solid #ffd400;padding:12px 16px;display:flex;align-items:center;gap:12px;position:sticky;top:0;z-index:10;box-shadow:0 2px 8px #0001}
+header img{width:44px;height:40px;object-fit:contain}
+header strong{color:#008b4c}
+header small{display:block;color:#66756f;font-size:11px}
+main{max-width:840px;margin:auto;padding:12px}
+.card{background:#fff;border:1px solid #dceee5;border-radius:16px;padding:14px;margin:12px 0;box-shadow:0 2px 10px #18312b08}
+.card.shopee{border:2px dashed #00a85a;background:#fbfffe;position:relative}
+.card.shopee::before{content:'';position:absolute;top:0;left:0;right:0;height:4px;background:repeating-linear-gradient(90deg,#ff6b6b 0 20px,#fff 20px 30px,#00a85a 30px 50px,#fff 50px 60px)}
+.alamat-top{display:flex;justify-content:space-between;align-items:flex-start;gap:12px}
+.alamat-info b{font-size:15px}
+.alamat-info .tag{background:#00a85a;color:#fff;font-size:10px;padding:2px 6px;border-radius:4px;margin-left:6px}
+.alamat-text{margin-top:6px;color:#333;line-height:1.4}
+.btn-edit{border:1px solid #00a85a;background:#e8f5e9;color:#00a85a;border-radius:20px;padding:6px 14px;font-weight:700;font-size:12px;cursor:pointer}
+.prod{display:flex;gap:12px;padding:10px 0;border-bottom:1px solid #f0f0f0}
+.prod:last-child{border:0}
+.prod-img{width:56px;height:56px;background:#f6f6e8;border-radius:10px;display:grid;place-items:center;font-size:20px;overflow:hidden;flex:0 0 56px}
+.prod-img img{width:100%;height:100%;object-fit:cover}
+.mitra-badge{display:inline-block;background:linear-gradient(135deg,#00a85a,#00c8d7);color:#fff;font-size:9px;font-weight:800;padding:2px 6px;border-radius:6px;margin-left:6px;vertical-align:middle}
+.row{display:flex;justify-content:space-between;padding:7px 0;font-size:13px}
+.row.total{border-top:1px dashed #cfe5d8;margin-top:8px;padding-top:10px;font-weight:900;font-size:14px}
+.price{color:#00a85a;font-weight:800}
+.total-bayar{color:#00a85a;font-size:18px;font-weight:900}
+.pay-option{border:1.5px solid #e5e7eb;border-radius:12px;padding:12px;margin:8px 0;display:flex;gap:10px;align-items:center;cursor:pointer}
+.pay-option.active{border-color:#00a85a;background:#f0faf4}
+.pay-option.disabled{opacity:.45;cursor:not-allowed;background:#f9f9f9}
+.pay-option input{accent-color:#00a85a}
+.dropdown{background:#fff;border:1px solid #dceee5;border-radius:12px;padding:12px;margin-top:10px}
+.bottom{position:fixed;bottom:0;left:0;right:0;background:#fff;border-top:1px solid #e0e0e0;padding:10px 12px;display:flex;justify-content:space-between;align-items:center;z-index:20}
+.btn-checkout{background:linear-gradient(90deg,#00b050,#00c9a7);color:#fff;border:0;border-radius:999px;padding:12px 24px;font-weight:900;cursor:pointer;font-size:15px}
+.btn-checkout:disabled{opacity:.5}
+.modal{position:fixed;inset:0;background:rgba(0,0,0,.5);display:none;place-items:center;z-index:99;padding:16px}
+.modal.show{display:grid}
+.modal-box{background:#fff;border-radius:16px;padding:16px;width:100%;max-width:480px;max-height:90vh;overflow:auto}
+.modal-box h3{margin-bottom:12px}
+.modal-box input,.modal-box textarea,.modal-box select{width:100%;border:1px solid #cfe5d8;border-radius:10px;padding:10px;margin:6px 0 10px}
+.btn{border:0;border-radius:10px;padding:10px 14px;font-weight:700;cursor:pointer}
+.btn-primary{background:linear-gradient(90deg,#00a85a,#00c8d7);color:#fff}
+.btn-secondary{background:#f0f0f0;color:#333}
+.muted{color:#66756f;font-size:12px}
+.ok{background:#e5fff0;color:#087b45;border:1px solid #c3ead7;border-radius:10px;padding:10px}
+.err{background:#fff0ed;color:#b42318;border:1px solid #f5c6c1;border-radius:10px;padding:10px}
+.jarak-box{background:linear-gradient(135deg,#f0faf4,#e8f5e9);border:1px solid #a8d5b8;border-radius:12px;padding:10px;margin:8px 0}
+.jarak-badge{background:#00a85a;color:#fff;font-weight:800;font-size:11px;padding:3px 8px;border-radius:999px}
+.jarak-badge-warn{background:#fff3cd;color:#856404;border:1px solid #ffe69c;font-weight:800;font-size:11px;padding:3px 8px;border-radius:999px}
+.mitra-group{border:1.5px solid #dceee5;border-radius:14px;padding:12px;margin:12px 0;background:#fff;box-shadow:0 2px 6px #00000006}
+.mitra-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:8px}
+.mitra-header b{font-size:15px}
+.select-ship{width:100%;padding:10px;border:1px solid #cfe5d8;border-radius:10px;margin:6px 0;background:#fff;font-weight:600}
+</style></head><body>
+<header><img src="logo3.png" alt="logo"><div><strong>Checkout Kelompok Mitra</strong><small>COD 40km + Online 8 Jam Kerja + Saldo • Siap Antar hanya jika ada kurir</small></div><a href="keranjang.html" style="margin-left:auto;text-decoration:none;background:#e8f5e9;color:#00a85a;border-radius:20px;padding:6px 12px;font-weight:700;font-size:12px">← Keranjang</a></header>
+<main>
+<div id="msg"></div>
+
+<div class="card shopee" id="alamatCard">
+  <div class="alamat-top">
+    <div class="alamat-info" id="alamatInfo">
+      <div style="display:flex;align-items:center;gap:6px"><span>📍</span><b id="alamatNama">Memuat alamat...</b><span class="tag">Utama</span></div>
+      <div class="muted" id="alamatHp">-</div>
+      <div class="alamat-text" id="alamatLengkap">Alamat dari akun login akan tampil di sini seperti di Shopee.</div>
+    </div>
+    <button class="btn-edit" id="btnEditAlamat">Edit</button>
+  </div>
+  <div class="muted" style="margin-top:8px;font-size:11px">GPS: <span id="alamatGPS">-</span></div>
+</div>
+
+<div class="card" id="perTokoCard"><h3>🛍️ Pesanan per Mitra</h3><div class="muted" style="font-size:12px;margin:6px 0 10px">Produk dikelompokkan per pemilik. Jika tidak ada kurir dalam radius 40km, pengiriman otomatis hanya Expedisi. COD hanya muncul jika ada kurir bersaldo.</div><div id="perTokoList">Memuat keranjang...</div></div>
+
+<div class="card" id="pembayaranGlobalCard"><h3 style="margin-bottom:6px">💳 Pembayaran Global</h3><div class="muted" style="margin-bottom:10px">Satu metode untuk semua mitra. COD hanya aktif jika SEMUA mitra punya kurir 40km bersaldo cukup. Pesanan tetap dibuat terpisah per mitra.</div>
+<div class="pay-option active" data-global-pay="transfer"><input type="radio" name="globalPay" value="transfer" checked><div><b>Transfer Bank</b><div class="muted">BCA / SeaBank / DANA / GoPay - a.n. YUDI ALIYUDIN</div></div></div>
+<div class="pay-option" data-global-pay="qris"><input type="radio" name="globalPay" value="qris"><div><b>QRIS</b><div class="muted">Scan satu QRIS untuk total seluruh pesanan</div></div></div>
+<div class="pay-option disabled" data-global-pay="cod" id="globalCodOption" style="display:none"><input type="radio" name="globalPay" value="cod"><div><b>COD (Bayar di Tempat) - Bersyarat</b><div class="muted" id="codMuted">Butuh kurir 40km dengan saldo cukup</div></div></div>
+<div id="globalTransferDetail" class="dropdown"><b>💳 Rekening Admin - a.n. YUDI ALIYUDIN</b><br><br><b>Bank BCA:</b> 4180734771<br><b>SeaBank:</b> 901341445605<br><b>DANA / GoPay:</b> 082319264646<br><small class="muted">Upload bukti pembayaran setelah pesanan dibuat di riwayat.</small></div>
+<div id="globalQrisDetail" class="dropdown" style="display:none"><b>📱 QRIS Admin - a.n. YUDI ALIYUDIN</b><div style="text-align:center;margin:10px"><img src="qris.jpg" alt="QRIS Admin" style="max-width:280px;width:100%;border:2px solid #00a85a;border-radius:12px" onerror="this.style.display='none';this.nextElementSibling.style.display='block'"><div class="err" style="display:none">File qris.jpg belum tersedia di folder hosting.</div></div></div>
+<div id="globalCodDetail" class="dropdown" style="display:none"><b>💵 COD - Kurir Talang</b><div class="muted" style="margin-top:6px">Kurir dalam radius 40km akan menalangi pembayaran ke mitra terlebih dulu. Pastikan kurir punya saldo e-wallet cukup.<br><br><span id="codDetailInfo" class="ok" style="display:block"></span></div></div>
+<div style="margin-top:12px"><div class="row"><span>Total Barang</span><b id="totalBarang">Rp 0</b></div><div class="row"><span>Total Qty</span><b id="totalQty">0 pcs</b></div><div class="row total"><span>GRAND TOTAL (Barang + Semua Ongkir)</span><span class="total-bayar" id="grandTotalText">Rp 0</span></div></div>
+<button id="btnBuatPesanan" class="btn btn-primary" style="width:100%;margin-top:14px;padding:14px;font-size:16px">Buat Pesanan per Mitra →</button>
+<div class="muted" style="font-size:11px;margin-top:8px;text-align:center">Aturan: Tanpa kurir 40km = hanya Expedisi. COD = butuh kurir 40km + saldo ≥ total pesanan mitra.</div>
+</div>
+
+</main>
+
+<div class="bottom"><div><small class="muted">Grand Total</small><br><b id="bottomTotal" style="color:#00a85a;font-size:18px">Rp 0</b></div><button class="btn-checkout" id="bottomCheckout">Buat Pesanan →</button></div>
+
+<div class="modal" id="modalAlamat">
+  <div class="modal-box">
+    <h3>✏️ Edit Alamat Pengiriman</h3>
+    <label>Nama Penerima</label><input id="editNama" placeholder="Nama lengkap penerima">
+    <label>No HP / WhatsApp</label><input id="editHp" placeholder="08xxxxxxxxxx">
+    <label>Alamat Lengkap</label><textarea id="editAlamat" rows="3" placeholder="Jalan, No Rumah, RT/RW, Desa, Kecamatan, Kabupaten, Patokan"></textarea>
+    <label>Detail Alamat (Opsional)</label><input id="editDetail" placeholder="Contoh: Blok A No 5, depan masjid">
+    <label>Kode Pos</label><input id="editKodePos" placeholder="4xxxxx">
+    <div style="display:flex;gap:8px;margin-top:8px">
+      <button class="btn btn-secondary" id="btnAmbilGPSModal" style="flex:1">📍 Ambil GPS Saat Ini</button>
+      <span class="muted" id="gpsModalStatus" style="font-size:11px">GPS untuk hitung ongkir Siap Antar</span>
+    </div>
+    <div id="gpsModalInfo" class="muted" style="margin-top:6px"></div>
+    <div style="display:flex;gap:8px;margin-top:16px">
+      <button class="btn btn-secondary" id="btnBatalAlamat" style="flex:1">Batal</button>
+      <button class="btn btn-primary" id="btnSimpanAlamat" style="flex:1">Simpan Alamat</button>
+    </div>
+  </div>
+</div>
+
+<script type="module">
+import {initializeApp} from "https://www.gstatic.com/firebasejs/12.4.0/firebase-app.js";
+import {getAuth,onAuthStateChanged} from "https://www.gstatic.com/firebasejs/12.4.0/firebase-auth.js";
+import {getFirestore,doc,getDoc,setDoc,collection,addDoc,serverTimestamp,query,where,getDocs} from "https://www.gstatic.com/firebasejs/12.4.0/firebase-firestore.js";
+
+const firebaseConfig = {apiKey: "AIzaSyBxqZhl6t3RwrXMwVdJeIkg0NzGfwvlweM",authDomain: "toko-siap-antar-9a7bb.firebaseapp.com",projectId: "toko-siap-antar-9a7bb",storageBucket: "toko-siap-antar-9a7bb.firebasestorage.app",messagingSenderId: "351335838712",appId: "1:351335838712:web:14cc2c7b91bb0c9e1b5c0d"};
+const app=initializeApp(firebaseConfig);
+const auth=getAuth(app);
+const db=getFirestore(app);
+
+const rupiah=n=>'Rp '+(Number(n)||0).toLocaleString('id-ID');
+function cartRead(){try{return JSON.parse(localStorage.getItem('tsa_cart')||'[]')}catch{return []}}
+let currentUser=null;
+let userData=null;
+let cart=[];
+let totalBarang=0;
+let totalQty=0;
+let pLat=null,pLng=null,mitra=null,jarak=null,ongkirSiapAntar=5000;
+let selectedPay='transfer';
+let orderSubmitting=false;
+const checkoutByOwner = new Map();
+const expeditionOptions = [{id:'jne_reg',name:'JNE Reguler',cost:9000},{id:'jne_yes',name:'JNE YES',cost:18000},{id:'jnt_reg',name:'J&T Reguler',cost:10000},{id:'sicepat_reg',name:'SiCepat Reg',cost:11000},{id:'anteraja_reg',name:'AnterAja',cost:12000},{id:'jne_jtr',name:'JNE JTR',cost:25000}];
+const RADIUS_KM = 40; // sesuai permintaan user
+
+function flagOn(v){ if(v===undefined||v===null||v==='') return false; return ['1','true','ya','yes','aktif','boleh','tersedia','on'].includes(String(v).trim().toLowerCase()); }
+
+function getKurirSaldo(k){
+  const keys=['saldo','saldoCOD','saldo_cod','saldoCod','balance','saldoEwallet','saldo_e_wallet','eWallet','ewallet','dompet','saldoKurir','saldo_kurir','balanceCOD'];
+  for(const key of keys){
+    if(k[key]!==undefined && k[key]!==null && k[key]!==''){
+      const num=Number(String(k[key]).replace(/[^0-9.-]/g,''));
+      if(Number.isFinite(num)) return num;
+    }
+    // nested ewallet.saldo
+    if(k.ewallet && k.ewallet.saldo!==undefined){
+      const num=Number(k.ewallet.saldo);
+      if(Number.isFinite(num)) return num;
+    }
+  }
+  return 0;
+}
+
+function kurirOnlineDanGPSValid(k){
+  const online=k.online===true||k.isOnline===true||k.statusOnline===true||['online','aktif','tersedia'].includes(String(k.statusOnline||k.status||'').trim().toLowerCase());
+  if(!online||k.aktif===false||String(k.status||'').trim().toLowerCase()==='nonaktif') return false;
+  const ts=k.gpsUpdatedAt||k.locationUpdatedAt||k.updatedLocationAt||k.lastLocationAt||k.lastSeenAt||k.onlineAt||k.lastLoginAt;
+  if(!ts) return false; // harus ada timestamp GPS atau login
+  const ms=typeof ts.toMillis==='function'?ts.toMillis():(ts instanceof Date?ts.getTime():Number(ts));
+  const JAM_KERJA_MS = 8 * 60 * 60 * 1000; // 8 jam kerja minimal
+  // toleransi 8 jam, bukan 10 menit
+  return Number.isFinite(ms)&&Date.now()-ms<=JAM_KERJA_MS && Date.now()-ms>=-60000;
+}
+
+function produkBisaKirim(item, metode){
+  const keys = metode==='siap_antar'
+    ? ['viaKurir','via_kurir','via kurir','kurir','siapAntar','siap_antar','bisaSiapAntar','bisaKurir','tersediaSiapAntar','pengirimanSiapAntar']
+    : ['expedisi','ekspedisi','bisaEkspedisi','bisaExpedisi','tersediaEkspedisi','pengirimanEkspedisi'];
+  for(const key of keys){
+    if(Object.prototype.hasOwnProperty.call(item,key) && item[key]!==undefined && item[key]!==null && item[key]!=='') return flagOn(item[key]);
+  }
+  return true;
+}
+function ownerKey(item){ return String(item.mitraUid||item.mitra_uid||'unknown'); }
+function ownerItems(){ const m=new Map(); for(const item of cart){const k=ownerKey(item);if(!m.has(k))m.set(k,[]);m.get(k).push(item);} return m; }
+
+function hitungJarakKm(lat1,lng1,lat2,lng2){
+  if(!Number.isFinite(Number(lat1))||!Number.isFinite(Number(lng1))||!Number.isFinite(Number(lat2))||!Number.isFinite(Number(lng2))) return null;
+  const R=6371;
+  const dLat=(lat2-lat1)*Math.PI/180;
+  const dLng=(lng2-lng1)*Math.PI/180;
+  const a=Math.sin(dLat/2)**2 + Math.cos(lat1*Math.PI/180)*Math.cos(lat2*Math.PI/180)*Math.sin(dLng/2)**2;
+  return R*2*Math.atan2(Math.sqrt(a),Math.sqrt(1-a));
+}
+async function hitungJarakRuteJalanKm(lat1,lng1,lat2,lng2){
+  const vals=[lat1,lng1,lat2,lng2].map(Number);
+  if(!vals.every(Number.isFinite)) return null;
+  try{
+    const url=`https://router.project-osrm.org/route/v1/driving/${vals[1]},${vals[0]};${vals[3]},${vals[2]}?overview=false&steps=false`;
+    const response=await fetch(url,{headers:{'Accept':'application/json'}});
+    if(!response.ok) return null;
+    const data=await response.json();
+    const meters=data?.routes?.[0]?.distance;
+    return data?.code==='Ok' && Number.isFinite(meters) ? meters/1000 : null;
+  }catch(e){console.warn('Routing jalan gagal:',e);return null;}
+}
+function hitungOngkirFinal(jarakKm){
+  if(jarakKm==null || jarakKm<0.05) return 5000;
+  if(jarakKm <= 3) return 5000;
+  if(jarakKm <= 7) return 10000;
+  if(jarakKm <= 12) return 15000;
+  if(jarakKm <= 18) return 20000;
+  if(jarakKm <= 24) return 30000;
+  if(jarakKm <= 30) return 35000;
+  return 35000 + Math.ceil(jarakKm - 30) * 1000;
+}
+async function cariMitraTerdekat(pLat,pLng){
+  try{
+    let mitraUids = [...new Set(cart.map(x=>x.mitraUid||x.mitra_uid).filter(Boolean))];
+    let allMitra=[];
+    if(mitraUids.length>0){
+      for(let uid of mitraUids){
+        try{
+          let d = await getDoc(doc(db,'users',uid));
+          if(d.exists()) allMitra.push({id:d.id, ...d.data()});
+        }catch{}
+      }
+    }
+    if(allMitra.length===0){
+      const q1 = query(collection(db,'users'), where('role','in',['mitra_usaha','mitra','toko','mitra usaha']));
+      const snap1 = await getDocs(q1);
+      snap1.forEach(d=>{ allMitra.push({id:d.id, ...d.data()}); });
+    }
+    let terdekat=null; let jarakMin=Infinity;
+    for(let m of allMitra){
+      let mLat = m.tokoLat || m.toko_lat || m.lat || m.latitude || m.latToko || m.alamatToko?.lat || m.alamatPengiriman?.lat || m.lokasi?.lat || m.gps?.lat;
+      let mLng = m.tokoLng || m.toko_lng || m.lng || m.longitude || m.lngToko || m.alamatToko?.lng || m.alamatPengiriman?.lng || m.lokasi?.lng || m.gps?.lng;
+      if(!mLat || !mLng) continue;
+      let jarak = await hitungJarakRuteJalanKm(parseFloat(pLat), parseFloat(pLng), parseFloat(mLat), parseFloat(mLng));
+      if(jarak==null){
+        const garis = hitungJarakKm(parseFloat(pLat), parseFloat(pLng), parseFloat(mLat), parseFloat(mLng));
+        if(Number.isFinite(garis)) jarak = garis*1.3;
+      }
+      if(jarak!=null && jarak < jarakMin){
+        jarakMin=jarak;
+        terdekat={uid:m.id, nama:m.nama||m.namaToko||m.namaUsaha||'Mitra', lat:parseFloat(mLat), lng:parseFloat(mLng), alamat:m.alamatToko||m.alamat||'', jarak:jarak};
+      }
+    }
+    return terdekat;
+  }catch(e){ console.error(e); return null; }
+}
+
+async function cariKurirDalamRadius(mitraLat,mitraLng){
+  if(!Number.isFinite(Number(pLat))||!Number.isFinite(Number(pLng))||!Number.isFinite(Number(mitraLat))||!Number.isFinite(Number(mitraLng))) return [];
+  try{
+    const snap=await getDocs(collection(db,'users'));
+    const hasil=[];
+    snap.forEach(d=>{
+      const k=d.data()||{};
+      const role=String(k.role||'').trim().toLowerCase();
+      if(!['kurir','mitra_pengantaran','kurir_toko'].includes(role)) return;
+      if(!kurirOnlineDanGPSValid(k)) return;
+      const lat=Number(k.lat||k.latitude||k.currentLat||k.lokasi?.lat||k.gps?.lat||k.latMitra||k.tokoLat);
+      const lng=Number(k.lng||k.longitude||k.currentLng||k.lokasi?.lng||k.gps?.lng||k.lngMitra||k.tokoLng);
+      if(!Number.isFinite(lat)||!Number.isFinite(lng)||!lat||!lng) return;
+      const jarakPelanggan=hitungJarakKm(lat,lng,Number(pLat),Number(pLng));
+      const jarakMitra=hitungJarakKm(lat,lng,Number(mitraLat),Number(mitraLng));
+      if(jarakPelanggan!==null && jarakMitra!==null && jarakPelanggan<=RADIUS_KM && jarakMitra<=RADIUS_KM){
+        hasil.push({uid:d.id,nama:k.nama||k.namaLengkap||k.displayName||'Kurir',jarakPelanggan,jarakMitra,saldo:getKurirSaldo(k),raw:k});
+      }
+    });
+    // sort saldo terbesar dulu biar COD prioritas kurir bersaldo
+    hasil.sort((a,b)=>b.saldo-a.saldo);
+    return hasil;
+  }catch(e){console.error('Gagal memeriksa lokasi kurir:',e);return [];}
+}
+
+function renderProdukSummary(){
+  cart=cartRead();
+  if(cart.length===0){
+    document.getElementById('perTokoList').innerHTML='<div class="muted">Keranjang kosong. <a href="index.html">Belanja dulu</a></div>';
+    totalBarang=0; totalQty=0;
+    updateTotalsGlobal();
+    return;
+  }
+  totalBarang=cart.reduce((s,x)=>s+(Number(x.price)||0)*(Number(x.qty)||1),0);
+  totalQty=cart.reduce((s,x)=>s+(Number(x.qty)||1),0);
+  renderPerToko();
+  updateTotalsGlobal();
+}
+
+function updateTotalsGlobal(){
+  let grand=0;
+  for(const [uid,items] of ownerItems()){
+    const cfg=checkoutByOwner.get(uid)||{shipping:'siap_antar',service:'jne_reg'};
+    const subtotal=items.reduce((a,x)=>a+(Number(x.price)||0)*(Number(x.qty)||1),0);
+    const info=cfg.info||{};
+    const service=expeditionOptions.find(x=>x.id===cfg.service)||expeditionOptions[0];
+    const shipCost=cfg.shipping==='expedisi'?service.cost:(info.ongkir||5000);
+    grand+=subtotal+shipCost;
+  }
+  document.getElementById('bottomTotal').textContent=rupiah(grand);
+  document.getElementById('grandTotalText').textContent=rupiah(grand);
+  document.getElementById('totalBarang').textContent=rupiah(totalBarang);
+  document.getElementById('totalQty').textContent=totalQty+' pcs';
+}
+
+async function renderPerToko(){
+  const groups=ownerItems();
+  if(!groups.size){document.getElementById('perTokoList').innerHTML='<div class="muted">Belum ada produk.</div>';return;}
+  const rows=[];
+  for(const [uid,items] of groups){
+    let info={nama:items[0].mitraNama||items[0].mitra_nama||'Mitra',alamat:'',lat:null,lng:null,jarak:null,jarakGaris:null,ongkir:5000};
+    if(uid!=='unknown'){
+      try{
+        const snap=await getDoc(doc(db,'users',uid));
+        const m=snap.exists()?snap.data():{};
+        const lat=Number(m.tokoLat||m.toko_lat||m.lat||m.latitude||m.latToko||m.alamatToko?.lat||m.alamatPengiriman?.lat||m.lokasi?.lat||m.gps?.lat)||null;
+        const lng=Number(m.tokoLng||m.toko_lng||m.lng||m.longitude||m.lngToko||m.alamatToko?.lng||m.alamatPengiriman?.lng||m.lokasi?.lng||m.gps?.lng)||null;
+        const gpsValid=[pLat,pLng,lat,lng].every(v=>v!==null&&v!==undefined&&Number.isFinite(Number(v)));
+        let kmRute=null, kmGaris=null;
+        if(gpsValid){
+          kmGaris=hitungJarakKm(Number(pLat),Number(pLng),Number(lat),Number(lng));
+          kmRute=await hitungJarakRuteJalanKm(Number(pLat),Number(pLng),Number(lat),Number(lng));
+          if(kmRute===null && Number.isFinite(kmGaris)) kmRute=kmGaris*1.3;
+        }
+        const finalJarak = kmRute ?? kmGaris;
+        info={nama:m.nama||m.namaToko||m.namaUsaha||info.nama,alamat:m.alamatToko||m.alamat||'',lat,lng,jarak:finalJarak,jarakGaris:kmGaris,jarakRute:kmRute,ongkir:finalJarak==null?5000:hitungOngkirFinal(finalJarak)};
+      }catch(e){console.error(e);}
+    }
+    const subtotal=items.reduce((a,x)=>a+(Number(x.price)||0)*(Number(x.qty)||1),0);
+    const kurirAll=(info.lat&&info.lng&&pLat&&pLng)?await cariKurirDalamRadius(info.lat,info.lng):[];
+    const kurirTersedia=kurirAll.length>0;
+    // kurir yang punya saldo cukup untuk COD (minimal >= subtotal)
+    const kurirSaldoCukup=kurirAll.filter(k=>k.saldo>=subtotal && k.saldo>0);
+    const adaKurirSaldo=kurirSaldoCukup.length>0;
+    const canCourier=items.every(x=>produkBisaKirim(x,'siap_antar')) && kurirTersedia;
+    const ekspedisiDiizinkan=items.every(x=>produkBisaKirim(x,'expedisi'));
+    const canExp=ekspedisiDiizinkan || !canCourier; // kalau tidak ada kurir, tetap bisa expedisi
+    const canCodMitra=adaKurirSaldo && canCourier; // COD butuh kurir + saldo + produk boleh siap antar
+    let cfg=checkoutByOwner.get(uid);
+    if(!cfg) cfg={shipping:canCourier?'siap_antar':'expedisi',service:'jne_reg',canCourier,canExp,canCodMitra,info,kurirAll,kurirSaldoCukup,subtotal};
+    cfg={...cfg,canCourier,canExp,canCodMitra,info,kurirAll,kurirSaldoCukup,subtotal};
+    if(cfg.shipping==='siap_antar'&&!canCourier)cfg.shipping='expedisi';
+    if(cfg.shipping==='expedisi'&&!canExp&&canCourier)cfg.shipping='siap_antar';
+    checkoutByOwner.set(uid,cfg);
+    
+    const shipOpts=(canCourier?`<option value="siap_antar">🛵 Siap Antar (Kurir ${kurirAll.length} tersedia ${RADIUS_KM}km)</option>`:'')+(canExp?`<option value="expedisi">📦 Expedisi</option>`:'');
+    const jarakText = info.jarak!=null ? `${info.jarak.toFixed(2)} km` : 'GPS belum lengkap';
+    const badge = info.jarak!=null ? `<span class="jarak-badge">${jarakText}</span>` : `<span class="jarak-badge-warn">Butuh GPS</span>`;
+    let statusKurir='';
+    if(canCourier){
+      statusKurir=`<div class="ok" style="margin:6px 0">✅ ${kurirAll.length} kurir dalam radius ${RADIUS_KM}km • ${adaKurirSaldo?`${kurirSaldoCukup.length} punya saldo ≥ ${rupiah(subtotal)} untuk COD`:`Tidak ada kurir bersaldo cukup untuk COD (butuh ≥ ${rupiah(subtotal)})`}<br><small>${kurirAll.slice(0,3).map(k=>`${k.nama} - ${k.jarakMitra.toFixed(1)}km - saldo ${rupiah(k.saldo)}`).join('<br>')}</small></div>`;
+    } else {
+      statusKurir=`<div class="err" style="margin:6px 0">ℹ️ Tidak ada kurir dalam ${RADIUS_KM}km • Pengiriman hanya Expedisi<br><small>Mitra ${info.nama} jauh / kurir offline. COD otomatis nonaktif untuk mitra ini.</small></div>`;
+    }
+
+    let prodHtml='';
+    for(const x of items){
+      let sing = x.singkatan || (x.mitraNama? x.mitraNama.slice(0,2).toUpperCase() : '');
+      let badgeSing = sing ? `<span class="mitra-badge">${sing}</span>` : '';
+      let img = x.image ? `<img src="${x.image}" onerror="this.parentElement.innerHTML='📦'">` : '📦';
+      prodHtml+=`<div class="prod"><div class="prod-img">${img}</div><div style="flex:1"><div><b>${x.name}</b> ${badgeSing}</div><div class="muted" style="font-size:11px">${x.mitraNama||x.mitra_nama||''}</div><div style="display:flex;justify-content:space-between;align-items:center;margin-top:2px"><span class="price">Rp ${Number(x.price).toLocaleString('id-ID')} x ${x.qty||1}</span><b>Rp ${((Number(x.price)||0)*(Number(x.qty)||1)).toLocaleString('id-ID')}</b></div></div></div>`;
+    }
+
+    rows.push(`<section class="mitra-group">
+      <div class="mitra-header"><b>🏪 ${info.nama}</b><span class="muted">${items.length} produk • Subtotal ${rupiah(subtotal)}</span></div>
+      ${prodHtml}
+      <div class="jarak-box">
+        <div style="display:flex;justify-content:space-between;align-items:center;gap:8px">
+          <span style="font-weight:800">📍 Jarak & Ongkir Mitra Ini</span>
+          ${badge}
+        </div>
+        ${info.jarak!=null ? `<div style="margin-top:6px;display:flex;justify-content:space-between"><span>Jarak rute:</span><b>${info.jarakRute!=null?info.jarakRute.toFixed(2)+' km':jarakText}</b></div><div style="display:flex;justify-content:space-between"><span>Ongkir Siap Antar:</span><b style="color:#00a85a">${rupiah(info.ongkir)}</b></div>` : `<div class="muted" style="margin-top:6px">GPS belum lengkap - ongkir default ${rupiah(info.ongkir)}</div>`}
+      </div>
+      ${statusKurir}
+      <label style="font-weight:700;margin-top:8px;display:block">🚚 Metode Pengiriman Mitra Ini</label>
+      <select data-owner-ship="${uid}" class="select-ship" ${!canCourier&&!canExp?'disabled':''}>${shipOpts||'<option value="">Tidak ada metode</option>'}</select>
+      <div style="margin-top:8px" data-owner-service-wrap="${uid}"><label style="font-weight:700;font-size:12px">Pilih Expedisi (jika Expedisi)</label><select data-owner-service="${uid}" class="select-ship">${expeditionOptions.map(o=>`<option value="${o.id}">${o.name} - ${rupiah(o.cost)}</option>`).join('')}</select></div>
+      <div style="margin-top:10px;background:#f8fffa;border-radius:10px;padding:10px">
+        <div class="row"><span>Subtotal Produk</span><b>${rupiah(subtotal)}</b></div>
+        <div class="row"><span>Ongkir (<span data-owner-ship-label="${uid}">${cfg.shipping==='expedisi'?'Expedisi':'Siap Antar'}</span>)</span><b data-owner-ongkir="${uid}">${rupiah(cfg.shipping==='expedisi'?9000:info.ongkir)}</b></div>
+        <div class="row total"><b>Total Mitra Ini</b><b data-owner-total="${uid}" style="color:#00a85a">${rupiah(subtotal+(cfg.shipping==='expedisi'?9000:info.ongkir))}</b></div>
+        ${canCodMitra?`<div class="muted" style="font-size:10px;margin-top:4px;color:#087b45">✅ Mitra ini mendukung COD karena ada kurir bersaldo</div>`:`<div class="muted" style="font-size:10px;margin-top:4px;color:#b42318">❌ COD tidak tersedia untuk mitra ini (kurir/saldo tidak cukup)</div>`}
+      </div>
+    </section>`);
+  }
+  document.getElementById('perTokoList').innerHTML=rows.join('');
+  for(const [uid,cfg] of checkoutByOwner){
+    const ship=document.querySelector(`[data-owner-ship="${CSS.escape(uid)}"]`);if(ship){ship.value=cfg.shipping;ship.onchange=()=>{cfg.shipping=ship.value;renderPerTokoControls(uid);updateTotalsPerOwner();updateGlobalPayment();};}
+    const service=document.querySelector(`[data-owner-service="${CSS.escape(uid)}"]`);if(service){service.value=cfg.service;service.onchange=()=>{cfg.service=service.value;updateTotalsPerOwner();};}
+    renderPerTokoControls(uid);
+  }
+  updateTotalsPerOwner();
+  updateGlobalPayment();
+}
+
+function renderPerTokoControls(uid){
+  const cfg=checkoutByOwner.get(uid);
+  const wrap=document.querySelector(`[data-owner-service-wrap="${CSS.escape(uid)}"]`);
+  if(wrap) wrap.style.display=cfg.shipping==='expedisi'?'block':'none';
+  const label=document.querySelector(`[data-owner-ship-label="${CSS.escape(uid)}"]`);
+  if(label) label.textContent=cfg.shipping==='expedisi'?'Expedisi':'Siap Antar';
+}
+
+function updateTotalsPerOwner(){
+  let grand=0;
+  for(const [uid,items] of ownerItems()){
+    const cfg=checkoutByOwner.get(uid)||{shipping:'siap_antar',service:'jne_reg'};
+    const subtotal=items.reduce((a,x)=>a+(Number(x.price)||0)*(Number(x.qty)||1),0);
+    const info=cfg.info||{};
+    const service=expeditionOptions.find(x=>x.id===cfg.service)||expeditionOptions[0];
+    const shipCost=cfg.shipping==='expedisi'?service.cost:(info.ongkir||5000);
+    grand+=subtotal+shipCost;
+    const el=document.querySelector(`[data-owner-total="${CSS.escape(uid)}"]`);
+    if(el) el.textContent=rupiah(subtotal+shipCost);
+    const ong=document.querySelector(`[data-owner-ongkir="${CSS.escape(uid)}"]`);
+    if(ong) ong.textContent=rupiah(shipCost);
+  }
+  document.getElementById('bottomTotal').textContent=rupiah(grand);
+  document.getElementById('grandTotalText').textContent=rupiah(grand);
+  document.getElementById('totalBarang').textContent=rupiah(totalBarang);
+  document.getElementById('totalQty').textContent=totalQty+' pcs';
+}
+
+function updateGlobalPayment(){
+  const groups=[...checkoutByOwner.values()];
+  const allMitraSupportCod = groups.length>0 && groups.every(g=>g.canCodMitra===true);
+  const codEl=document.getElementById('globalCodOption');
+  const codDetailInfo=document.getElementById('codDetailInfo');
+  if(allMitraSupportCod){
+    codEl.style.display='flex';
+    codEl.classList.remove('disabled');
+    const totalKurir = groups.reduce((a,g)=>a+(g.kurirSaldoCukup?.length||0),0);
+    document.getElementById('codMuted').textContent=`${totalKurir} kurir dalam ${RADIUS_KM}km punya saldo cukup • Bisa COD`;
+    if(codDetailInfo) codDetailInfo.textContent=`✅ Semua ${groups.length} mitra punya kurir ${RADIUS_KM}km bersaldo. ${totalKurir} kurir siap talang COD.`;
+  } else {
+    if(selectedPay==='cod') selectedPay='transfer';
+    if(groups.length===0){
+      codEl.style.display='none';
+    } else {
+      codEl.style.display='flex';
+      codEl.classList.add('disabled');
+      const tidakSupport=groups.filter(g=>!g.canCodMitra).map(g=>g.info?.nama||'Mitra').join(', ');
+      document.getElementById('codMuted').textContent=`Nonaktif - ${tidakSupport} tidak ada kurir bersaldo`;
+      if(codDetailInfo) codDetailInfo.textContent=`❌ COD nonaktif karena: ${tidakSupport} tidak ada kurir ${RADIUS_KM}km dengan saldo cukup`;
+    }
+  }
+  document.querySelectorAll('[data-global-pay]').forEach(el=>{
+    const isCod=el.dataset.globalPay==='cod';
+    if(isCod && !allMitraSupportCod){
+      el.classList.remove('active');
+      el.querySelector('input').checked=false;
+      el.classList.add('disabled');
+    } else {
+      const active=el.dataset.globalPay===selectedPay;
+      el.classList.toggle('active',active);
+      el.querySelector('input').checked=active;
+      if(!isCod) el.classList.remove('disabled');
+    }
+  });
+  document.getElementById('globalTransferDetail').style.display=selectedPay==='transfer'?'block':'none';
+  document.getElementById('globalQrisDetail').style.display=selectedPay==='qris'?'block':'none';
+  document.getElementById('globalCodDetail').style.display=selectedPay==='cod'?'block':'none';
+}
+document.querySelectorAll('[data-global-pay]').forEach(el=>el.addEventListener('click',()=>{
+  if(el.classList.contains('disabled')) return;
+  selectedPay=el.dataset.globalPay;
+  updateGlobalPayment();
+}));
+
+async function loadAlamat(){
+  if(!currentUser){
+    document.getElementById('alamatNama').textContent='Belum login';
+    document.getElementById('alamatHp').textContent='Login untuk memuat alamat dari akun';
+    document.getElementById('alamatLengkap').textContent='Silakan login.';
+    return;
+  }
+  try{
+    let snap = await getDoc(doc(db,'users',currentUser.uid));
+    if(snap.exists()){
+      userData=snap.data();
+      let nama = userData.nama || userData.namaLengkap || currentUser.email || 'Pelanggan';
+      let hp = userData.telepon || userData.noWA || userData.whatsapp || userData.hp || '-';
+      let alamat = userData.alamat || userData.alamatLengkap || userData.alamatPengiriman?.alamat || '-';
+      let detail = userData.alamatDetail || '';
+      let kodePos = userData.kodePos || '';
+      let lat = userData.lat || userData.latitude || userData.alamatPengiriman?.lat || userData.lokasi?.lat;
+      let lng = userData.lng || userData.longitude || userData.alamatPengiriman?.lng || userData.lokasi?.lng;
+      document.getElementById('alamatNama').textContent=nama;
+      document.getElementById('alamatHp').textContent=hp;
+      document.getElementById('alamatLengkap').textContent= alamat + (detail? ', '+detail:'') + (kodePos? ' - '+kodePos:'');
+      document.getElementById('alamatGPS').textContent= lat && lng ? lat.toFixed(6)+', '+lng.toFixed(6) : 'Belum ada GPS - klik Edit untuk isi';
+      pLat=lat?parseFloat(lat):null; pLng=lng?parseFloat(lng):null;
+      document.getElementById('editNama').value=nama;
+      document.getElementById('editHp').value=hp;
+      document.getElementById('editAlamat').value=alamat;
+      document.getElementById('editDetail').value=detail;
+      document.getElementById('editKodePos').value=kodePos;
+      if(lat&&lng){
+        document.getElementById('gpsModalInfo').textContent='GPS tersimpan: '+lat+', '+lng;
+      }
+      if(pLat&&pLng){
+        hitungJarakDanOngkir();
+      } else {
+        try{
+          let loc = await getGPS();
+          pLat=loc.lat; pLng=loc.lng;
+          document.getElementById('alamatGPS').textContent= pLat.toFixed(6)+', '+pLng.toFixed(6) + ' (dari browser)';
+          hitungJarakDanOngkir();
+        }catch{}
+      }
+    }
+  }catch(e){ console.error(e); }
+}
+
+async function getGPS(){return new Promise((res,rej)=>{if(!navigator.geolocation)return rej('No GPS');navigator.geolocation.getCurrentPosition(p=>res({lat:p.coords.latitude,lng:p.coords.longitude}),e=>rej(e.message),{enableHighAccuracy:true,timeout:15000});});}
+
+async function hitungJarakDanOngkir(){
+  if(!pLat||!pLng){ return; }
+  mitra = await cariMitraTerdekat(pLat,pLng);
+  if(!mitra){
+    jarak=0; ongkirSiapAntar=5000;
+  } else {
+    jarak=mitra.jarak; ongkirSiapAntar=hitungOngkirFinal(jarak);
+  }
+  renderPerToko();
+  updateTotalsPerOwner();
+}
+
+document.getElementById('btnEditAlamat').onclick=()=>{ document.getElementById('modalAlamat').classList.add('show'); };
+document.getElementById('btnBatalAlamat').onclick=()=>{ document.getElementById('modalAlamat').classList.remove('show'); };
+document.getElementById('btnAmbilGPSModal').onclick=async()=>{
+  let btn=document.getElementById('btnAmbilGPSModal');
+  btn.textContent='Mengambil GPS...'; btn.disabled=true;
+  try{
+    let loc=await getGPS();
+    pLat=loc.lat; pLng=loc.lng;
+    document.getElementById('gpsModalInfo').textContent='✅ GPS: '+pLat.toFixed(6)+', '+pLng.toFixed(6);
+  }catch(e){ document.getElementById('gpsModalInfo').textContent='❌ Gagal GPS: '+e; }
+  btn.textContent='📍 Ambil GPS Saat Ini'; btn.disabled=false;
+};
+document.getElementById('btnSimpanAlamat').onclick=async()=>{
+  let nama=document.getElementById('editNama').value.trim();
+  let hp=document.getElementById('editHp').value.trim();
+  let alamat=document.getElementById('editAlamat').value.trim();
+  let detail=document.getElementById('editDetail').value.trim();
+  let kodePos=document.getElementById('editKodePos').value.trim();
+  if(!nama||!hp||!alamat){ alert('Nama, HP, Alamat wajib diisi'); return; }
+  if(!currentUser){ alert('Harus login dulu'); return; }
+  let btn=document.getElementById('btnSimpanAlamat');
+  btn.textContent='Menyimpan...'; btn.disabled=true;
+  try{
+    await setDoc(doc(db,'users',currentUser.uid), {
+      nama:nama, telepon:hp, noWA:hp, alamat:alamat, alamatDetail:detail, kodePos:kodePos,
+      alamatLengkap: alamat + (detail? ', '+detail:''),
+      lat:pLat||null, lng:pLng||null, lokasi: pLat&&pLng? {lat:pLat,lng:pLng}: null,
+      alamatPengiriman: {nama:nama, telepon:hp, alamat:alamat, detail:detail, kodePos:kodePos, lat:pLat||null, lng:pLng||null},
+      updatedAt: serverTimestamp()
+    }, {merge:true});
+    document.getElementById('modalAlamat').classList.remove('show');
+    document.getElementById('alamatNama').textContent=nama;
+    document.getElementById('alamatHp').textContent=hp;
+    document.getElementById('alamatLengkap').textContent=alamat + (detail? ', '+detail:'') + (kodePos? ' - '+kodePos:'');
+    document.getElementById('alamatGPS').textContent= pLat&&pLng? pLat.toFixed(6)+', '+pLng.toFixed(6) : 'Belum ada GPS';
+    hitungJarakDanOngkir();
+    document.getElementById('msg').innerHTML='<div class="ok">✅ Alamat berhasil disimpan.</div>';
+  }catch(e){ alert('Gagal simpan: '+e.message); }
+  btn.textContent='Simpan Alamat'; btn.disabled=false;
+};
+
+async function buatPesanan(){
+  if(orderSubmitting) return;
+  if(cart.length===0){alert('Keranjang kosong');return;}
+  if(!currentUser){alert('Silakan login terlebih dahulu.');location.href='profil.html';return;}
+  // validasi COD bersyarat
+  if(selectedPay==='cod'){
+    const groups=[...checkoutByOwner.values()];
+    const allCod=groups.every(g=>g.canCodMitra);
+    if(!allCod){
+      alert('COD tidak bisa dipilih. Ada mitra yang tidak punya kurir 40km bersaldo cukup.');
+      selectedPay='transfer';
+      updateGlobalPayment();
+      return;
+    }
+  }
+  if(!['transfer','qris','cod'].includes(selectedPay)){
+    alert('Pilih metode pembayaran.');
+    selectedPay='transfer';
+    updateGlobalPayment();
+    return;
+  }
+  orderSubmitting=true;
+  const btn=document.getElementById('btnBuatPesanan');
+  const bottomBtn=document.getElementById('bottomCheckout');
+  btn.disabled=true; bottomBtn.disabled=true;
+  btn.style.display='none'; bottomBtn.style.display='none';
+  document.getElementById('msg').innerHTML='<div class="ok">⏳ Pesanan sedang diproses per mitra. Jangan reload halaman.</div>';
+  const alamatData={nama:document.getElementById('alamatNama').textContent,telepon:document.getElementById('alamatHp').textContent,alamat:document.getElementById('alamatLengkap').textContent,lat:pLat||null,lng:pLng||null,gpsLink:pLat&&pLng?`https://www.google.com/maps?q=${pLat},${pLng}`:''};
+  try{
+    await renderPerToko();
+    const groupsMap=new Map();
+    for(const item of cart){
+      const uid=ownerKey(item),cfg=checkoutByOwner.get(uid)||{};
+      if(!cfg.shipping)throw new Error('Lengkapi metode pengiriman setiap mitra.');
+      if(cfg.shipping==='siap_antar'&&!cfg.canCourier)throw new Error(`Mitra ${cfg.info?.nama} tidak ada kurir ${RADIUS_KM}km, pilih Expedisi.`);
+      if(selectedPay==='cod'&&!cfg.canCodMitra)throw new Error(`COD tidak tersedia untuk mitra ${cfg.info?.nama}: butuh kurir ${RADIUS_KM}km dengan saldo ≥ ${rupiah(cfg.subtotal||0)}`);
+      const service=cfg.shipping==='expedisi'?(expeditionOptions.find(x=>x.id===cfg.service)||expeditionOptions[0]):null;
+      const ongkir=cfg.shipping==='expedisi'?service.cost:(cfg.info?.ongkir||5000);
+      const key=[uid,cfg.shipping,ongkir,service?.id||''].join('::');
+      if(!groupsMap.has(key))groupsMap.set(key,{uid,shipping:cfg.shipping,payment:selectedPay,shippingCost:ongkir,service:service?.id||'',info:cfg.info||{},items:[],kurirAll:cfg.kurirAll||[],kurirSaldoCukup:cfg.kurirSaldoCukup||[]});
+      groupsMap.get(key).items.push(item);
+    }
+    const createdOrders=[];
+    const makeOrderNumber=()=>'TSA-'+Date.now().toString().slice(-8)+'-'+Math.random().toString(36).slice(2,6).toUpperCase();
+    for(const group of groupsMap.values()){
+      const subtotal=group.items.reduce((a,x)=>a+(Number(x.price)||0)*(Number(x.qty)||1),0);
+      const qty=group.items.reduce((a,x)=>a+(Number(x.qty)||1),0);
+      const nomor=makeOrderNumber(),ongkirGroup=group.shippingCost;
+      const orderData={
+        uid:currentUser.uid, ownerUid:currentUser.uid, pelangganUid:currentUser.uid,
+        ownerName:alamatData.nama, email:currentUser.email||'',
+        nomorPesanan:nomor, items:group.items,
+        mitraGroups:group.uid==='unknown'?[]:[group.uid],
+        mitraUsahaUid:group.uid==='unknown'?'':group.uid,
+        mitraCandidateUids:group.uid==='unknown'?[]:[group.uid],
+        mitraNama:group.info.nama||'Mitra', mitraUid:group.uid==='unknown'?'':group.uid,
+        subtotal,ongkir:ongkirGroup,total:subtotal+ongkirGroup,totalQty:qty,
+        metodePengiriman:group.shipping, expedisiName:group.service,
+        jarakKm:group.info.jarak||0, lat:pLat||null,lng:pLng||null,
+        lokasi:pLat&&pLng?{lat:pLat,lng:pLng}:null,
+        alamatPengiriman:alamatData, alamat:alamatData.alamat, telepon:alamatData.telepon,
+        metodePembayaran:selectedPay, metodeCOD:selectedPay==='cod',
+        status:'pending', statusPesanan:'pending', statusPemenuhan:'pending_admin',
+        statusPembayaran:selectedPay==='cod'?'cod':'menunggu_verifikasi',
+        slaStatus:'berjalan',slaDurasiMenit:60,slaDeadlineAt:new Date(Date.now()+3600000),
+        kurirUid:'', kurirKandidat:group.kurirAll.map(k=>({uid:k.uid,nama:k.nama,jarakMitra:k.jarakMitra,saldo:k.saldo})),
+        kurirSaldoCukup:group.kurirSaldoCukup.map(k=>({uid:k.uid,nama:k.nama,saldo:k.saldo})),
+        mitraAlamat:group.info.alamat||'',mitraLat:group.info.lat||null,mitraLng:group.info.lng||null,
+        radiusCOD:RADIUS_KM, codSyarat: selectedPay==='cod'?`Kurir ${RADIUS_KM}km + saldo ≥ ${rupiah(subtotal)}`:'',
+        createdAt:serverTimestamp(),updatedAt:serverTimestamp()
+      };
+      const ref=await addDoc(collection(db,'orders'),orderData);
+      createdOrders.push({nomor,total:subtotal+ongkirGroup,qty,orderId:ref.id,shipping:group.shipping,payment:group.payment,ongkir:ongkirGroup,mitra:group.info.nama||'Mitra',jarak:group.info.jarak||0});
+    }
+    localStorage.setItem('tsa_cart','[]'); cart=[];
+    renderProdukSummary();
+    const totalSemua=createdOrders.reduce((a,o)=>a+o.total,0);
+    document.getElementById('msg').innerHTML=`<div class="ok">✅ Berhasil membuat ${createdOrders.length} pesanan terpisah per mitra.<br>${createdOrders.map(o=>`<b>${o.nomor}</b> — ${o.mitra} - ${o.jarak.toFixed(2)}km<br>${o.shipping==='expedisi'?'📦 Expedisi':'🛵 Siap Antar'} / ${o.payment.toUpperCase()}<br>Ongkir: ${rupiah(o.ongkir)} · Total: ${rupiah(o.total)}<br><small>Masuk ke pesan mitra sesuai pemilik</small>`).join('<hr style="border:0;border-top:1px solid #c3ead7;margin:8px 0">')}<br><br>Grand Total: ${rupiah(totalSemua)}</div>`;
+    document.getElementById('bottomTotal').textContent=rupiah(totalSemua);
+    setTimeout(()=>{location.href='riwayat.html';},3500);
+  }catch(e){
+    console.error(e);
+    orderSubmitting=false;
+    document.getElementById('msg').innerHTML='<div class="err">❌ Gagal buat pesanan: '+e.message+'</div>';
+    btn.style.display=''; bottomBtn.style.display='';
+    btn.disabled=false; bottomBtn.disabled=false;
+    btn.textContent='Buat Pesanan per Mitra →';
+  }
+}
+
+document.getElementById('btnBuatPesanan').onclick=buatPesanan;
+document.getElementById('bottomCheckout').onclick=buatPesanan;
+
+onAuthStateChanged(auth, async (user)=>{
+  currentUser=user;
+  document.querySelector('main').style.display='none';
+  document.querySelector('.bottom').style.display='none';
+  document.getElementById('btnBuatPesanan').disabled=true;
+  document.getElementById('bottomCheckout').disabled=true;
+  if(!user){
+    document.getElementById('msg').innerHTML='<div class="err">⚠️ Anda belum login. Mengarahkan ke halaman profil...</div>';
+    window.location.replace('profil.html'); return;
+  }
+  try{
+    const profileSnap=await getDoc(doc(db,'users',user.uid));
+    userData=profileSnap.exists()?profileSnap.data():null;
+    if(!userData || String(userData.role||'').trim().toLowerCase()!=='pelanggan'){
+      document.getElementById('msg').innerHTML='<div class="err">⛔ Akses ditolak. Halaman checkout hanya untuk role <b>pelanggan</b>.</div>'; return;
+    }
+    document.getElementById('msg').innerHTML='';
+    document.querySelector('main').style.display='';
+    document.querySelector('.bottom').style.display='';
+    document.getElementById('btnBuatPesanan').disabled=false;
+    document.getElementById('bottomCheckout').disabled=false;
+    await loadAlamat();
+    renderProdukSummary();
+  }catch(e){
+    console.error(e);
+    document.getElementById('msg').innerHTML='<div class="err">❌ Tidak dapat verifikasi role.</div>';
+  }
+});
+renderProdukSummary();
+</script>
+<script>(function(){var loc=location.href.replace(/#.*$/,"");var ATTR_NAMES=["data-product-id","data-productid","data-product_id","product-id","productid","product_id","data-source-entity-id","source-entity-id","source_entity_id","data-product","data-metadata","data-meta"];var DATASET_KEYS=["productId","productid","product_id","sourceEntityId","sourceentityid","source_entity_id","product","metadata","meta"];function readProductId(value){if(typeof value!=="string"||value.length===0)return null;if(/^[0-9]{6,}$/.test(value))return value;var match=value.match(/(?:product(?:_|-)?id|source(?:_|-)?entity(?:_|-)?id)["'=:\s]+([0-9]{6,})/i);return match?match[1]:null}function extractProductId(start){for(var node=start;node&&node!==document.body;node=node.parentElement){for(var i=0;i<ATTR_NAMES.length;i++){var attrValue=node.getAttribute&&node.getAttribute(ATTR_NAMES[i]);var attrProductId=readProductId(attrValue);if(attrProductId)return attrProductId}var dataset=node.dataset||null;if(dataset){for(var j=0;j<DATASET_KEYS.length;j++){var dataValue=dataset[DATASET_KEYS[j]];var dataProductId=readProductId(dataValue);if(dataProductId)return dataProductId}}}return null}function isInlineMediaSlotElement(node){return !!(node&&node.getAttribute&&node.getAttribute("data-clippy-inline-media-slot")!==null)}function findInlineMediaSlot(start){for(var node=start;node&&node!==document.body;node=node.parentElement){if(isInlineMediaSlotElement(node))return node}return null}function readInlineMediaUrl(node){if(!node)return null;return node.getAttribute&&((node.getAttribute("data-clippy-inline-media-url")||node.getAttribute("data-url")||node.getAttribute("data_url")))||node.href||null}function stripHash(url){return String(url).replace(/#.*$/,"")}function urlsMatch(a,b){if(!a||!b)return false;try{return stripHash(new URL(a,loc).href)===stripHash(new URL(b,loc).href)}catch(_){return stripHash(a)===stripHash(b)}}function isFirstPartyReelUrl(value){try{var url=new URL(value,loc);if(url.protocol!=="https:")return false;var host=url.hostname.toLowerCase();var supported=host==="instagram.com"||host.endsWith(".instagram.com")||host==="facebook.com"||host.endsWith(".facebook.com");return supported&&/\/reels?\//i.test(url.pathname)}catch(_){return false}}function isInlineMediaUrlClick(node,href){var slot=findInlineMediaSlot(node);if(!slot)return false;var slotUrl=readInlineMediaUrl(slot);if(slotUrl)return urlsMatch(href,slotUrl);return isFirstPartyReelUrl(href)}function findDataHref(start){for(var node=start;node&&node!==document.body;node=node.parentElement){if(node.getAttribute){var href=node.getAttribute("data-href")||node.getAttribute("data-url");if(href)return{href:href,node:node}}}return null}var nativeOpen=window.open;window.open=function(url){if(parent!==window&&typeof url==="string"&&/^https?:\/\//.test(url)){parent.postMessage({type:"ecto:usercontent-link-click",href:url},"*");return null}return nativeOpen?nativeOpen.apply(window,arguments):null};document.addEventListener("click",function(e){var target=e.target instanceof Element?e.target:null;if(!target)return;if(parent===window)return;var a=target.closest?target.closest("a[href]"):null;if(a&&a.href&&/^https?:\/\//.test(a.href)&&a.href.replace(/#.*$/,"")!==loc){if(isInlineMediaUrlClick(a,a.href))return;var productId=extractProductId(target)||extractProductId(a);if(productId){e.preventDefault();parent.postMessage({type:"ecto-artifact-link-click",productId:productId},"*");return}e.preventDefault();parent.postMessage({type:"ecto:usercontent-link-click",href:a.href},"*");return}var dataHref=findDataHref(target);if(dataHref&&/^https?:\/\//.test(dataHref.href)&&dataHref.href.replace(/#.*$/,"")!==loc){if(isInlineMediaUrlClick(dataHref.node,dataHref.href))return;e.preventDefault();parent.postMessage({type:"ecto:usercontent-link-click",href:dataHref.href},"*")}},true)})();</script><script>(function(){var FOCUS_TYPE="ecto:artifact-focus-request";var CLOSE_TYPE="ecto:artifact-close-request";function focusArtifactDocument(){var body=document.body;if(!body)return;try{window.focus();}catch(e){}if(!body.hasAttribute("tabindex"))body.setAttribute("tabindex","-1");try{body.focus({preventScroll:true});}catch(e){try{body.focus();}catch(e2){}}}window.addEventListener("message",function(event){if(event.source!==window.parent)return;var data=event.data;if(!data||typeof data!=="object"||data.type!==FOCUS_TYPE)return;if(document.readyState==="loading"){document.addEventListener("DOMContentLoaded",focusArtifactDocument,{once:true});return;}focusArtifactDocument();});window.addEventListener("keydown",function(event){if(event.key!=="Escape")return;window.setTimeout(function(){if(event.defaultPrevented)return;window.parent.postMessage({type:CLOSE_TYPE},"*");},0);});})();</script></body></html>

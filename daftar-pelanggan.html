@@ -1,0 +1,128 @@
+<!doctype html>
+<html lang="id">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="theme-color" content="#ffc107">
+<title>Registrasi Pelanggan - Toko Siap Antar</title>
+<style>
+*{box-sizing:border-box}body{margin:0;background:#f4f6f5;color:#20312a;font:14px/1.5 system-ui,Arial,sans-serif}
+header{background:#171717;color:#fff;padding:15px 16px;border-bottom:4px solid #ffc107}
+.head{max-width:760px;margin:auto;display:flex;align-items:center;gap:11px}
+.logo{width:42px;height:42px;background:#ffc107;color:#171717;border-radius:11px;display:grid;place-items:center;font-weight:900;font-size:21px}
+header h1{font-size:17px;margin:0}header small{color:#ccc}
+main{max-width:760px;margin:20px auto;padding:0 13px 35px}
+.card{background:#fff;border:1px solid #e3e9e5;border-radius:15px;padding:17px;box-shadow:0 3px 14px #00000008}
+h2{font-size:18px;margin:0 0 5px}.sub{color:#69766f;font-size:12px;margin-bottom:17px}
+.grid{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.field{margin-bottom:12px}.field.full{grid-column:1/-1}
+label{display:block;font-weight:700;font-size:12px;margin-bottom:5px}
+input,textarea{width:100%;padding:11px 12px;border:1px solid #d5ded8;border-radius:9px;font:inherit;outline:none;background:#fff}
+input:focus,textarea:focus{border-color:#079653;box-shadow:0 0 0 3px #07965318}
+textarea{min-height:78px;resize:vertical}
+.hint{font-size:11px;color:#78847d;margin-top:4px}
+.gpsbox{background:#f5faf6;border:1px dashed #b8d8c4;padding:12px;border-radius:10px;margin:5px 0 14px}
+.gpsrow{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
+button{border:0;border-radius:9px;padding:11px 15px;font-weight:800;cursor:pointer}
+.gpsbtn{background:#e3f3e9;color:#087b45}.submit{width:100%;background:#ffc107;color:#171717;font-size:15px;margin-top:5px}
+.submit:disabled,button:disabled{opacity:.55;cursor:not-allowed}
+.msg{display:none;padding:11px;border-radius:9px;margin:12px 0;font-size:13px;overflow-wrap:anywhere}.msg.show{display:block}.error{background:#fff0ed;color:#a32b20;border:1px solid #f2c4bd}.success{background:#e9fff1;color:#087443;border:1px solid #bde7ce}.role{display:inline-block;background:#e8f7ef;color:#087443;padding:4px 9px;border-radius:20px;font-weight:800;font-size:11px}
+.footer{text-align:center;color:#78847d;font-size:11px;margin-top:14px}
+@media(max-width:560px){.grid{grid-template-columns:1fr}.field.full{grid-column:auto}.card{padding:14px}}
+</style>
+</head>
+<body>
+<header><div class="head"><div class="logo">T</div><div><h1>REGISTRASI PELANGGAN</h1><small>Toko Siap Antar</small></div></div></header>
+<main>
+<section class="card">
+<h2>Buat Akun Pelanggan</h2>
+<div class="sub">Isi data sesuai kolom profil pelanggan yang disimpan di Firebase.</div>
+<div><span class="role">ROLE OTOMATIS: PELANGGAN</span></div>
+<div id="message" class="msg"></div>
+<form id="registerForm">
+ <div class="grid" style="margin-top:15px">
+  <div class="field"><label for="nama">Nama lengkap *</label><input id="nama" autocomplete="name" required placeholder="Nama pelanggan"></div>
+  <div class="field"><label for="telepon">Telepon / WhatsApp *</label><input id="telepon" type="tel" autocomplete="tel" required placeholder="08xxxxxxxxxx"></div>
+  <div class="field"><label for="email">Email *</label><input id="email" type="email" autocomplete="email" required placeholder="nama@email.com"></div>
+  <div class="field"><label for="password">Password *</label><input id="password" type="password" autocomplete="new-password" minlength="6" required placeholder="Minimal 6 karakter"></div>
+  <div class="field full"><label for="alamat">Alamat lengkap *</label><textarea id="alamat" autocomplete="street-address" required placeholder="Jalan, RT/RW, desa, kecamatan, kabupaten, patokan"></textarea></div>
+  <div class="field full"><label for="alamatTerakhir">Alamat terakhir (opsional)</label><textarea id="alamatTerakhir" placeholder="Isi jika alamat terakhir berbeda dari alamat utama"></textarea></div>
+ </div>
+ <div class="gpsbox">
+  <b>Lokasi GPS (opsional, disarankan)</b>
+  <div class="hint">GPS digunakan untuk membantu menghitung jarak pengiriman. Izinkan akses lokasi pada browser.</div>
+  <div class="gpsrow" style="margin-top:9px"><button type="button" class="gpsbtn" id="getGps">📍 Ambil Lokasi GPS</button><span class="hint" id="gpsStatus">Belum mengambil lokasi</span></div>
+  <div class="hint" id="gpsCoords"></div>
+ </div>
+ <button class="submit" id="submitBtn" type="submit">Daftar Akun Pelanggan</button>
+</form>
+</section>
+<div class="footer">Dengan mendaftar, akun dibuat sebagai pelanggan. Saldo E-Wallet dimulai dari Rp 0.</div>
+</main>
+<script type="module">
+import {initializeApp} from "https://www.gstatic.com/firebasejs/12.4.0/firebase-app.js";
+import {getAuth,createUserWithEmailAndPassword} from "https://www.gstatic.com/firebasejs/12.4.0/firebase-auth.js";
+import {getFirestore,doc,setDoc,serverTimestamp} from "https://www.gstatic.com/firebasejs/12.4.0/firebase-firestore.js";
+const firebaseConfig={apiKey:"AIzaSyBxqZhl6t3RwrXMwVdJeIkg0NzGfwvlweM",authDomain:"toko-siap-antar-9a7bb.firebaseapp.com",projectId:"toko-siap-antar-9a7bb",storageBucket:"toko-siap-antar-9a7bb.firebasestorage.app",messagingSenderId:"351335838712",appId:"1:351335838712:web:14cc2c7b91bb0c9e1b5c0d"};
+const app=initializeApp(firebaseConfig),auth=getAuth(app),db=getFirestore(app);
+let gpsLat=null,gpsLng=null;
+const $=id=>document.getElementById(id);
+function showMessage(text,type='error'){$('message').textContent=text;$('message').className='msg show '+type;}
+function makeMapsUrl(lat,lng){return `https://www.google.com/maps?q=${lat},${lng}`;}
+$('getGps').onclick=()=>{
+ if(!navigator.geolocation){$('gpsStatus').textContent='Browser tidak mendukung GPS';return;}
+ $('getGps').disabled=true;$('gpsStatus').textContent='Mengambil lokasi...';
+ navigator.geolocation.getCurrentPosition(pos=>{
+  gpsLat=pos.coords.latitude;gpsLng=pos.coords.longitude;
+  $('gpsStatus').textContent='Lokasi berhasil diambil';
+  $('gpsCoords').textContent=`Latitude: ${gpsLat} • Longitude: ${gpsLng}`;
+  $('getGps').disabled=false;
+ },err=>{
+  $('gpsStatus').textContent='GPS gagal: '+err.message;
+  $('getGps').disabled=false;
+ },{enableHighAccuracy:true,timeout:20000,maximumAge:0});
+};
+$('registerForm').addEventListener('submit',async e=>{
+ e.preventDefault();
+ const nama=$('nama').value.trim(),telepon=$('telepon').value.trim(),email=$('email').value.trim().toLowerCase(),password=$('password').value,alamat=$('alamat').value.trim(),alamatTerakhir=$('alamatTerakhir').value.trim();
+ if(!nama||!telepon||!email||!password||!alamat){showMessage('Lengkapi semua kolom wajib.');return;}
+ const btn=$('submitBtn');btn.disabled=true;btn.textContent='Membuat akun...';$('message').className='msg';
+ try{
+  const credential=await createUserWithEmailAndPassword(auth,email,password);
+  const uid=credential.user.uid;
+  const gpsLink=gpsLat!==null&&gpsLng!==null?makeMapsUrl(gpsLat,gpsLng):'';
+  const profile={
+   alamat:alamat,
+   alamatLengkap:alamat,
+   alamatTerakhir:alamatTerakhir,
+   createdAt:serverTimestamp(),
+   email:email,
+   gpsLink:gpsLink,
+   lastLat:gpsLat,
+   lastLng:gpsLng,
+   lat:gpsLat,
+   lng:gpsLng,
+   mapsUrl:gpsLink,
+   nama:nama,
+   noWA:telepon,
+   role:'pelanggan',
+   saldoEwallet:0,
+   telepon:telepon,
+   updatedAt:serverTimestamp()
+  };
+  await setDoc(doc(db,'users',uid),profile);
+  showMessage('Registrasi berhasil. Akun pelanggan sudah dibuat. Mengarahkan ke profil...','success');
+  $('registerForm').reset();$('gpsStatus').textContent='Belum mengambil lokasi';$('gpsCoords').textContent='';
+  setTimeout(()=>{location.href='profil.html';},1200);
+ }catch(err){
+  console.error(err);
+  let message=err.message||'Terjadi kesalahan.';
+  if(err.code==='auth/email-already-in-use')message='Email sudah terdaftar. Silakan login.';
+  else if(err.code==='auth/weak-password')message='Password terlalu lemah. Gunakan minimal 6 karakter.';
+  else if(err.code==='auth/invalid-email')message='Format email tidak valid.';
+  else if(err.code==='permission-denied')message='Akun Auth berhasil dibuat, tetapi penyimpanan profil ditolak Firestore Rules. Periksa izin membuat users/{uid}.';
+  showMessage('Registrasi gagal: '+message);
+ }finally{btn.disabled=false;btn.textContent='Daftar Akun Pelanggan';}
+});
+</script>
+</body></html>

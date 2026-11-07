@@ -1,0 +1,132 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<title>Dashboard Konter</title>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+
+<style>
+body{font-family:Arial;background:#f2f2f2;margin:0}
+header{background:#0d6efd;color:#fff;text-align:center;padding:15px}
+.tabs{display:flex;margin:10px}
+.tabs button{
+  flex:1;padding:10px;border:none;margin:2px;
+  border-radius:6px;background:#fff;color:#0d6efd;font-weight:bold
+}
+.tabs button.active{background:#0d6efd;color:#fff}
+.box{
+  background:#fff;margin:10px;padding:15px;
+  border-radius:8px;display:none
+}
+.box.active{display:block}
+.total{font-size:22px;font-weight:bold;margin-top:8px}
+</style>
+</head>
+
+<body>
+
+<header>
+  <h2>📊 Dashboard Konter</h2>
+  <small>Data Harian, Bulanan & Tahunan</small>
+</header>
+
+<div class="tabs">
+  <button id="btnHarian" class="active" onclick="showTab('harian')">Harian</button>
+  <button id="btnBulanan" onclick="showTab('bulanan')">Bulanan</button>
+  <button id="btnTahunan" onclick="showTab('tahunan')">Tahunan</button>
+</div>
+
+<div id="harian" class="box active">
+  <h3>📅 Harian (Bulan Ini)</h3>
+  <div id="harianList"></div>
+</div>
+
+<div id="bulanan" class="box">
+  <h3>🗓️ Rekap Bulanan</h3>
+  <div id="bulananList"></div>
+</div>
+
+<div id="tahunan" class="box">
+  <h3>📆 Rekap Tahunan</h3>
+  <div id="tahunanList"></div>
+</div>
+
+<script>
+function showTab(id){
+  document.querySelectorAll('.box').forEach(b=>b.classList.remove('active'));
+  document.querySelectorAll('.tabs button').forEach(b=>b.classList.remove('active'));
+  document.getElementById(id).classList.add('active');
+  document.getElementById('btn'+id.charAt(0).toUpperCase()+id.slice(1)).classList.add('active');
+}
+
+const CSV_URL = "https://docs.google.com/spreadsheets/d/e/2PACX-1vTAP_R50frV13whqx54ctjplc-8xhcN53rHEVk5mkhLeZE283xWnr6TdTBFr-KFymEiaYE_NWgGthpo/pub?gid=716772016&single=true&output=csv";
+
+fetch(CSV_URL)
+.then(res => res.text())
+.then(csv => {
+
+  const rows = csv.split("\n").slice(1);
+
+  const now = new Date();
+  const bulanSekarang = now.toLocaleString("id-ID",{month:"long"});
+  const tahunSekarang = now.getFullYear().toString();
+
+  let harian = {};   // per tanggal (bulan ini)
+  let bulanan = {};  // SUDAH KEPAKAI
+  let tahunan = {};  // per tahun
+
+  rows.forEach(r=>{
+    const c = r.split(",");
+
+    const tanggal = c[0];       // 01/01/2026
+    const hari = c[1];          // Senin
+    const bulan = c[2];         // Januari
+    const tahun = c[3];         // 2026
+    const total = parseInt(c[11]) || 0;
+
+    // HARlAN (bulan berjalan)
+    if(bulan === bulanSekarang && tahun === tahunSekarang){
+      if(!harian[tanggal]) harian[tanggal] = {hari: hari, total:0};
+      harian[tanggal].total += total;
+    }
+
+    // BULANAN
+    if(!bulanan[bulan]) bulanan[bulan] = 0;
+    bulanan[bulan] += total;
+
+    // TAHUNAN
+    if(!tahunan[tahun]) tahunan[tahun] = 0;
+    tahunan[tahun] += total;
+  });
+
+  /* ===== TAMPILKAN HARIAN ===== */
+  let hHtml = "";
+  Object.keys(harian).sort().forEach(tgl=>{
+    hHtml += `<p>${tgl} ${harian[tgl].hari} : 
+      <strong>Rp ${harian[tgl].total.toLocaleString("id-ID")}</strong></p>`;
+  });
+  document.getElementById("harianList").innerHTML = hHtml || "<p>Tidak ada data</p>";
+
+  /* ===== TAMPILKAN BULANAN ===== */
+  let bHtml = "";
+  for(const b in bulanan){
+    bHtml += `<p>${b} : <strong>Rp ${bulanan[b].toLocaleString("id-ID")}</strong></p>`;
+  }
+  document.getElementById("bulananList").innerHTML = bHtml;
+
+  /* ===== TAMPILKAN TAHUNAN ===== */
+  let tHtml = "";
+  for(const t in tahunan){
+    tHtml += `<p>${t} : <strong>Rp ${tahunan[t].toLocaleString("id-ID")}</strong></p>`;
+  }
+  document.getElementById("tahunanList").innerHTML = tHtml;
+
+})
+.catch(err=>{
+  alert("Gagal ambil data");
+  console.error(err);
+});
+</script>
+
+</body>
+</html>
