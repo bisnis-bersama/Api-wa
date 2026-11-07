@@ -25,15 +25,14 @@ main{max-width:1100px;margin:-14px auto 0;padding:0 12px 80px}
 @keyframes fadeOut{from{opacity:1;transform:translateY(0)} to{opacity:0;transform:translateY(-10px)}}
 .item.hiding{animation:fadeOut .4s forwards}
 </style></head><body>
-<div class="top"><div class="topline"><div><div class="brand">TOKO SIAP ANTAR</div><div style="color:var(--yellow);font-weight:800;font-size:12px">Admin • Pending & Verifikasi Keuangan</div><div style="color:#c7cbd0;font-size:10px">Pending → Disetujui (hilang dari pending) → Di Proses Mitra/Kurir → Selesai → Verifikasi Admin → Bagi Saldo 5%</div></div><a href="./index.html" style="color:var(--yellow);text-decoration:none;font-weight:800">← Menu</a></div></div>
+<div class="top"><div class="topline"><div><div class="brand">TOKO SIAP ANTAR</div><div style="color:var(--yellow);font-weight:800;font-size:12px">Admin • Pending & Verifikasi Keuangan</div><div style="color:#c7cbd0;font-size:10px">Admin hanya menyetujui Pending dan memverifikasi bukti selesai untuk pembagian saldo</div></div><a href="./index.html" style="color:var(--yellow);text-decoration:none;font-weight:800">← Menu</a></div></div>
 <main>
 <div class="panel">
 <h2 style="margin:0">Semua Pesanan</h2>
-<p class="meta">Setelah disetujui, status jadi <b>disetujui</b> → hilang dari tab Pending (karena tidak terbaca sama query pending) → muncul di tab <b>Di Proses</b> → muncul di Pesanan Masuk Mitra sesuai mitraUid. Setelah Mitra/Kurir selesai upload bukti ke Kolom J, baru muncul di Verifikasi Keuangan.</p>
+<p class="meta">Admin hanya melakukan dua tindakan: menyetujui pesanan Pending, lalu memverifikasi pesanan yang sudah selesai dan memiliki bukti OCR/pengiriman untuk pembagian saldo. Proses pengemasan dan pengiriman dikelola Mitra/Kurir.</p>
 <div id="log" class="log" style="display:none"></div>
 <div class="tabs">
 <button id="tabPending" class="active" onclick="loadPending()">🟡 Pending <small id="countPending">0</small></button>
-<button id="tabProses" onclick="loadProses()">🔵 Di Proses <small id="countProses">0</small></button>
 <button id="tabVerifikasi" onclick="loadVerifikasi()">🟠 Verifikasi <small id="countVerifikasi">0</small></button>
 </div>
 <div style="display:flex;gap:6px"><button class="btn yellow" onclick="loadPending()">🔄 Muat Pending</button><button class="btn black" onclick="document.getElementById('log').style.display=document.getElementById('log').style.display==='none'?'block':'none'">📋 Log</button></div>
@@ -140,7 +139,7 @@ async function loadVerifikasi(){
   $("tabPending").classList.remove("active"); $("tabProses").classList.remove("active"); $("tabVerifikasi").classList.add("active");
   $("content").innerHTML='Memuat verifikasi...';
   try{
-    const docs=await fetchOrdersByStatus(['menunggu_verifikasi_admin']).filter(o=>o.saldoDibagi!==true);
+    const docs=await fetchOrdersByStatus(['menunggu_verifikasi_admin']).filter(o=>o.saldoDibagi!==true && Boolean(o.buktiPenyerahanOcr || o.buktiResiOcr || o.buktiFotoUrl || o.buktiPenyerahanUrl || o.buktiGambarDiSpreadsheet));
     $("countVerifikasi").textContent=docs.length;
     if(!docs.length){ $("content").innerHTML='<div class="ok">Tidak ada menunggu verifikasi keuangan ✅</div>'; return; }
     $("content").innerHTML=`<div class="list">${docs.map(o=>{
@@ -162,7 +161,7 @@ window.approveOrder=async id=>{
     await updateDoc(ref,{status:'disetujui',disetujuiAdmin:true,disetujuiAdminAt:serverTimestamp(),disetujuiAdminUid:currentUser.uid,disetujuiAt:serverTimestamp(),disetujuiOleh:currentUser.uid,updatedAt:serverTimestamp()});
     log(`✅ ${id} disetujui - status jadi disetujui, hilang dari pending`);
     // Tampilkan toast
-    setTimeout(()=>{ alert('✅ Disetujui! Order hilang dari Pending (karena status jadi disetujui) → sekarang ada di tab Di Proses dan di Pesanan Masuk Mitra.'); loadPending(); loadProses(); }, 500);
+    setTimeout(()=>{ alert('✅ Disetujui! Order hilang dari Pending (karena status jadi disetujui) → sekarang ada di tab Di Proses dan di Pesanan Masuk Mitra.'); loadPending(); }, 500);
   }catch(e){ log('approve gagal '+e.message); alert('Gagal setujui: '+e.message); if(el){ el.classList.remove('hiding'); el.style.display=''; } }
 };
 window.detailOrder=async id=>{
@@ -179,6 +178,8 @@ window.verifikasiKeuangan=async id=>{
       const orderSnap=await tx.get(ref);
       if(!orderSnap.exists()) throw Error('Order hilang');
       if(orderSnap.data().saldoDibagi===true) throw Error('Sudah dibagi');
+      if(orderSnap.data().status !== 'menunggu_verifikasi_admin') throw Error('Pesanan belum masuk tahap verifikasi Admin');
+      if(!(orderSnap.data().buktiPenyerahanOcr || orderSnap.data().buktiResiOcr || orderSnap.data().buktiFotoUrl || orderSnap.data().buktiPenyerahanUrl || orderSnap.data().buktiGambarDiSpreadsheet)) throw Error('Bukti pengiriman/OCR belum tersedia');
       const mitraUid=o.mitraUid, kurirUid=o.kurirUid;
       const isSendiri=['mitra_kirim_sendiri','via_expedisi','proses_sendiri'].includes(String(o.metodePenyerahan||'').toLowerCase());
       if(mitraUid){
