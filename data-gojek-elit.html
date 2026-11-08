@@ -57,7 +57,7 @@ input:focus{outline:2px solid #ffcc00;background:#fff}
 #pinTengah{position:absolute;left:50%;top:50%;transform:translate(-50%,-100%);font-size:36px;z-index:500;pointer-events:none;text-shadow:0 2px 6px #0008}
 #pinTengah::after{content:'';position:absolute;left:50%;bottom:-4px;transform:translateX(-50%);width:10px;height:10px;background:#ffcc00;border:2px solid #111;border-radius:50%}
 #labelTengah{position:absolute;left:8px;right:8px;bottom:8px;background:#111;color:#fff;padding:8px 10px;border-radius:10px;font-size:12px;z-index:500;text-align:center}
-#mapTujuan{height:340px;border-radius:14px;border:1px solid #e2e2e2;margin-top:10px;z-index:1}
+#mapTujuan{height:340px;border-radius:14px;border:1px solid #e2e2e2;margin-top:10px;z-index:1;background:#e8e8e8}
 .map-switch{display:flex;gap:6px;margin-top:10px}
 .map-switch button{flex:1;padding:9px;border:1px solid #e2e2e2;background:#fff;border-radius:10px;font-weight:700;cursor:pointer;font-size:13px}
 .map-switch button.active{background:#111;color:#fff;border-color:#111}
@@ -197,9 +197,18 @@ div.muted[style*="text-align:center"]{display:none!important}
   // Kalau dikosongkan, pencarian pakai Photon + Nominatim (global, gratis) + tombol "Cari di Google Maps".
   const GOOGLE_API_KEY = ""; // contoh: "AIzaSy..."
   
-import {auth,db} from './firebase-config.js';
-import {onAuthStateChanged} from "https://www.gstatic.com/firebasejs/12.4.0/firebase-auth.js";
-import {collection,query,where,getDocs,addDoc,serverTimestamp,doc,getDoc} from "https://www.gstatic.com/firebasejs/12.4.0/firebase-firestore.js";
+import {initializeApp} from "https://www.gstatic.com/firebasejs/12.4.0/firebase-app.js";
+import {getAuth,onAuthStateChanged} from "https://www.gstatic.com/firebasejs/12.4.0/firebase-auth.js";
+import {getFirestore,collection,query,where,getDocs,addDoc,serverTimestamp,doc,getDoc} from "https://www.gstatic.com/firebasejs/12.4.0/firebase-firestore.js";
+const firebaseConfig = {
+  apiKey: "AIzaSyBxqZhl6t3RwrXMwVdJeIkg0NzGfwvlweM",
+  authDomain: "toko-siap-antar-9a7bb.firebaseapp.com",
+  projectId: "toko-siap-antar-9a7bb",
+  storageBucket: "toko-siap-antar-9a7bb.firebasestorage.app",
+  messagingSenderId: "351335838712",
+  appId: "1:351335838712:web:14cc2c7b91bb0c9e1b5c0d"
+};
+const app=initializeApp(firebaseConfig),auth=getAuth(app),db=getFirestore(app);
 const $=id=>document.getElementById(id);
 const rupiah=n=>"Rp "+(Number(n)||0).toLocaleString("id-ID");
 let currentUser=null, kurirTerpilih=[], jarakKm=0, ongkir=0, kurirList=[], namaPelanggan='Pelanggan';
@@ -520,7 +529,12 @@ function initPeta(){
   const pusat=(!isNaN(tLat)&&!isNaN(tLng))?[tLat,tLng]:[jLat,jLng];
   mapTujuan=L.map('mapTujuan').setView(pusat, 14);
   // PETA GOOGLE MAPS — tile Google, bukan OpenStreetMap lagi
-  layerPeta=L.tileLayer('https://mt1.google.com/vt/lyrs=m&x={x}&y={y}&z={z}',{maxZoom:20, attribution:'© Google Maps'}).addTo(mapTujuan); }catch(e){} });
+  layerPeta=L.tileLayer('https://mt1.google.com/vt/lyrs=m&x={x}&y={y}&z={z}',{maxZoom:20, attribution:'© Google Maps'}).addTo(mapTujuan);
+  // Kalau tile Google gagal / jaringan lemot, fallback ke OSM biar peta gak putih
+  var layerFallback=L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',{maxZoom:19, attribution:'© OpenStreetMap'});
+  layerPeta.on('tileerror', ()=>{ try{ if(mapTujuan.hasLayer(layerPeta)) mapTujuan.removeLayer(layerPeta); if(!mapTujuan.hasLayer(layerFallback)) mapTujuan.addLayer(layerFallback); }catch(e){} });
+  setTimeout(()=>{ try{ mapTujuan.invalidateSize(); }catch(e){} }, 300);
+  setTimeout(()=>{ try{ mapTujuan.invalidateSize(); }catch(e){} }, 1500); }catch(e){} });
   layerSatelit=L.tileLayer('https://mt1.google.com/vt/lyrs=s,h&x={x}&y={y}&z={z}',{maxZoom:20, attribution:'© Google Maps'});
   markerJemput=L.marker([jLat,jLng]).addTo(mapTujuan).bindPopup('📍 Lokasi Awal - GPS Pelanggan');
   const posT=(!isNaN(tLat)&&!isNaN(tLng))?[tLat,tLng]:[jLat,jLng];
