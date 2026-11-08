@@ -126,7 +126,7 @@
     <button class="proof-option" type="button" onclick="document.getElementById('proofGallery').click()">🖼️ Pilih dari Galeri</button>
     <img id="proofPreview" class="proof-preview" alt="Pratinjau bukti penyerahan">
     <div id="proofFileName" style="font-size:11px;color:#666;margin-top:7px"></div>
-    <button class="proof-option" type="button" id="proofReadOcr" onclick="bacaOCR()" disabled>🔎 Baca OCR Foto Bukti</button>
+    <button class="proof-option" type="button" id="proofReadOcr" disabled>🔎 Baca OCR Foto Bukti</button>
     <div id="proofOcr" style="font-size:12px;color:#333;background:#f3f4f6;border-radius:8px;padding:9px;margin-top:8px;white-space:pre-wrap">Pilih foto, lalu tekan Baca OCR Foto Bukti.</div>
     <div class="row2" style="margin-top:12px">
       <button class="btn btn-dark" type="button" onclick="tutupBukti()">Batal</button>
@@ -408,6 +408,8 @@ async function bacaOCR(){
   }finally{btn.disabled=false;btn.textContent='🔎 Baca OCR Foto Bukti';}
 }
 window.bacaOCR=bacaOCR;
+// Tombol Baca OCR pakai listener, bukan onclick, biar tidak diam
+$('proofReadOcr').addEventListener('click',()=>{window.bacaOCR();});
 $('proofCamera').addEventListener('change',e=>pilihBukti(e.target.files?.[0]));
 $('proofGallery').addEventListener('change',e=>pilihBukti(e.target.files?.[0]));
 window.selesai=(id)=>{
