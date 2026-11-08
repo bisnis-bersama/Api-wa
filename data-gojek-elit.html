@@ -197,12 +197,9 @@ div.muted[style*="text-align:center"]{display:none!important}
   // Kalau dikosongkan, pencarian pakai Photon + Nominatim (global, gratis) + tombol "Cari di Google Maps".
   const GOOGLE_API_KEY = ""; // contoh: "AIzaSy..."
   
-import {initializeApp,getApps,getApp} from "https://www.gstatic.com/firebasejs/12.4.0/firebase-app.js";
-import {getAuth,onAuthStateChanged} from "https://www.gstatic.com/firebasejs/12.4.0/firebase-auth.js";
-import {getFirestore,collection,query,where,getDocs,addDoc,serverTimestamp,doc,getDoc} from "https://www.gstatic.com/firebasejs/12.4.0/firebase-firestore.js";
-const firebaseConfig={apiKey:"AIzaSyBxqZhl6t3RwrXMwVdJeIkg0NzGfwvlweM",authDomain:"toko-siap-antar-9a7bb.firebaseapp.com",projectId:"toko-siap-antar-9a7bb",storageBucket:"toko-siap-antar-9a7bb.firebasestorage.app",messagingSenderId:"351335838712",appId:"1:351335838712:web:6e2b3e0b0e0b0e0b0e0b0e0b0e0b"};
-const app=getApps().length?getApp():initializeApp(firebaseConfig);
-const auth=getAuth(app); const db=getFirestore(app);
+import {auth,db} from './firebase-config.js';
+import {onAuthStateChanged} from "https://www.gstatic.com/firebasejs/12.4.0/firebase-auth.js";
+import {collection,query,where,getDocs,addDoc,serverTimestamp,doc,getDoc} from "https://www.gstatic.com/firebasejs/12.4.0/firebase-firestore.js";
 const $=id=>document.getElementById(id);
 const rupiah=n=>"Rp "+(Number(n)||0).toLocaleString("id-ID");
 let currentUser=null, kurirTerpilih=[], jarakKm=0, ongkir=0, kurirList=[], namaPelanggan='Pelanggan';
