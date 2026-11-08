@@ -107,7 +107,7 @@ nav.bottom a{color:#aaa;text-decoration:none;font-size:11px} nav.bottom a.active
 
 <!-- 2. TUJUAN -->
 <div class="card">
-<div class="step"><div class="num">2</div><div><h3>Tujuan</h3><p>Ketik alamat tujuan, pilih dari saran, peta akan ikut. Atau langsung tap peta.</p></div></div>
+<div class="step"><div class="num">2</div><div><h3>Tujuan</h3><p>Ketik alamat tujuan seperti di Google Maps — bisa di kota / desa mana saja. Pilih dari saran, peta akan ikut. Atau langsung tap peta.</p></div></div>
 <label>Alamat Tujuan</label>
 <input id="tujuanAlamat" readonly placeholder="🔍 Ketik seperti di Google Maps — contoh: Pasar Maja Selatan" style="cursor:pointer;background:#fff">
 <div id="saranTujuan" class="saran"></div>
@@ -163,10 +163,10 @@ nav.bottom a{color:#aaa;text-decoration:none;font-size:11px} nav.bottom a.active
 <div id="overlayCari">
   <div class="top-cari">
     <button id="btnTutupCari" type="button" style="border:0;background:none;font-size:22px;cursor:pointer">←</button>
-    <input id="inputCariOverlay" class="input-cari" placeholder="Cari alamat tujuan...">
+    <input id="inputCariOverlay" class="input-cari" placeholder="Cari di mana saja, seperti Google Maps...">
     <button id="btnClearCari" type="button" style="border:0;background:none;font-size:22px;cursor:pointer">ⓧ</button>
   </div>
-  <div id="infoCari" class="muted" style="padding:10px 14px">Ketik nama tempat, jalan, desa, atau alun-alun. Hasil diurutkan dari yang paling dekat dengan lokasi kamu.</div>
+  <div id="infoCari" class="muted" style="padding:10px 14px">Pencarian Global — bisa dipakai di area mana aja, seperti Google Maps. Ketik nama tempat, jalan, desa, kota, di mana saja.</div>
   <div id="listCariOverlay" style="overflow:auto;flex:1"></div>
 </div>
 <nav class="bottom"><a href="./index.html">🏠<br>Beranda</a><a href="./ewallet-admin.html">💳<br>E-Wallet</a><a href="./cari-kurir.html" class="active">🛵<br>Gojek Elit</a><a href="./semua-pesanan-admin.html">📦<br>Pesanan</a></nav>
@@ -208,20 +208,33 @@ function tarif(){
 // === NAMA ALAMAT LENGKAP ===
 async function ambilNamaAlamat(lat, lng){
   try{
-    const res=await fetch(`https://nominatim.openstreetmap.org/reverse?format=jsonv2&lat=${lat}&lon=${lng}&zoom=18&addressdetails=1&accept-language=id`);
+    const res=await fetch(`https://nominatim.openstreetmap.org/reverse?format=jsonv2&lat=${lat}&lon=${lng}&zoom=18&addressdetails=1&accept-language=id,en`);
     const data=await res.json(); const a=data.address||{};
+    const negara=(a.country||'').toLowerCase();
+    const diIndonesia = negara.includes('indonesia') || negara==='' ;
     const jalan=a.road||a.pedestrian||a.footway||a.path||'';
     const nomor=a.house_number?'No. '+a.house_number:'';
     const blok=a.neighbourhood||a.hamlet||a.suburb||a.quarter||a.residential||'';
     const desa=a.village||a.town||a.city||a.municipality||'';
     const kecamatan=a.city_district||a.district||'';
-    const kabupaten=a.county||''; const provinsi=a.state||''; const kodepos=a.postcode||'';
+    const kabupaten=a.county||''; const provinsi=a.state||''; const kodepos=a.postcode||''; const negaraNama=a.country||'';
     const parts=[]; if(jalan) parts.push((jalan+(nomor?' '+nomor:'')).trim());
-    if(blok && blok!==jalan && blok!==desa) parts.push(blok.includes('Blok')?'Blok '+blok.replace('Blok','').trim():blok);
-    if(desa) parts.push('Desa/Kel. '+desa);
-    if(kecamatan && kecamatan!==desa && kecamatan!==blok) parts.push('Kec. '+kecamatan);
-    if(kabupaten) parts.push('Kab. '+kabupaten.replace('Kabupaten ',''));
-    if(provinsi) parts.push(provinsi); if(kodepos) parts.push(kodepos);
+    if(diIndonesia){
+      if(blok && blok!==jalan && blok!==desa) parts.push(blok.includes('Blok')?'Blok '+blok.replace('Blok','').trim():blok);
+      if(desa) parts.push('Desa/Kel. '+desa);
+      if(kecamatan && kecamatan!==desa && kecamatan!==blok) parts.push('Kec. '+kecamatan);
+      if(kabupaten) parts.push('Kab. '+kabupaten.replace('Kabupaten ',''));
+      if(provinsi) parts.push(provinsi); if(kodepos) parts.push(kodepos);
+    } else {
+      // GLOBAL: format umum, bisa di negara mana saja
+      if(blok && blok!==jalan && blok!==desa) parts.push(blok);
+      if(desa) parts.push(desa);
+      if(kecamatan && kecamatan!==desa && kecamatan!==blok) parts.push(kecamatan);
+      if(kabupaten) parts.push(kabupaten);
+      if(provinsi) parts.push(provinsi);
+      if(negaraNama) parts.push(negaraNama);
+      if(kodepos) parts.push(kodepos);
+    }
     let lengkap=parts.join(', '); if(!lengkap && data.display_name) lengkap=data.display_name;
     if(!lengkap) lengkap=`GPS ${lat.toFixed(6)}, ${lng.toFixed(6)}`;
     return {lengkap, jalan, blok, desa, kecamatan, kabupaten, provinsi, kodepos};
@@ -310,51 +323,169 @@ function judulDariDisplay(display){
   const parts=display.split(',').map(s=>s.trim());
   return {judul: parts[0]||display, sub: parts.slice(1).join(', ')};
 }
+
+// ===== DATABASE LOKAL (PELENGKAP SAJA) — bukan pembatas. Pencarian utama GLOBAL, bisa di area mana saja. Database ini cuma biar tempat Majalengka yang belum lengkap di OSM tetap ketemu. Kalau user di Jakarta / Bandung / Surabaya, hasil global dari Photon/Nominatim yang dipakai. =====
+// Koordinat perkiraan pusat tempat (akurat sampai area, user bisa geser pin tengah di peta sampai pas di atap rumah)
+const TEMPAT_LOKAL = [
+  {nama:"Panyaweuyan", alamat:"Tejamulya, Kabupaten Majalengka, Jawa Barat", lat:-6.7820, lng:108.3950, kat:"wisata"},
+  {nama:"Terasering Panyaweuyan", alamat:"Jalan Desa, Sukasari Kidul, Kabupaten Majalengka", lat:-6.7845, lng:108.3975, kat:"wisata"},
+  {nama:"Sorabi Panyaweuyan (viral)", alamat:"Terasering Panyaweuyan, Sukasari Kidul, Kabupaten Majalengka", lat:-6.7835, lng:108.3960, kat:"kuliner"},
+  {nama:"Lawang Saketeng", alamat:"Blk. Minggu, Sukasari Kaler, Kabupaten Majalengka", lat:-6.7850, lng:108.3940, kat:"wisata"},
+  {nama:"Masjid Panyaweuyan", alamat:"Tejamulya, Kabupaten Majalengka, Jawa Barat", lat:-6.7825, lng:108.3930, kat:"masjid"},
+  {nama:"Tempat Penginapan Bukit Panyaweuyan", alamat:"Apuy, Argamukti, Kabupaten Majalengka", lat:-6.7800, lng:108.3980, kat:"penginapan"},
+  {nama:"Panyaweuyan Cipanas", alamat:"Jalan Raya Pacet, Ciherang, Kabupaten Cianjur", lat:-6.7230, lng:107.0450, kat:"wisata"},
+  {nama:"Desa Tejamulya", alamat:"Tejamulya, Argamukti, Kabupaten Majalengka", lat:-6.7880, lng:108.3900, kat:"desa"},
+  {nama:"Desa Sukasari Kidul", alamat:"Sukasari Kidul, Argamukti, Kabupaten Majalengka", lat:-6.7860, lng:108.3920, kat:"desa"},
+  {nama:"Desa Sukasari Kaler", alamat:"Sukasari Kaler, Argamukti, Kabupaten Majalengka", lat:-6.7820, lng:108.3880, kat:"desa"},
+  {nama:"Desa Argamukti", alamat:"Argamukti, Kabupaten Majalengka", lat:-6.7900, lng:108.4000, kat:"desa"},
+  {nama:"Pasar Maja Selatan", alamat:"Jalan Veteran Maja, Maja Selatan, Kabupaten Majalengka", lat:-6.8200, lng:108.3220, kat:"pasar"},
+  {nama:"Pasar Maja", alamat:"Maja, Kabupaten Majalengka, Jawa Barat", lat:-6.8050, lng:108.3050, kat:"pasar"},
+  {nama:"Alun-alun Maja", alamat:"Maja, Kabupaten Majalengka, Jawa Barat", lat:-6.8055, lng:108.3045, kat:"alun"},
+  {nama:"Stasiun Maja", alamat:"Maja, Kabupaten Majalengka", lat:-6.8030, lng:108.3000, kat:"stasiun"},
+  {nama:"Masjid Agung Maja", alamat:"Maja, Kabupaten Majalengka", lat:-6.8058, lng:108.3042, kat:"masjid"},
+  {nama:"Puskesmas Maja", alamat:"Maja, Kabupaten Majalengka", lat:-6.8070, lng:108.3060, kat:"puskesmas"},
+  {nama:"SMAN 1 Maja", alamat:"Maja, Kabupaten Majalengka", lat:-6.8080, lng:108.3020, kat:"sekolah"},
+  {nama:"Pasar Hewan Maja", alamat:"Blok Jum'at, Maja Utara, Majalengka", lat:-6.7990, lng:108.3190, kat:"pasar"},
+  {nama:"Pasar Hewan Maja Utara", alamat:"Depan Pasar Hewan, Blok Jum'at, Maja Utara", lat:-6.7995, lng:108.3195, kat:"pasar"},
+  {nama:"Alun-alun Majalengka", alamat:"Majalengka, Kabupaten Majalengka", lat:-6.8360, lng:108.2270, kat:"alun"},
+  {nama:"Pasar Baru Majalengka", alamat:"Majalengka, Kabupaten Majalengka", lat:-6.8370, lng:108.2280, kat:"pasar"},
+  {nama:"Terminal Majalengka", alamat:"Majalengka, Kabupaten Majalengka", lat:-6.8400, lng:108.2250, kat:"terminal"},
+  {nama:"RSUD Majalengka", alamat:"Majalengka, Kabupaten Majalengka", lat:-6.8350, lng:108.2300, kat:"rs"},
+  {nama:"Pasar Rajagaluh", alamat:"Rajagaluh, Kabupaten Majalengka", lat:-6.7840, lng:108.3420, kat:"pasar"},
+  {nama:"Alun-alun Rajagaluh", alamat:"Rajagaluh, Kabupaten Majalengka", lat:-6.7850, lng:108.3410, kat:"alun"},
+  {nama:"Pasar Cikijing", alamat:"Cikijing, Kabupaten Majalengka", lat:-6.7960, lng:108.3630, kat:"pasar"},
+  {nama:"Stasiun Cikijing", alamat:"Cikijing, Kabupaten Majalengka", lat:-6.7950, lng:108.3640, kat:"stasiun"},
+  {nama:"Pasar Talaga", alamat:"Talaga, Kabupaten Majalengka", lat:-6.9850, lng:108.3150, kat:"pasar"},
+  {nama:"Alun-alun Talaga", alamat:"Talaga, Kabupaten Majalengka", lat:-6.9860, lng:108.3160, kat:"alun"},
+  {nama:"Pasar Kadipaten", alamat:"Kadipaten, Kabupaten Majalengka", lat:-6.7600, lng:108.1650, kat:"pasar"},
+  {nama:"Bandara Kertajati", alamat:"Kertajati, Kabupaten Majalengka", lat:-6.6560, lng:108.1720, kat:"bandara"},
+  {nama:"Waduk Jatigede", alamat:"Jatigede, Kabupaten Sumedang", lat:-6.9120, lng:108.0890, kat:"wisata"},
+  {nama:"Desa Salagedang", alamat:"Salagedang, Tanjungsari, Kabupaten Majalengka", lat:-6.7977, lng:108.3192, kat:"desa"},
+  {nama:"Desa Tanjungsari", alamat:"Tanjungsari, Kabupaten Majalengka", lat:-6.8000, lng:108.3200, kat:"desa"},
+  {nama:"Desa Cipinang", alamat:"Cipinang, Kabupaten Majalengka", lat:-6.7900, lng:108.3300, kat:"desa"},
+  {nama:"Desa Maja Selatan", alamat:"Maja Selatan, Kabupaten Majalengka", lat:-6.8200, lng:108.3200, kat:"desa"},
+  {nama:"Desa Maja Utara", alamat:"Maja Utara, Kabupaten Majalengka", lat:-6.7950, lng:108.3150, kat:"desa"},
+  {nama:"Alun-alun Cirebon", alamat:"Cirebon, Jawa Barat", lat:-6.7250, lng:108.5540, kat:"alun"},
+  {nama:"Stasiun Cirebon", alamat:"Cirebon, Jawa Barat", lat:-6.7050, lng:108.5550, kat:"stasiun"},
+  {nama:"Pasar Kanoman Cirebon", alamat:"Cirebon, Jawa Barat", lat:-6.7240, lng:108.5520, kat:"pasar"},
+];
+function normalisasiCari(s){
+  return (s||'').toLowerCase().replace(/[^a-z0-9 ]/g,' ').replace(/\s+/g,' ').trim()
+    .replace('majale gka','majalengka').replace('majale','majalengka').replace('alun alun','alunalun').replace('panyaweuyan','panyaweuyan').replace('panyaweyan','panyaweuyan').replace('panya weyan','panyaweuyan');
+}
+function jarakKata(a,b){
+  // Levenshtein sederhana untuk typo: panyaweyan vs panyaweuyan jarak 1
+  const m=a.length, n=b.length; if(!m) return n; if(!n) return m;
+  const dp=Array.from({length:m+1},()=>Array(n+1).fill(0));
+  for(let i=0;i<=m;i++) dp[i][0]=i; for(let j=0;j<=n;j++) dp[0][j]=j;
+  for(let i=1;i<=m;i++) for(let j=1;j<=n;j++){ const c=a[i-1]===b[j-1]?0:1; dp[i][j]=Math.min(dp[i-1][j]+1, dp[i][j-1]+1, dp[i-1][j-1]+c); }
+  return dp[m][n];
+}
+function cariLokal(q){
+  const qn=normalisasiCari(q); const kata=qn.split(' ').filter(w=>w.length>1);
+  const jLat=parseFloat($("jemputLat").value), jLng=parseFloat($("jemputLng").value);
+  const hasil=[];
+  TEMPAT_LOKAL.forEach(tp=>{
+    const namaN=normalisasiCari(tp.nama); const alamatN=normalisasiCari(tp.alamat);
+    let skor=0;
+    kata.forEach(k=>{
+      if(namaN.includes(k)) skor+=10;
+      else if(alamatN.includes(k)) skor+=4;
+      else { // typo: cek jarak kata per kata
+        const semuaKata=(namaN+' '+alamatN).split(' ');
+        let terbaik=99; semuaKata.forEach(w=>{ const d=jarakKata(k,w); if(d<terbaik) terbaik=d; });
+        if(terbaik<=1) skor+=8; else if(terbaik===2 && k.length>=5) skor+=5;
+      }
+    });
+    // bonus kalau semua kata ada
+    if(skor>0){
+      const jarak = (!isNaN(jLat)&&!isNaN(jLng)) ? haversineKm(jLat,jLng,tp.lat,tp.lng) : 999;
+      // di Google Maps, yang dekat didahulukan, tapi yang namanya pas tetap menang
+      hasil.push({lat:tp.lat, lon:tp.lng, display_name: tp.nama+', '+tp.alamat, _judul: tp.nama, _sub: tp.alamat, _sumber:'lokal', _jarak: jarak, _skor: skor});
+    }
+  });
+  hasil.sort((a,b)=> (b._skor - a._skor) || (a._jarak - b._jarak));
+  return hasil;
+}
+
 async function cariAlamatMaps(q){
+  // GLOBAL — seperti Google Maps: bisa dipakai di area mana saja, bukan cuma Majalengka/Cirebon.
+  // Google Maps asli pakai Google Places API (berbayar + API key). Kita pakai yang gratis tapi GLOBAL:
+  // Photon + Nominatim (OpenStreetMap) — datanya seluruh dunia, bukan cuma Indonesia.
+  // Database lokal Majalengka di bawah cuma jadi PELENGKAP, bukan pembatas.
   const jLat=parseFloat($("jemputLat").value), jLng=parseFloat($("jemputLng").value);
   const hasJemput=!isNaN(jLat)&&!isNaN(jLng);
-  let gabung=[];
-  // 1. Photon - ngerti typo seperti Google Maps, bagus untuk "pasar maja selatan" walau typo "majale gka"
-  try{
-    const urlPhoton=`https://photon.komoot.io/api/?q=${encodeURIComponent(q)}${hasJemput?`&lat=${jLat}&lon=${jLng}`:''}&limit=10&lang=id`;
-    const r1=await fetch(urlPhoton); const j1=await r1.json();
-    (j1.features||[]).forEach(f=>{
-      const co=f.geometry?.coordinates||[]; const pr=f.properties||{};
-      const nama=pr.name||'';
-      const jalan=pr.street||''; const desa=pr.city||pr.district||''; const kec=pr.county||''; const prov=pr.state||''; const kode=pr.postcode||'';
-      const sub=[jalan, desa, kec, prov, kode].filter(Boolean).join(', ');
-      gabung.push({lat:Number(co[1]), lon:Number(co[0]), display_name: nama + (sub ? ', '+sub : ''), _judul: nama||q, _sub: sub||'', _sumber:'photon', _tipe: pr.osm_key||''});
-    });
-  }catch(e){ console.log('Photon gagal', e); }
-  // 2. Nominatim - pelengkap, untuk nama tempat resmi seperti Pasar Maja Selatan, Alun-alun Maja
-  try{
-    let viewbox=''; if(hasJemput){ const d=0.6; viewbox=`&viewbox=${(jLng-d).toFixed(4)},${(jLat+d).toFixed(4)},${(jLng+d).toFixed(4)},${(jLat-d).toFixed(4)}&bounded=0`; }
-    const url2=`https://nominatim.openstreetmap.org/search?format=jsonv2&q=${encodeURIComponent(q)}&limit=12&addressdetails=1&accept-language=id&countrycodes=id${viewbox}`;
-    const r2=await fetch(url2); const list2=await r2.json();
-    list2.forEach(it=>{
-      const parts=(it.display_name||'').split(',').map(s=>s.trim());
-      gabung.push({lat:Number(it.lat), lon:Number(it.lon), display_name: it.display_name, _judul: parts[0]||q, _sub: parts.slice(1).join(', '), _sumber:'nominatim', _tipe: it.type||''});
-    });
-  }catch(e){ console.log('Nominatim gagal', e); }
-  // Deduplikasi: titik yang sama (0.001 derajat ~ 100m) dianggap sama, ambil yang namanya paling lengkap
+  const diIndonesia = hasJemput && jLat>=-11 && jLat<=6 && jLng>=95 && jLng<=141;
+
+  // 1. LOKAL — pelengkap saja, biar Panyaweuyan / Pasar Maja Selatan yang belum lengkap di OSM tetap ketemu
+  let gabung=[...cariLokal(q)];
+
+  // Helper fetch global
+  async function fetchPhoton(query){
+    try{
+      const url=`https://photon.komoot.io/api/?q=${encodeURIComponent(query)}${hasJemput?`&lat=${jLat}&lon=${jLng}`:''}&limit=15`;
+      const r=await fetch(url); const j=await r.json();
+      (j.features||[]).forEach(f=>{
+        const co=f.geometry?.coordinates||[]; const pr=f.properties||{};
+        const nama=pr.name||''; const jalan=pr.street||''; const desa=pr.city||pr.district||''; const kec=pr.county||''; const prov=pr.state||''; const negara=pr.country||''; const kode=pr.postcode||'';
+        const sub=[jalan, desa, kec, prov, negara, kode].filter(Boolean).join(', ');
+        gabung.push({lat:Number(co[1]), lon:Number(co[0]), display_name: nama + (sub ? ', '+sub : ''), _judul: nama||query, _sub: sub||'', _sumber:'photon-global'});
+      });
+    }catch(e){ console.log('Photon global gagal', e); }
+  }
+  async function fetchNominatim(query){
+    try{
+      // GLOBAL: tanpa countrycodes=id, tanpa bounded. viewbox cuma buat bias urutan, bukan filter.
+      let viewbox=''; if(hasJemput){ const d=1.0; viewbox=`&viewbox=${(jLng-d).toFixed(4)},${(jLat+d).toFixed(4)},${(jLng+d).toFixed(4)},${(jLat-d).toFixed(4)}&bounded=0`; }
+      const url=`https://nominatim.openstreetmap.org/search?format=jsonv2&q=${encodeURIComponent(query)}&limit=15&addressdetails=1${viewbox}`;
+      const r=await fetch(url); const list=await r.json();
+      list.forEach(it=>{
+        const parts=(it.display_name||'').split(',').map(s=>s.trim());
+        gabung.push({lat:Number(it.lat), lon:Number(it.lon), display_name: it.display_name, _judul: parts[0]||query, _sub: parts.slice(1).join(', '), _sumber:'nominatim-global'});
+      });
+    }catch(e){ console.log('Nominatim global gagal', e); }
+  }
+
+  // Cari global dengan query asli
+  await Promise.all([fetchPhoton(q), fetchNominatim(q)]);
+
+  // Kalau hasil masih sedikit dan posisi di Indonesia, coba lagi dengan + " Indonesia" biar nama lokal ketemu
+  // Contoh: "Panyaweuyan" -> "Panyaweuyan Indonesia", "Alun alun maja" -> "Alun alun maja Indonesia"
+  if(gabung.length < 3 && diIndonesia && !q.toLowerCase().includes('indonesia')){
+    await Promise.all([fetchPhoton(q+' Indonesia'), fetchNominatim(q+' Indonesia')]);
+  }
+  // Kalau masih 0 dan query ada typo alun alun, coba versi dengan strip
+  if(gabung.length===0 && q.toLowerCase().includes('alun alun')){
+    const q2=q.replace(/alun alun/gi,'Alun-alun');
+    await Promise.all([fetchPhoton(q2), fetchNominatim(q2)]);
+  }
+
+  // Deduplikasi + hitung jarak + urutkan: yang paling dekat dengan GPS kamu di depan, seperti Google Maps
   const unik=[]; const seen=new Set();
   gabung.forEach(it=>{
+    if(isNaN(it.lat)||isNaN(it.lon)) return;
     const key=Math.round(it.lat*1000)+','+Math.round(it.lon*1000);
     if(seen.has(key)) return; seen.add(key); unik.push(it);
   });
-  // Hitung jarak dari jemput & urutkan paling dekat dulu, seperti Google Maps
-  if(hasJemput){ unik.forEach(it=>{ it._jarak=haversineKm(jLat,jLng,it.lat,it.lon); }); unik.sort((a,b)=>a._jarak-b._jarak); }
-  // Prioritaskan yang judulnya mengandung kata kunci (misal "pasar" + "maja")
-  const kata=q.toLowerCase().split(' ').filter(w=>w.length>2);
-  unik.sort((a,b)=>{
-    const skor=(it)=>{ const j=(it._judul||'').toLowerCase(); let s=0; kata.forEach(k=>{ if(j.includes(k)) s+=2; }); if(j.includes('pasar')||j.includes('alun')) s+=1; return s; };
-    const selisih=skor(b)-skor(a); if(selisih!==0) return selisih; return (a._jarak||999)-(b._jarak||999);
-  });
-  return unik.slice(0,12);
+  if(hasJemput){ unik.forEach(it=>{ if(it._jarak==null) it._jarak=haversineKm(jLat,jLng,it.lat,it.lon); }); }
+  unik.sort((a,b)=> ((b._skor||0)-(a._skor||0)) || ((a._jarak||9999)-(b._jarak||9999)));
+  return unik.slice(0,15);
 }
 function renderHasilCari(list, q){
   const box=$("listCariOverlay"); const info=$("infoCari");
-  if(!list.length){ box.innerHTML=`<div style="padding:20px;text-align:center;color:#666">Tidak ketemu "${q}". Coba kata lain, misal "Pasar Maja" saja.</div>`; info.textContent='Tidak ada hasil'; return; }
+  if(!list.length){
+    info.textContent='Tidak ketemu di database, tapi tetap bisa dipilih di peta';
+    box.innerHTML=`<div style="padding:16px;text-align:center">
+      <div style="font-size:15px;font-weight:700">"${q}" belum ada di database</div>
+      <div style="color:#666;font-size:13px;margin:6px 0 12px">Tapi tetap bisa dipakai. Pilih salah satu:</div>
+      <button id="btnPakaiTeks" type="button" style="width:100%;padding:12px;border-radius:12px;border:0;background:#ffcc00;font-weight:800">📌 Pakai "${q}" & Atur di Peta</button>
+      <button id="btnPilihPetaKosong" type="button" style="width:100%;padding:12px;border-radius:12px;border:1px solid #ddd;background:#fff;font-weight:700;margin-top:8px">🗺️ Pilih di Peta (geser pin sampai pas)</button>
+      <div style="font-size:12px;color:#888;margin-top:10px">Contoh: Panyaweuyan, Alun-alun Maja, Pasar Maja Selatan, Monas Jakarta, Malioboro Jogja, Alun-alun Bandung — bisa di kota mana saja</div>
+    </div>`;
+    const b1=document.getElementById('btnPakaiTeks'); if(b1) b1.onclick=()=>{ $("tujuanAlamat").value=q; tutupOverlayCari(); document.getElementById('mapTujuan')?.scrollIntoView({behavior:'smooth'}); alert('Teks disimpan: '+q+'\n\nSekarang geser peta sampai pin tengah pas di lokasi yang kamu maksud, lalu tekan Kunci Tujuan di Sini.'); };
+    const b2=document.getElementById('btnPilihPetaKosong'); if(b2) b2.onclick=()=>{ tutupOverlayCari(); document.getElementById('mapTujuan')?.scrollIntoView({behavior:'smooth'}); };
+    return;
+  }
   info.textContent=`${list.length} hasil untuk "${q}" — diurutkan dari yang paling dekat dengan lokasi kamu`;
   let html='';
   list.forEach((it,i)=>{
@@ -369,8 +500,8 @@ function renderHasilCari(list, q){
     // Saran "di dekat" seperti Google Maps: pasar di dekat Maja Selatan, dll
     if(i===0 && q.split(' ').length<=3){
       const desaJemput = $("alamatLengkapJemput").textContent.includes('Desa') ? '' : '';
-      html+=`<div class="hasil-cari" data-kat="1"><div class="pin-wrap"><div class="pin-ico" style="background:#ffe8e8">🔍</div></div><div style="flex:1"><div class="judul-cari">${q.split(' ')[0]}</div><div class="sub-cari">di dekat Maja Selatan, Majalengka</div></div><div style="font-size:20px;color:#666">↖</div></div>`;
-      html+=`<div class="hasil-cari" data-kat="2"><div class="pin-wrap"><div class="pin-ico" style="background:#ffe8e8">🔍</div></div><div style="flex:1"><div class="judul-cari">${q.split(' ')[0]}</div><div class="sub-cari">di dekat Jalan Majalengka - Cikijing</div></div><div style="font-size:20px;color:#666">↖</div></div>`;
+      html+=`<div class="hasil-cari" data-kat="1"><div class="pin-wrap"><div class="pin-ico" style="background:#ffe8e8">🔍</div></div><div style="flex:1"><div class="judul-cari">${q.split(' ')[0]}</div><div class="sub-cari">di dekat lokasi kamu</div></div><div style="font-size:20px;color:#666">↖</div></div>`;
+      html+=`<div class="hasil-cari" data-kat="2"><div class="pin-wrap"><div class="pin-ico" style="background:#ffe8e8">🔍</div></div><div style="flex:1"><div class="judul-cari">${q.split(' ')[0]}</div><div class="sub-cari">di dekat lokasi kamu</div></div><div style="font-size:20px;color:#666">↖</div></div>`;
     }
   });
   html+=`<div class="hasil-cari" data-i="-1"><div class="pin-wrap"><div class="pin-ico" style="background:#e8f0ff">🔍</div></div><div style="flex:1"><div class="judul-cari">"${q}"</div><div class="sub-cari" style="color:#1a73e8">Coba Tanya Maps — pakai teks ini</div></div></div>`;
