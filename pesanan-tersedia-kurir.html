@@ -105,6 +105,7 @@
     <button class="proof-option" type="button" onclick="document.getElementById('proofGallery').click()">🖼️ Pilih dari Galeri</button>
     <img id="proofPreview" class="proof-preview" alt="Pratinjau bukti penyerahan">
     <div id="proofFileName" style="font-size:11px;color:#666;margin-top:7px"></div>
+    <div id="proofOcr" style="font-size:12px;color:#333;background:#f3f4f6;border-radius:8px;padding:9px;margin-top:8px;white-space:pre-wrap">Hasil OCR bukti akan tampil di sini.</div>
     <div class="row2" style="margin-top:12px">
       <button class="btn btn-dark" type="button" onclick="tutupBukti()">Batal</button>
       <button class="btn btn-green" type="button" id="proofSubmit" onclick="kirimBukti()" disabled>Upload Bukti & Ajukan Verifikasi</button>
@@ -321,19 +322,35 @@ window.ambil=async(id)=>{
   }catch(e){alert('Gagal mengambil pesanan: '+e.message);}
 };
 
-let proofOrderId=null, proofFile=null, proofPreviewUrl=null;
-function pilihBukti(file){
+let proofOrderId=null, proofFile=null, proofPreviewUrl=null, proofOcrText='';
+async function pilihBukti(file){
   if(!file) return;
   if(!file.type || !file.type.startsWith('image/')){ alert('File harus berupa foto/gambar.'); return; }
   if(file.size>10*1024*1024){ alert('Ukuran foto maksimal 10 MB.'); return; }
-  proofFile=file;
+  proofFile=file; proofOcrText='';
   if(proofPreviewUrl) URL.revokeObjectURL(proofPreviewUrl);
   proofPreviewUrl=URL.createObjectURL(file);
   $('proofPreview').src=proofPreviewUrl;
   $('proofPreview').style.display='block';
   $('proofFileName').textContent=file.name;
-  $('proofSubmit').disabled=false;
-  $('proofStatus').textContent='Foto siap diunggah.';
+  $('proofSubmit').disabled=true;
+  $('proofStatus').textContent='Membaca foto dengan OCR...';
+  $('proofOcr').textContent='OCR sedang memproses gambar. Mohon tunggu.';
+  try{
+    const { createWorker } = await import('https://cdn.jsdelivr.net/npm/tesseract.js@5/dist/tesseract.esm.min.js');
+    const worker=await createWorker('eng');
+    const result=await worker.recognize(file);
+    proofOcrText=String(result?.data?.text||'').trim();
+    await worker.terminate();
+    $('proofOcr').textContent=proofOcrText||'OCR tidak menemukan teks yang terbaca. Foto tetap dapat diajukan untuk verifikasi admin.';
+    $('proofStatus').textContent='OCR selesai. Periksa hasil lalu tekan Selesai untuk mengirim.';
+    $('proofSubmit').disabled=false;
+  }catch(err){
+    console.error('OCR gagal:',err);
+    $('proofOcr').textContent='OCR gagal dijalankan. Foto tetap dapat diunggah dan diperiksa admin.';
+    $('proofStatus').textContent='OCR tidak tersedia; foto dapat tetap diajukan.';
+    $('proofSubmit').disabled=false;
+  }
 }
 $('proofCamera').addEventListener('change',e=>pilihBukti(e.target.files?.[0]));
 $('proofGallery').addEventListener('change',e=>pilihBukti(e.target.files?.[0]));
@@ -341,7 +358,7 @@ window.selesai=(id)=>{
   proofOrderId=id; proofFile=null;
   $('proofCamera').value=''; $('proofGallery').value='';
   $('proofPreview').removeAttribute('src'); $('proofPreview').style.display='none';
-  $('proofFileName').textContent=''; $('proofStatus').textContent=''; $('proofSubmit').disabled=true;
+  $('proofFileName').textContent=''; $('proofStatus').textContent=''; $('proofOcr').textContent='Hasil OCR bukti akan tampil di sini.'; proofOcrText=''; $('proofSubmit').disabled=true;
   $('proofModal').classList.add('show');
 };
 window.tutupBukti=()=>{
@@ -378,9 +395,11 @@ window.kirimBukti=async()=>{
       buktiSerahTerimaUkuran:proofFile.size,
       buktiSerahTerimaOleh:currentUser.uid,
       buktiSerahTerimaAt:serverTimestamp(),
+      buktiSerahTerimaOcr:proofOcrText,
+      buktiSerahTerimaOcrStatus:proofOcrText?'selesai':'tidak_terbaca',
       dikirimSelesaiAt:serverTimestamp()
     });
-    alert('Bukti penyerahan berhasil diunggah. Status pesanan: VERIFIKASI ADMIN. Kurir tidak melakukan pembagian saldo.');
+    alert('Bukti berhasil diunggah dan OCR disimpan. Status pesanan berubah menjadi MENUNGGU VERIFIKASI ADMIN.');
     window.tutupBukti();
   }catch(e){console.error(e);$('proofStatus').textContent='Gagal: '+e.message;alert('Gagal mengirim bukti: '+e.message);}
   finally{btn.disabled=!proofFile;btn.textContent='Upload Bukti & Ajukan Verifikasi';}
