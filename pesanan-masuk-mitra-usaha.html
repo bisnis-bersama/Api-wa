@@ -224,7 +224,7 @@ async function handleOrderPacking(id, mode, card){
       if(mode==='mark-shipped'){
         if(statusNow!=='dikemas') throw new Error('Status harus dikemas sebelum dikirim.');
         if(x.metodePenyerahan==='serahkan_ke_kurir') throw new Error('Pesanan ini sudah diserahkan kepada kurir.');
-        tx.update(ref,{status:'menunggu_verifikasi_admin',dikirimOlehUid:uid,dikirimAt:serverTimestamp(),updatedAt:serverTimestamp()});
+        tx.update(ref,{status:'diantar',dikirimOlehUid:uid,dikirimAt:serverTimestamp(),updatedAt:serverTimestamp()});
       }else{
         if(statusNow!=='disetujui') throw new Error('Pesanan tidak lagi berstatus disetujui.');
         const shipNow=String(x.metodePengiriman||x.shippingMethod||x.pengiriman||'').trim().toLowerCase();
