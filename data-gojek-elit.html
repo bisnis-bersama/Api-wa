@@ -111,7 +111,7 @@ nav.bottom a{color:#aaa;text-decoration:none;font-size:11px} nav.bottom a.active
 <label>Alamat Tujuan</label>
 <input id="tujuanAlamat" readonly placeholder="🔍 Ketik seperti di Google Maps — contoh: Pasar Maja Selatan" style="cursor:pointer;background:#fff">
 <div id="saranTujuan" class="saran"></div>
-<div id="statusTujuan" class="muted" style="margin-top:8px">Belum ditentukan. Klik Gunakan Lokasi Saya dulu, lalu pilih nama dalam 40 km di bawah, atau ketik alamat.</div>
+<div id="statusTujuan" class="muted" style="margin-top:8px">Belum ditentukan. Cari di kolom pencarian di atas. Kalau tidak ketemu, cari di peta.</div>
 <div id="alamatLengkapTujuan" class="alamat-lengkap hidden"></div>
 <input id="tujuanLat" class="hidden"><input id="tujuanLng" class="hidden">
 <div class="muted" id="gpsTujuanText" style="margin-top:6px"></div>
@@ -125,10 +125,9 @@ nav.bottom a{color:#aaa;text-decoration:none;font-size:11px} nav.bottom a.active
 <div style="margin-top:8px;background:#fffbe6;border:1px solid #ffe08a;padding:10px;border-radius:12px;font-size:12px">🎯 <b>Cara tepat:</b> 1. Pindah ke mode <b>Satelit</b> → 2. Zoom sampai kelihatan rumah → 3. Geser peta sampai pin 📍 pas di atap rumah tujuan → 4. Tekan <b>Kunci Tujuan di Sini</b></div>
 <button class="btn btn-yellow" id="btnKunciTengah" type="button" style="margin-top:8px">📌 Kunci Tujuan di Sini (Pin Tengah Peta)</button>
 <div class="row" style="margin-top:8px"><button class="btn btn-grey" id="btnPetaJemput" type="button">🎯 Pusatkan ke Jemput</button><button class="btn btn-grey" id="btnPetaHapusTujuan" type="button">🗑️ Hapus Tujuan</button></div>
-<div style="margin-top:12px;background:#fff;border:1px solid #eee;border-radius:14px;padding:12px">
-  <div style="display:flex;justify-content:space-between;align-items:center"><b>📍 Nama di Sekitar Kamu (40 km)</b><button id="btnMuatNamaPeta" type="button" style="background:#ffcc00;border:0;border-radius:999px;padding:8px 14px;font-weight:800;cursor:pointer">🔄 Muat Nama</button></div>
-  <div class="muted" style="margin-top:4px">Klik <b>Gunakan Lokasi Saya</b> → peta ikut ke lokasi kamu. Di bawah ini langsung muncul nama-nama yang ada dalam <b>40 km dari GPS kamu</b> (pasar, RS, jalan, desa, hotel, dll). Tap salah satu, langsung jadi tujuan & peta pindah ke sana.</div>
-  <div id="listNamaPeta" style="margin-top:10px;display:flex;flex-wrap:wrap;gap:6px"><span class="muted">Klik dulu Gunakan Lokasi Saya, nama 40 km akan muncul di sini.</span></div>
+<div style="margin-top:12px;background:#fffbe6;border:1px solid #ffe08a;border-radius:14px;padding:12px">
+  <b>🔍 Cara cari tujuan:</b><br>
+  <span class="muted">1. <b>Cari di kolom pencarian</b> di atas — ketik nama jalan / desa / pasar / RS, pilih yang muncul.<br>2. Kalau tidak ketemu, <b>cari di peta</b>: geser peta sampai pin 📍 pas di tempatnya, lalu tekan <b>📌 Kunci Tujuan di Sini</b>. Atau tekan <b>🗺️ Peta</b> / <b>🛰️ Satelit</b> biar kelihatan rumahnya.</span>
 </div>
 <button class="btn btn-dark" id="btnBukaGmaps" type="button" style="margin-top:8px">🗺️ Buka Titik Ini di Aplikasi Google Maps</button>
 <div class="muted" style="margin-top:6px;text-align:center">Peta di atas sudah pakai sistem Google Maps (jalan + satelit Google). GPS jemput pakai GPS satelit HP.</div>
@@ -267,7 +266,7 @@ function updateStatusLokasi(){
   const tLat=parseFloat($("tujuanLat").value), tLng=parseFloat($("tujuanLng").value);
   const sj=$("statusJemput"), st=$("statusTujuan"), per=$("peringatanLokasi");
   if(!isNaN(jLat)&&!isNaN(jLng)){ sj.textContent=`✅ Lokasi awal sudah ditentukan`; $("gpsJemputText").textContent=`GPS: ${jLat.toFixed(6)}, ${jLng.toFixed(6)}`; } else sj.textContent='Belum ditentukan. Tekan Gunakan Lokasi Saya.';
-  if(!isNaN(tLat)&&!isNaN(tLng)){ st.textContent=`✅ Tujuan sudah ditentukan`; $("gpsTujuanText").textContent=`GPS: ${tLat.toFixed(6)}, ${tLng.toFixed(6)}`; } else st.textContent='Belum ditentukan. Klik Gunakan Lokasi Saya dulu, lalu pilih nama dalam 40 km di bawah, atau ketik alamat.';
+  if(!isNaN(tLat)&&!isNaN(tLng)){ st.textContent=`✅ Tujuan sudah ditentukan`; $("gpsTujuanText").textContent=`GPS: ${tLat.toFixed(6)}, ${tLng.toFixed(6)}`; } else st.textContent='Belum ditentukan. Cari di kolom pencarian di atas. Kalau tidak ketemu, cari di peta.';
   if(per){
     if(!isNaN(jLat)&&!isNaN(jLng)&&!isNaN(tLat)&&!isNaN(tLng)){
       const d=haversineKm(jLat,jLng,tLat,tLng);
@@ -328,9 +327,7 @@ function gpsUntukJemput(){
     if(mapTujuan){ mapTujuan.setView([lat, lng], 14); if(markerJemput) markerJemput.setLatLng([lat, lng]); }
     const tl=parseFloat($("tujuanLat").value), tg=parseFloat($("tujuanLng").value);
     if(!isNaN(tl)&&!isNaN(tg)) hitung();
-    // Langsung load nama-nama dalam 40 km dari GPS kamu ke kolom Tujuan
-    setTimeout(()=>{ if(typeof muatNamaDiPeta==='function') muatNamaDiPeta(); }, 600);
-    $("statusJemput").textContent='✅ GPS dapat. Peta sudah ikut ke lokasi kamu. Nama dalam 40 km dimuat di Tujuan.';
+    $("statusJemput").textContent='✅ GPS dapat. Peta sudah ikut ke lokasi kamu. Sekarang cari tujuan di kolom pencarian.';
   }, e=>alert("Gagal ambil GPS: "+e.message), {enableHighAccuracy:true, timeout:10000});
 }
 $("btnGpsJemput").onclick=gpsUntukJemput;
@@ -550,59 +547,7 @@ setTimeout(initPeta, 300);
 // ===== BACA NAMA YANG ADA DI PETA =====
 // Peta yang kelihatan (bbox) dibaca datanya dari OpenStreetMap via Overpass.
 // Jadi tidak perlu ketik, tidak perlu hafal. Geser peta ke Cideres, muncul nama Cideres. Geser ke Cigasong, muncul Cigasong.
-async function muatNamaDiPeta(){
-  if(!mapTujuan) return;
-  const box=$("listNamaPeta"); if(box) box.innerHTML='<span class="muted">⏳ Membaca nama dalam 40 km dari GPS kamu...</span>';
-  const jLat=parseFloat($("jemputLat").value), jLng=parseFloat($("jemputLng").value);
-  const hasJemput=!isNaN(jLat)&&!isNaN(jLng);
-  // Pusatnya GPS pelanggan, bukan tengah peta. Radius 40 km = radius kurir.
-  const cLat=hasJemput?jLat:mapTujuan.getCenter().lat;
-  const cLng=hasJemput?jLng:mapTujuan.getCenter().lng;
-  // Overpass: around 40 km dari GPS pelanggan. Ambil yang punya nama.
-  const q=`[out:json][timeout:15];(node["name"](around:40000,${cLat},${cLng});way["name"](around:40000,${cLat},${cLng}););out center 80;`;
-  try{
-    const res=await fetch('https://overpass-api.de/api/interpreter', {method:'POST', body:'data='+encodeURIComponent(q), headers:{'Content-Type':'application/x-www-form-urlencoded'}});
-    const j=await res.json();
-    const seen=new Map();
-    (j.elements||[]).forEach(el=>{
-      const nama=el.tags?.name; if(!nama) return;
-      const lat=el.lat||el.center?.lat; const lng=el.lon||el.center?.lon; if(lat==null||lng==null) return;
-      const jarak=haversineKm(cLat,cLng,lat,lng); if(jarak>40) return; // hanya dalam 40 km
-      const key=nama.toLowerCase();
-      if(!seen.has(key)) seen.set(key, {nama, lat, lng, jenis: el.tags?.amenity||el.tags?.shop||el.tags?.highway||el.tags?.place||'', jarak});
-    });
-    let list=[...seen.values()];
-    // Urut dari yang paling dekat dengan GPS kamu
-    list.sort((a,b)=>a.jarak-b.jarak);
-    list=list.slice(0,60);
-    if(!list.length){ box.innerHTML='<span class="muted">Tidak ada nama dalam 40 km. Coba tekan Muat Nama lagi.</span>'; return; }
-    box.innerHTML=list.map((it,i)=>{
-      const jarakTxt=it.jarak<1?(it.jarak*1000).toFixed(0)+' m':it.jarak.toFixed(1).replace('.',',')+' km';
-      const ikon = it.jenis==='hospital'?'🏥':it.jenis==='school'?'🏫':it.jenis==='marketplace'?'🛒':it.jenis==='fuel'?'⛽':'📌';
-      return `<button type="button" data-nama-peta="${i}" style="background:#f6f7f9;border:1px solid #e5e5e5;border-radius:999px;padding:8px 12px;font-size:13px;cursor:pointer">${ikon} ${it.nama} • ${jarakTxt}</button>`;
-    }).join('');
-    window._listNamaPeta=list;
-    box.querySelectorAll('[data-nama-peta]').forEach(btn=>{
-      btn.onclick=()=>{
-        const it=window._listNamaPeta[Number(btn.dataset.namaPeta)];
-        if(!it) return;
-        $("tujuanLat").value=Number(it.lat).toFixed(6);
-        $("tujuanLng").value=Number(it.lng).toFixed(6);
-        $("tujuanAlamat").value=it.nama;
-        const elLengkap=$("alamatLengkapTujuan"); if(elLengkap){ elLengkap.classList.remove('hidden'); elLengkap.innerHTML=`📍 <b>${it.nama}</b><br><small>${it.jenis||'Tempat di sekitar kamu'}</small><br><small>${it.jarak.toFixed(1)} km dari GPS kamu • GPS: ${Number(it.lat).toFixed(6)}, ${Number(it.lng).toFixed(6)}</small>`; }
-        updateStatusLokasi();
-        if(mapTujuan) mapTujuan.setView([Number(it.lat), Number(it.lng)], 17);
-        const h=hitung(); if(h) console.log('Tujuan dari 40 km', it.nama, h);
-      };
-    });
-  }catch(e){
-    if(box) box.innerHTML='<span class="muted">Gagal baca nama 40 km. Coba tekan Muat Nama lagi / cek internet.</span>';
-  }
-}
-// Auto-muat kalau peta digeser (debounce 1 detik)
-let _timerNamaPeta=null;
-
-$("btnMuatNamaPeta").onclick=()=>{ muatNamaDiPeta(); };
+// muatNamaDiPeta dihapus — tidak lagi baca nama gunung/wisata. Cari via kolom pencarian, kalau tidak ketemu pilih di peta.
 $("btnBukaGmaps").onclick=()=>{
   const tLat=parseFloat($("tujuanLat").value), tLng=parseFloat($("tujuanLng").value);
   const jLat=parseFloat($("jemputLat").value), jLng=parseFloat($("jemputLng").value);
@@ -657,18 +602,18 @@ $("btnCari").onclick=async ()=>{
       if(pilihJenis==='mobil' && ken!=='mobil') return;
       if(pilihJenis==='motor' && ken!=='motor') return;
       const jarakKeJemput=haversineKm(jLat,jLng,pos.lat,pos.lng); if(jarakKeJemput>40) return;
-      const kurirSaldo=Number(d.saldo??d.saldoEwallet??d.saldoWallet??d.deposit??d.saldoCOD??0)||0; if(kurirSaldo < h.ongkir) return;
+      const kurirSaldo=Number(d.saldo??d.saldoEwallet??d.saldoWallet??d.deposit??d.saldoCOD??0)||0; const butuhAdmin= Math.ceil(h.ongkir*0.05); if(kurirSaldo < butuhAdmin) return; // CUKUP 5% SAJA. Admin hanya potong 5% dari saldo kurir saat pengantaran selesai. Bukan full ongkir.
       const online=d.online===true||d.status==='online'||d.aktif===true||d.status==='aktif';
       kurirList.push({id:doc.id, ...d, jarakKeJemput, online, lat:pos.lat, lng:pos.lng, saldo:kurirSaldo});
     });
     const totalScan=qs.size||0;
-    $("infoScan").textContent=`Di-scan: ${totalScan} kurir • Lolos (kendaraan + 40 km + saldo >= ${rupiah(h.ongkir)}): ${kurirList.length}`;
+    $("infoScan").textContent=`Di-scan: ${totalScan} kurir • Lolos (kendaraan + 40 km + saldo >= 5% = ${rupiah(Math.ceil(h.ongkir*0.05))} dari ongkir ${rupiah(h.ongkir)}): ${kurirList.length}`;
     kurirList.sort((a,b)=>a.jarakKeJemput-b.jarakKeJemput);
     if(!kurirList.length){ $("listKurir").innerHTML='<div style="background:#fff;border:1px solid #e5e5e5;padding:10px;border-radius:10px">Tidak ada kurir '+(pilihJenis==='mobil'?'Mobil':'Motor')+' yang lolos filter.</div>'; $("btnPesan").disabled=true; return; }
     $("listKurir").innerHTML=kurirList.map((k,i)=>{
       const nama=k.nama||k.namaUsaha||k.email||'Kurir';
       const kendaraan=kendaraanKurir(k)==='mobil'?'Mobil':'Motor';
-      return `<div class="kurir"><div><b>${i+1}. ${nama}</b><br><small>🚖 ${kendaraan} • 📍 ${k.jarakKeJemput.toFixed(2)} km dari jemput • ${k.noHp||k.telepon||''}</small></div><div><span class="badge ${k.online?'':'badge-off'}">${k.online?'Online':'Offline'}</span><br><button class="btn btn-dark" style="padding:6px 10px;margin-top:6px" onclick="window.pilihKurir('${k.id}')">Pilih</button></div></div>`;
+      const butuh5=Math.ceil(h.ongkir*0.05); return `<div class="kurir"><div><b>${i+1}. ${nama}</b><br><small>🚖 ${kendaraan} • 📍 ${k.jarakKeJemput.toFixed(2)} km dari jemput • ${k.noHp||k.telepon||''}</small><br><small>💰 Saldo ${rupiah(k.saldo)} • Butuh 5% = ${rupiah(butuh5)} • Admin potong 5% saat selesai</small></div><div><span class="badge ${k.online?'':'badge-off'}">${k.online?'Online':'Offline'}</span><br><button class="btn btn-dark" style="padding:6px 10px;margin-top:6px" onclick="window.pilihKurir('${k.id}')">Pilih</button></div></div>`;
     }).join('');
     kurirTerpilih=[kurirList[0]]; $("btnPesan").disabled=false;
     $("txtJarakKurir").textContent=`✅ Ketemu ${kurirList.length} kurir dalam 40 km. Terdekat: ${kurirList[0].nama||kurirList[0].email} (${kurirList[0].jarakKeJemput.toFixed(2)} km)`;
@@ -694,7 +639,7 @@ $("btnPesan").onclick=async ()=>{
       jemputAlamat: jemputAlamatFix, jemputLat: jLatV, jemputLng: jLngV,
       tujuanAlamat: tujuanAlamatFix, tujuanLat: tLatV, tujuanLng: tLngV,
       jenisKendaraan: $("jenisKendaraan").value,
-      jarakKm: h.jarakKm, ongkir: h.ongkir, subtotal: h.ongkir, total: h.ongkir,
+      jarakKm: h.jarakKm, ongkir: h.ongkir, subtotal: h.ongkir, total: h.ongkir, adminFee: Math.ceil(h.ongkir*0.05), kurirTerima: h.ongkir - Math.ceil(h.ongkir*0.05), adminPersen: 5,
       status:'mencari_kurir', kurirUid: kurirTerpilih[0].id, kurirNama: kurirTerpilih[0].nama||kurirTerpilih[0].email||"",
       kurirJarakKm: kurirTerpilih[0].jarakKeJemput, ditawarkanKe:[kurirTerpilih[0].id],
       ditawarkanAt: serverTimestamp(), createdAt: serverTimestamp(), saldoDibagi:false, adminSaldoMasuk:false,
