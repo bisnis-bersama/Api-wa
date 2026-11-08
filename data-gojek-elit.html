@@ -99,10 +99,21 @@ nav.bottom a{color:#aaa;text-decoration:none;font-size:11px} nav.bottom a.active
 <body>
 <header class="top"><div class="top-inner">
 <div class="logo"><div class="logo-icon">🛵</div><div><b>GOJEK ELIT</b><small>Toko Siap Antar • Radius 40 km</small></div></div>
-<div class="pelanggan"><button id="btnPanduan" type="button" style="background:#ffcc00;border:0;border-radius:999px;padding:8px 12px;font-weight:800;cursor:pointer;color:#111">❓ Panduan</button><div><b id="headerNamaPelanggan">Pelanggan</b><small id="headerSubPelanggan">Silakan login</small></div><div class="avatar" id="headerAvatar">P</div></div>
+<div class="pelanggan"><button id="btnPanduan" type="button" style="background:#ffcc00;border:0;border-radius:999px;padding:8px 12px;font-weight:800;cursor:pointer;color:#111">❓ Panduan</button>
+<button id="btnLoginHeader" type="button" style="background:#111;color:#ffcc00;border:1px solid #ffcc00;border-radius:999px;padding:8px 12px;font-weight:800;cursor:pointer;display:none">Masuk</button><div><b id="headerNamaPelanggan">Pelanggan</b><small id="headerSubPelanggan">Silakan login</small></div><div class="avatar" id="headerAvatar">P</div></div>
 </div></header>
 
 <main>
+<div id="panelLogin" class="card hidden" style="border:2px solid #111">
+<b>🔐 Masuk — biar sesi tidak hilang</b> <button id="btnTutupLogin" type="button" style="float:right;background:#f1f1f1;border:0;border-radius:999px;padding:4px 10px;cursor:pointer">✕</button>
+<div style="margin-top:10px;display:grid;gap:8px">
+<input id="loginEmail" placeholder="Email E-Wallet / FIXZY" autocomplete="email">
+<input id="loginPass" type="password" placeholder="Password">
+<button id="btnDoLogin" class="btn btn-dark" type="button">Masuk & Tetap Masuk</button>
+<div style="font-size:12px;color:#666">Login di sini pakai akun yang sama dengan E-Wallet. Setelah masuk, sesi disimpan di HP (LOCAL), tidak hilang saat pindah ke Beranda / E-Wallet / Pesanan.</div>
+<div style="font-size:12px"><a href="ewallet.html" style="color:#087443;font-weight:700">Atau buka E-Wallet → Login di sana → balik ke sini</a></div>
+</div>
+</div>
 <div id="panelPanduan" class="card hidden" style="border:2px solid #ffcc00">
 <b>📖 Panduan</b> <button id="btnTutupPanduan" type="button" style="float:right;background:#f1f1f1;border:0;border-radius:999px;padding:4px 10px;cursor:pointer">✕ Tutup</button>
 <div style="margin-top:10px;font-size:13px;line-height:1.7">
@@ -205,7 +216,7 @@ nav.bottom a{color:#aaa;text-decoration:none;font-size:11px} nav.bottom a.active
   const GOOGLE_API_KEY = ""; // contoh: "AIzaSy..."
   
 import {initializeApp,getApps,getApp} from "https://www.gstatic.com/firebasejs/12.4.0/firebase-app.js";
-import {getAuth,onAuthStateChanged} from "https://www.gstatic.com/firebasejs/12.4.0/firebase-auth.js";
+import {getAuth,onAuthStateChanged,setPersistence,browserLocalPersistence,signInWithEmailAndPassword} from "https://www.gstatic.com/firebasejs/12.4.0/firebase-auth.js";
 import {getFirestore,collection,query,where,getDocs,addDoc,serverTimestamp,doc,getDoc} from "https://www.gstatic.com/firebasejs/12.4.0/firebase-firestore.js";
 const firebaseConfig={apiKey:"AIzaSyBxqZhl6t3RwrXMwVdJeIkg0NzGfwvlweM",authDomain:"toko-siap-antar-9a7bb.firebaseapp.com",projectId:"toko-siap-antar-9a7bb",storageBucket:"toko-siap-antar-9a7bb.firebasestorage.app",messagingSenderId:"351335838712",appId:"1:351335838712:web:6e2b3e0b0e0b0e0b0e0b0e0b0e0b"};
 const app=getApps().length?getApp():initializeApp(firebaseConfig);
@@ -215,7 +226,8 @@ const rupiah=n=>"Rp "+(Number(n)||0).toLocaleString("id-ID");
 let currentUser=null, kurirTerpilih=[], jarakKm=0, ongkir=0, kurirList=[], namaPelanggan='Pelanggan';
 
 async function updateHeaderPelanggan(u){
-  if(!u){ $("headerNamaPelanggan").textContent='Pelanggan'; $("headerSubPelanggan").textContent='Silakan login'; $("headerAvatar").textContent='P'; return; }
+  if(!u){ $("headerNamaPelanggan").textContent='Pelanggan'; $("headerSubPelanggan").textContent='Silakan login'; $("headerAvatar").textContent='P'; const b=$("btnLoginHeader"); if(b) b.style.display='block'; return; }
+  const b2=$("btnLoginHeader"); if(b2) b2.style.display='none';
   let nama = u.displayName || u.email?.split('@')[0] || 'Pelanggan';
   try{ const snap=await getDoc(doc(db,'users',u.uid)); if(snap.exists()){ const d=snap.data(); if(d.nama) nama=d.nama; } }catch(e){}
   namaPelanggan=nama;
@@ -223,7 +235,32 @@ async function updateHeaderPelanggan(u){
   $("headerSubPelanggan").textContent=u.email||'Pelanggan Gojek Elit';
   $("headerAvatar").textContent=nama.charAt(0).toUpperCase();
 }
-onAuthStateChanged(auth,u=>{ currentUser=u||null; updateHeaderPelanggan(u); });
+// SESI LOGIN TIDAK BOLEH KEGANGGU — 2 lapis:
+// 1. Firebase Auth toko-siap-antar (persistence LOCAL, bukan SESSION, jadi tidak hilang saat pindah halaman / refresh)
+// 2. Fallback: baca sesi E-Wallet / FIXZY (project teknisi-ponsel-maja) dari localStorage. E-Wallet login di project beda, jadi Firebase Auth toko-siap-antar tidak bisa baca sesinya. Kita baca manual dari localStorage.
+setPersistence(auth, browserLocalPersistence).catch(()=>{});
+function bacaSesiEwallet(){
+  try{
+    const keys=['fixzy_user','fixzy_session','ewallet_user','ewalletUser','user','pelanggan','toko_user','currentUser','fixzyUser','authUser'];
+    for(const k of keys){
+      const raw=localStorage.getItem(k)||sessionStorage.getItem(k); if(!raw) continue;
+      try{ const o=JSON.parse(raw); if(o && (o.email||o.uid||o.nama||o.namaUsaha)){ return {uid:o.uid||o.id||o.email, email:o.email||'', displayName:o.nama||o.namaUsaha||o.email?.split('@')[0]||'Pelanggan', _dariEwallet:true, _raw:o}; } }catch(e){ if(raw.includes('@')) return {uid:raw, email:raw, displayName:raw.split('@')[0], _dariEwallet:true}; }
+    }
+    // Cari key Firebase Auth apapun (kalau login dari project lain, key-nya beda)
+    for(let i=0;i<localStorage.length;i++){ const k=localStorage.key(i); if(k && k.includes('firebase:authUser')){ try{ const o=JSON.parse(localStorage.getItem(k)); if(o && o.email) return {uid:o.uid, email:o.email, displayName:o.displayName||o.email.split('@')[0], _dariEwallet:true}; }catch(e){} } }
+  }catch(e){}
+  return null;
+}
+onAuthStateChanged(auth,u=>{
+  if(u){ currentUser=u; updateHeaderPelanggan(u); return; }
+  // Firebase kosong, coba fallback E-Wallet
+  const ew=bacaSesiEwallet();
+  if(ew){ currentUser=ew; updateHeaderPelanggan(ew); return; }
+  currentUser=null; updateHeaderPelanggan(null);
+});
+// Cek lagi 1 detik setelah load — kadang onAuthStateChanged telat, fallback langsung jalan
+setTimeout(()=>{ if(!currentUser){ const ew=bacaSesiEwallet(); if(ew){ currentUser=ew; updateHeaderPelanggan(ew); } } }, 1000);
+
 
 function log(m){ console.log(m); }
 function haversineKm(lat1,lng1,lat2,lng2){
@@ -349,6 +386,20 @@ function gpsUntukJemput(){
 }
 $("btnGpsJemput").onclick=gpsUntukJemput;
 // Panduan tersembunyi — tampil saat diklik
+$("btnLoginHeader").onclick=()=>{ $("panelLogin").classList.toggle('hidden'); $("panelLogin").scrollIntoView({behavior:'smooth'}); };
+$("btnTutupLogin").onclick=()=>{ $("panelLogin").classList.add('hidden'); };
+$("btnDoLogin").onclick=async()=>{
+  const email=$("loginEmail").value.trim(), pass=$("loginPass").value.trim();
+  if(!email||!pass){ alert('Isi email & password'); return; }
+  try{
+    await setPersistence(auth, browserLocalPersistence);
+    const cred=await signInWithEmailAndPassword(auth, email, pass);
+    currentUser=cred.user; updateHeaderPelanggan(cred.user);
+    // Simpan juga ke localStorage E-Wallet biar halaman lain bisa baca
+    try{ localStorage.setItem('fixzy_user', JSON.stringify({uid:cred.user.uid, email:cred.user.email, nama:cred.user.displayName||email.split('@')[0]})); }catch(e){}
+    $("panelLogin").classList.add('hidden'); alert('✅ Masuk berhasil. Sesi sudah tersimpan, tidak akan hilang saat pindah halaman.');
+  }catch(e){ alert('Gagal masuk: '+e.message+'\n\nCoba login lewat E-Wallet dulu, lalu balik ke sini.'); }
+};
 $("btnPanduan").onclick=()=>{ $("panelPanduan").classList.toggle('hidden'); $("panelPanduan").scrollIntoView({behavior:'smooth'}); };
 $("btnTutupPanduan").onclick=()=>{ $("panelPanduan").classList.add('hidden'); };
 
@@ -666,7 +717,7 @@ window.pilihKurir=(id)=>{ const k=kurirList.find(x=>x.id===id); if(!k) return; k
 
 $("btnPesan").onclick=async ()=>{
   const h=hitung(); if(!h) return;
-  if(!currentUser){ alert("Login dulu sebagai pelanggan lewat e-wallet / login pelanggan."); return; }
+  if(!currentUser){ const ew2=bacaSesiEwallet(); if(ew2){ currentUser=ew2; updateHeaderPelanggan(ew2); } else { $("panelLogin").classList.remove('hidden'); $("panelLogin").scrollIntoView({behavior:'smooth'}); alert("Login dulu — panel login sudah dibuka di atas. Masuk pakai akun E-Wallet kamu."); return; } }
   if(!kurirTerpilih.length){ alert("Cari kurir dulu."); return; }
   if(!confirm(`Order atas nama ${namaPelanggan}?\nPesan kurir ${kurirTerpilih[0].nama||kurirTerpilih[0].email}?\nJarak ${h.jarakKm.toFixed(2)} km • Ongkir ${rupiah(h.ongkir)}`)) return;
   try{
