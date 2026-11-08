@@ -404,14 +404,27 @@ onAuthStateChanged(auth, async (u)=>{
       .filter(k=>['kurir','mitra_pengantaran'].includes(String(k.data.role||'').toLowerCase()));
   }catch(e){ console.error('Gagal memuat daftar kurir',e); }
   const col=collection(db,'orders');
-  onSnapshot(query(col, where('status','in',['menunggu_kurir','diantar','dikirim','dalam_pengiriman','menunggu_verifikasi_admin'])), async snap=>{
-    all=snap.docs.map(d=>({id:d.id,...d.data()}));
-    await enrichOrders();
-  });
-  onSnapshot(query(col, where('kurirUid','==',u.uid)), async snap=>{
-    snap.docs.forEach(d=>{ const i=all.findIndex(x=>x.id===d.id); if(i>=0) all[i]={id:d.id,...d.data()}; else all.push({id:d.id,...d.data()}); });
-    await enrichOrders();
-  });
+  // Listener terpisah agar query cocok dengan Firestore Rules:
+  // pesanan menunggu kurir, dan pesanan yang sudah ditugaskan ke UID ini.
+  const mergeOrders=(docs)=>{
+    for(const d of docs){
+      const data={id:d.id,...d.data()};
+      const i=all.findIndex(x=>x.id===d.id);
+      if(i>=0) all[i]=data; else all.push(data);
+    }
+    // Hapus order yang status/penugasannya sudah berubah dari snapshot terbaru.
+    all=all.filter(o=>String(o.status||'').toLowerCase()==='menunggu_kurir'
+      || o.kurirUid===u.uid);
+    enrichOrders().catch(e=>console.error('Gagal memuat detail pesanan',e));
+  };
+  onSnapshot(query(col, where('status','==','menunggu_kurir')),
+    snap=>mergeOrders(snap.docs),
+    err=>{console.error('Gagal membaca pesanan menunggu kurir:',err); $('emptySiap').textContent='Gagal membaca pesanan. Periksa Firebase Rules.';});
+  onSnapshot(query(col, where('kurirUid','==',u.uid)),
+    snap=>mergeOrders(snap.docs),
+    err=>{console.error('Gagal membaca pesanan aktif kurir:',err); $('emptyAktif').textContent='Gagal membaca pesanan aktif. Periksa Firebase Rules.';});
   onSnapshot(doc(db,'users',u.uid), s=>{ if(s.exists()) $('mySaldo').textContent='Rp '+Number(s.data().saldo||0).toLocaleString('id-ID'); });
 });
-</script></body></html>
+</script>
+</body>
+</html>
