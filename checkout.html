@@ -172,9 +172,9 @@ function getKurirSaldo(k){
 }
 
 function kurirOnlineDanGPSValid(k){
-  const online=k.online===true||k.isOnline===true||k.statusOnline===true||['online','aktif','tersedia'].includes(String(k.statusOnline||k.status||'').trim().toLowerCase());
+  const online=k.online===true||k.isOnline===true||k.statusOnline===true||['online','aktif','tersedia'].includes(String(k.statusOnline||k.status||k.statusKurir||'').trim().toLowerCase());
   if(!online||k.aktif===false||String(k.status||'').trim().toLowerCase()==='nonaktif') return false;
-  const ts=k.gpsUpdatedAt||k.locationUpdatedAt||k.updatedLocationAt||k.lastLocationAt||k.lastSeenAt||k.onlineAt||k.lastLoginAt;
+  const ts=k.gpsUpdatedAt||k.locationUpdatedAt||k.updatedLocationAt||k.lastLocationAt||k.lastSeenAt||k.onlineAt||k.lastLoginAt||k.updatedAt||k.timestampGPS||k.lokasi?.updatedAt||k.gps?.updatedAt;
   if(!ts) return false; // harus ada timestamp GPS atau login
   const ms=typeof ts.toMillis==='function'?ts.toMillis():(ts instanceof Date?ts.getTime():Number(ts));
   const JAM_KERJA_MS = 8 * 60 * 60 * 1000; // 8 jam kerja minimal
@@ -270,8 +270,8 @@ async function cariKurirDalamRadius(mitraLat,mitraLng){
       const role=String(k.role||'').trim().toLowerCase();
       if(!['kurir','mitra_pengantaran','kurir_toko'].includes(role)) return;
       if(!kurirOnlineDanGPSValid(k)) return;
-      const lat=Number(k.lat||k.latitude||k.currentLat||k.lokasi?.lat||k.gps?.lat||k.latMitra||k.tokoLat);
-      const lng=Number(k.lng||k.longitude||k.currentLng||k.lokasi?.lng||k.gps?.lng||k.lngMitra||k.tokoLng);
+      const lat=Number(k.lat??k.latitude??k.currentLat??k.latitudeGPS??k.gpsLat??k.lokasi?.lat??k.gps?.lat??k.location?.lat??k.latMitra??k.tokoLat);
+      const lng=Number(k.lng??k.longitude??k.currentLng??k.longitudeGPS??k.gpsLng??k.lokasi?.lng??k.gps?.lng??k.location?.lng??k.lngMitra??k.tokoLng);
       if(!Number.isFinite(lat)||!Number.isFinite(lng)||!lat||!lng) return;
       const jarakPelanggan=hitungJarakKm(lat,lng,Number(pLat),Number(pLng));
       const jarakMitra=hitungJarakKm(lat,lng,Number(mitraLat),Number(mitraLng));
