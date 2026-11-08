@@ -84,7 +84,7 @@ nav.bottom a{color:#aaa;text-decoration:none;font-size:11px} nav.bottom a.active
 <div class="panel">
 <h3 style="margin:0">Kurir Terdekat (Radius 40 km dari Jemput)</h3>
 <p class="muted" style="margin:4px 0">Diurutkan dari yang paling dekat. Filter: kendaraan sama + jarak kurir ke jemput <= 40 km + saldo kurir >= ongkir. Yang tidak lolos tidak ditampilkan.</p>
-<div id="listKurir"><div class="muted">Belum cari. Isi jemput & tujuan dulu, lalu tekan Cari Kurir.</div></div>
+<div id="infoScan" style="font-size:12px;color:#666;margin-bottom:6px"></div><div id="listKurir"><div class="muted">Belum cari. Isi jemput & tujuan dulu, lalu tekan Cari Kurir.</div></div>
 <button class="btn btn-yellow" id="btnPesan" disabled style="margin-top:10px">✅ Pesan Kurir Terdekat</button>
 <div class="muted" id="pesanInfo" style="margin-top:6px">Pesan akan membuat order status <b>mencari_kurir</b> dan ditawarkan ke kurir terdekat dulu. Kalau 30 detik tidak diterima, lempar ke kurir berikutnya.</div>
 </div>
@@ -195,6 +195,10 @@ $("btnCari").onclick=async()=>{
       const online = d.online===true || d.status==='online' || d.aktif===true || d.status==='aktif';
       kurirList.push({id:doc.id, ...d, jarakKeJemput, online, lat:pos.lat, lng:pos.lng, saldo: kurirSaldo});
     });
+    // Info: berapa yang di-scan, berapa yang lolos
+    const totalScan = qs.size || qs.docs?.length || 0;
+    const infoScan = document.getElementById('infoScan');
+    if(infoScan) infoScan.textContent = `Di-scan: ${totalScan} kurir • Lolos filter (kendaraan + 40 km + saldo >= ${rupiah(h.ongkir)}): ${kurirList.length} • Yang tidak lolos disembunyikan.`;
     kurirList.sort((a,b)=>a.jarakKeJemput-b.jarakKeJemput);
     if(!kurirList.length){
       const pilihJenis2=$("jenisKendaraan").value;
@@ -223,7 +227,8 @@ window.pilihKurir=(id)=>{
 
 $("btnPesan").onclick=async()=>{
   const h=hitung(); if(!h) return;
-  if(!kurirTerpilih.length){ alert("Cari kurir dulu"); return; }
+  if(!currentUser){ alert("Login dulu sebagai pelanggan lewat e-wallet / login pelanggan. Kalau tidak login, order tidak bisa dibuat karena Rules minta pelangganUid == uid login."); return; }
+  if(!kurirTerpilih.length){ alert("Cari kurir dulu. Kalau list kosong, berarti tidak ada kurir yang lolos filter: kendaraan sama + jarak <= 40 km + saldo >= ongkir. Top up dulu saldo salah satu kurir minimal Rp 8.000 (Motor) / Rp 15.000 (Mobil) di e-wallet kurir / Firestore users -> saldo."); return; }
   if(!confirm(`Pesan kurir ${kurirTerpilih[0].nama||kurirTerpilih[0].email}?\nJarak ${h.jarakKm.toFixed(2)} km • Ongkir ${rupiah(h.ongkir)}`)) return;
   try{
     const order={
@@ -255,7 +260,7 @@ $("btnPesan").onclick=async()=>{
     log(`Order dibuat ${ref.id} ke kurir ${kurirTerpilih[0].id}`);
   }catch(e){
     if(e.message.includes('permission') || e.message.includes('Missing or insufficient')){
-      alert("Gagal buat order: PERMISSION.\n\nIni bukan salah HP. Rules Firestore belum izinkan buat order.\nCopy Rules di bawah ke Firebase Console > Firestore > Rules, lalu Publish:\n\nmatch /orders/{id} { allow read: if true; allow create: if true; allow update: if true; }\nmatch /users/{id} { allow read: if true; allow update: if request.auth != null; }");
+      alert("Gagal buat order: PERMISSION.\n\nArtinya Rules di Firebase Console MASIH YANG LAMA, belum yang gabungan.\n\nCek: buka Firebase Console > Firestore > Rules, cari kata 'isCariKurirCreate'. Kalau tidak ada, berarti belum di-Publish.\n\nCara benerin: copy SEMUA isi file 'firestore-rules-merged-cari-kurir.txt' yang aku kasih, paste ke Rules, tekan Publish, tunggu 1 menit, coba lagi.\n\nJangan pakai rules sederhana di pesan lama ini, pakai yang gabungan biar aturan lama kamu tidak hilang.");
     } else { alert("Gagal buat order: "+e.message); }
     log("Gagal order: "+e.message);
   }
