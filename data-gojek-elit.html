@@ -76,7 +76,9 @@ nav.bottom a{color:#aaa;text-decoration:none;font-size:11px} nav.bottom a.active
   /* MODE BERSIH — hilangkan info & petunjuk */
   .muted{display:none!important}
   .step p{display:none!important}
-  #statusJemput,#statusTujuan,#gpsJemputText,#gpsTujuanText,#infoScan,#txtJarakKurir,#infoCari,#peringatanLokasi{display:none!important}
+  #statusJemput,#statusTujuan,#gpsJemputText,#gpsTujuanText,#txtJarakKurir,#infoCari,#peringatanLokasi{display:none!important}
+  #infoScan{display:block!important;color:#111;background:#fffbe6;border:1px solid #ffe08a;padding:8px 10px;border-radius:10px;font-size:12px;margin-top:8px}
+  #debugKurir{display:block!important;font-size:12px;background:#fff;border:1px solid #eee;border-radius:10px;padding:10px;margin-top:8px}
   #alamatLengkapJemput,#alamatLengkapTujuan{font-size:12px;padding:8px}
   .card{padding:14px}
   
@@ -610,28 +612,51 @@ $("btnCari").onclick=async ()=>{
   const h=hitung(); if(!h) return;
   const jLat=parseFloat($("jemputLat").value), jLng=parseFloat($("jemputLng").value);
   const pilihJenis=$("jenisKendaraan").value;
-  $("listKurir").innerHTML='<div class="muted">Mencari kurir dalam 40 km...</div>';
+  const butuh5=Math.ceil(h.ongkir*0.05);
+  $("listKurir").innerHTML='<div class="muted" style="display:block!important">Mencari kurir dalam 40 km...</div>';
+  $("debugKurir").style.display='block'; $("debugKurir").innerHTML='⏳ Scan...';
   try{
-    const q=query(collection(db,'users'), where('role','==','kurir'));
-    const qs=await getDocs(q); kurirList=[];
+    // Ambil SEMUA users, filter di JS — biar ketauan kalau role-nya bukan 'kurir' tapi 'mitra' / dll.
+    const qs=await getDocs(collection(db,'users')); kurirList=[];
+    let scan=0, lolosKendaraan=0, lolosJarak=0, lolosSaldo=0, tanpaLokasi=0, bukanKurir=0;
+    let debugRows=[];
     qs.forEach(doc=>{
-      const d=doc.data()||{}; const pos=ambilLatLngKurir(d); if(!pos) return;
+      const d=doc.data()||{}; scan++;
+      const roleRaw=String(d.role||d.jenis||d.tipe||'').toLowerCase();
+      const isKurir = roleRaw.includes('kurir')||roleRaw.includes('mitra')||roleRaw.includes('driver')||roleRaw.includes('ojek')||roleRaw.includes('gojek');
+      if(!isKurir){ bukanKurir++; return; }
+      const pos=ambilLatLngKurir(d);
+      if(!pos){ tanpaLokasi++; debugRows.push(`❌ ${d.nama||d.email||doc.id} — lokasi kosong (lat/lng belum ada di users). Kurir harus buka Orderan Kurir / set lokasi.`); return; }
       const ken=kendaraanKurir(d);
-      if(pilihJenis==='mobil' && ken!=='mobil') return;
-      if(pilihJenis==='motor' && ken!=='motor') return;
-      const jarakKeJemput=haversineKm(jLat,jLng,pos.lat,pos.lng); if(jarakKeJemput>40) return;
-      const kurirSaldo=Number(d.saldo??d.saldoEwallet??d.saldoWallet??d.deposit??d.saldoCOD??0)||0; const butuhAdmin= Math.ceil(h.ongkir*0.05); if(kurirSaldo < butuhAdmin) return; // CUKUP 5% SAJA. Admin hanya potong 5% dari saldo kurir saat pengantaran selesai. Bukan full ongkir.
+      if(pilihJenis==='mobil' && ken!=='mobil'){ debugRows.push(`❌ ${d.nama||d.email} — kendaraan ${ken}, kamu pilih Mobil.`); return; }
+      if(pilihJenis==='motor' && ken!=='motor'){ debugRows.push(`❌ ${d.nama||d.email} — kendaraan ${ken}, kamu pilih Motor.`); return; }
+      lolosKendaraan++;
+      const jarakKeJemput=haversineKm(jLat,jLng,pos.lat,pos.lng); if(jarakKeJemput>40){ debugRows.push(`❌ ${d.nama||d.email} — jarak ${jarakKeJemput.toFixed(1)} km > 40 km.`); return; }
+      lolosJarak++;
+      const kurirSaldo=Number(d.saldo??d.saldoEwallet??d.saldoWallet??d.deposit??d.saldoCOD??0)||0;
+      const saldoCukup = kurirSaldo >= butuh5;
+      if(saldoCukup) lolosSaldo++; else debugRows.push(`⚠️ ${d.nama||d.email} — saldo Rp ${kurirSaldo.toLocaleString('id-ID')} < 5% = Rp ${butuh5.toLocaleString('id-ID')}. Top up dulu biar lolos.`);
       const online=d.online===true||d.status==='online'||d.aktif===true||d.status==='aktif';
-      kurirList.push({id:doc.id, ...d, jarakKeJemput, online, lat:pos.lat, lng:pos.lng, saldo:kurirSaldo});
+      // TAMPIL SEMUA yang lolos kendaraan + jarak, walau saldo kurang — biar tidak hilang total. Yang saldo kurang ditandai, tetap bisa dilihat.
+      kurirList.push({id:doc.id, ...d, jarakKeJemput, online, lat:pos.lat, lng:pos.lng, saldo:kurirSaldo, saldoCukup, butuh5});
     });
-    const totalScan=qs.size||0;
-    $("infoScan").textContent=`Di-scan: ${totalScan} kurir • Lolos (kendaraan + 40 km + saldo >= 5% = ${rupiah(Math.ceil(h.ongkir*0.05))} dari ongkir ${rupiah(h.ongkir)}): ${kurirList.length}`;
+    $("infoScan").textContent=`Di-scan: ${scan} users • Kurir: ${scan-bukanKurir} • Lolos kendaraan: ${lolosKendaraan} • Lolos 40 km: ${lolosJarak} • Lolos saldo 5% (${rupiah(butuh5)}): ${lolosSaldo} • Tanpa lokasi: ${tanpaLokasi}`;
+    $("debugKurir").innerHTML = debugRows.length? `<b>Kenapa ga ketemu?</b><br>`+debugRows.join('<br>') : `<b>✅ Semua kurir lolos.</b>`;
     kurirList.sort((a,b)=>a.jarakKeJemput-b.jarakKeJemput);
-    if(!kurirList.length){ $("listKurir").innerHTML='<div style="background:#fff;border:1px solid #e5e5e5;padding:10px;border-radius:10px">Tidak ada kurir '+(pilihJenis==='mobil'?'Mobil':'Motor')+' yang lolos filter.</div>'; $("btnPesan").disabled=true; return; }
+    if(!kurirList.length){ $("listKurir").innerHTML='<div style="background:#fff;border:1px solid #e5e5e5;padding:10px;border-radius:10px">Tidak ada kurir dalam 40 km. Cek debug di bawah: lokasi kurir kosong / kendaraan beda / jarak > 40 km.</div>'; $("btnPesan").disabled=true; return; }
     $("listKurir").innerHTML=kurirList.map((k,i)=>{
       const nama=k.nama||k.namaUsaha||k.email||'Kurir';
       const kendaraan=kendaraanKurir(k)==='mobil'?'Mobil':'Motor';
-      const butuh5=Math.ceil(h.ongkir*0.05); return `<div class="kurir"><div><b>${i+1}. ${nama}</b><br><small>🚖 ${kendaraan} • 📍 ${k.jarakKeJemput.toFixed(2)} km dari jemput • ${k.noHp||k.telepon||''}</small><br><small>💰 Saldo ${rupiah(k.saldo)} • Butuh 5% = ${rupiah(butuh5)} • Admin potong 5% saat selesai</small></div><div><span class="badge ${k.online?'':'badge-off'}">${k.online?'Online':'Offline'}</span><br><button class="btn btn-dark" style="padding:6px 10px;margin-top:6px" onclick="window.pilihKurir('${k.id}')">Pilih</button></div></div>`;
+      const saldoTxt = k.saldoCukup ? `✅ Saldo ${rupiah(k.saldo)} ≥ 5% ${rupiah(k.butuh5)}` : `⚠️ Saldo ${rupiah(k.saldo)} < 5% ${rupiah(k.butuh5)} — top up dulu`;
+      return `<div class="kurir" style="${k.saldoCukup?'':'opacity:.75'}"><div><b>${i+1}. ${nama}</b><br><small>🚖 ${kendaraan} • 📍 ${k.jarakKeJemput.toFixed(2)} km dari jemput • ${k.noHp||k.telepon||''}</small><br><small>${saldoTxt}</small></div><div><span class="badge ${k.online?'':'badge-off'}">${k.online?'Online':'Offline'}</span><br><button class="btn btn-dark" style="padding:6px 10px;margin-top:6px" onclick="window.pilihKurir('${k.id}')">Pilih</button></div></div>`;
+    }).join('');
+    // Otomatis pilih yang saldo cukup & terdekat. Kalau semua saldo kurang, pilih yang terdekat tapi kasih tau.
+    const yangCukup=kurirList.find(k=>k.saldoCukup);
+    if(yangCukup){ kurirTerpilih=[yangCukup]; $("btnPesan").disabled=false; $("txtJarakKurir").textContent=`✅ Ketemu ${kurirList.length} kurir dalam 40 km. Terdekat cukup saldo: ${yangCukup.nama||yangCukup.email}`; }
+    else { kurirTerpilih=[kurirList[0]]; $("btnPesan").disabled=false; $("txtJarakKurir").textContent=`⚠️ Ketemu ${kurirList.length} kurir, tapi semua saldo < 5%. Top up dulu salah satu biar bisa pesan.`; }
+  }catch(e){ $("listKurir").innerHTML='<div style="color:red">Gagal cari kurir: '+e.message+'</div>'; $("debugKurir").innerHTML='Error: '+e.message+' — cek Rules Firestore sudah Publish belum.'; }
+};
+window.pilihKurir('${k.id}')">Pilih</button></div></div>`;
     }).join('');
     kurirTerpilih=[kurirList[0]]; $("btnPesan").disabled=false;
     $("txtJarakKurir").textContent=`✅ Ketemu ${kurirList.length} kurir dalam 40 km. Terdekat: ${kurirList[0].nama||kurirList[0].email} (${kurirList[0].jarakKeJemput.toFixed(2)} km)`;
