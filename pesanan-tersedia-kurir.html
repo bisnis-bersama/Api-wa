@@ -328,12 +328,12 @@ async function pilihBukti(file){
   if(!file) return;
   if(!file.type || !file.type.startsWith('image/')){ alert('File harus berupa foto/gambar.'); return; }
   if(file.size>10*1024*1024){ alert('Ukuran foto maksimal 10 MB.'); return; }
-  proofFile=file; proofOcrText='';
+  proofFile=file; proofOcrText=''; $('proofSubmit').disabled=true;
   if(proofPreviewUrl) URL.revokeObjectURL(proofPreviewUrl);
   proofPreviewUrl=URL.createObjectURL(file);
   $('proofPreview').src=proofPreviewUrl; $('proofPreview').style.display='block';
   $('proofFileName').textContent=file.name; $('proofOcr').textContent='Foto siap. Tekan tombol Baca OCR Foto Bukti.';
-  $('proofReadOcr').disabled=false; $('proofSubmit').disabled=false;
+  $('proofReadOcr').disabled=false; $('proofSubmit').disabled=true;
   $('proofStatus').textContent='Pastikan foto adalah bukti serah terima paket, bukan screenshot aplikasi.';
 }
 let tesseractScriptPromise=null;
@@ -365,7 +365,8 @@ async function bacaOCR(){
     proofOcrText=String(result?.data?.text||'').trim();
     if(!proofOcrText){hasil.textContent='OCR selesai, tetapi tidak menemukan teks. Foto tetap bisa diajukan untuk pemeriksaan admin.';status.textContent='Tidak ada teks yang terbaca.';return;}
     hasil.textContent=proofOcrText;
-    status.textContent='OCR selesai. Periksa hasil bacaan sebelum mengajukan.';
+    status.textContent='OCR selesai. Hasil OCR siap disimpan bersama bukti.';
+    $('proofSubmit').disabled=false;
   }catch(err){
     console.error('OCR gagal:',err);
     hasil.textContent='OCR gagal: '+(err?.message||'Kesalahan tidak diketahui')+'. Coba lagi dengan koneksi internet aktif.';
@@ -378,7 +379,7 @@ async function bacaOCR(){
 $('proofCamera').addEventListener('change',e=>pilihBukti(e.target.files?.[0]));
 $('proofGallery').addEventListener('change',e=>pilihBukti(e.target.files?.[0]));
 window.selesai=(id)=>{
-  proofOrderId=id; proofFile=null;
+  proofOrderId=id; proofFile=null; proofOcrText='';
   $('proofCamera').value=''; $('proofGallery').value='';
   $('proofPreview').removeAttribute('src'); $('proofPreview').style.display='none';
   $('proofFileName').textContent=''; $('proofStatus').textContent=''; $('proofOcr').textContent='Hasil OCR bukti akan tampil di sini.'; proofOcrText=''; $('proofSubmit').disabled=true;
@@ -390,6 +391,7 @@ window.tutupBukti=()=>{
 };
 window.kirimBukti=async()=>{
   if(!proofOrderId || !proofFile){alert('Ambil foto atau pilih foto dari galeri terlebih dahulu.');return;}
+  if(!proofOcrText.trim()){alert('Jalankan Baca OCR Foto Bukti terlebih dahulu. Bukti belum bisa disimpan sebelum OCR selesai.');$('proofStatus').textContent='Baca OCR terlebih dahulu sebelum upload.';return;}
   const id=proofOrderId, btn=$('proofSubmit');
   btn.disabled=true; btn.textContent='Mengunggah...'; $('proofStatus').textContent='Mengunggah bukti penyerahan untuk diperiksa admin...';
   try{
