@@ -52,19 +52,27 @@ nav.bottom{position:fixed;left:0;right:0;bottom:0;background:#111;display:grid;g
 nav.bottom a{color:#aaa;text-decoration:none;font-size:11px;position:relative} nav.bottom a.active{color:#ffcc00}
 .dot-nav{position:absolute;top:-2px;right:22px;width:12px;height:12px;background:#22c55e;border:2px solid #111;border-radius:50%;display:none;box-shadow:0 0 0 0 rgba(34,197,94,.7);animation:pulse 1.5s infinite}
 .dot-nav.on{display:block}
-</style>
+.muted{display:none!important}.hidden{display:none!important}</style>
 </head>
 <body>
 <header class="top"><div class="topline"><div><div class="brand">E-WALLET KURIR</div><div class="sub">Terima Orderan • Deposit • Admin 5% aja</div></div>
-<div class="icon-wrap">📦<span class="dot" id="dotHeader"></span></div></div></header>
+<div style="display:flex;gap:8px;align-items:center"><button id="btnPanduanKurir" type="button" style="background:#ffcc00;border:0;border-radius:999px;padding:8px 12px;font-weight:800;cursor:pointer">❓ Panduan</button><div class="icon-wrap">📦<span class="dot" id="dotHeader"></span></div></div></div></header>
 <main>
+<div id="panelPanduanKurir" class="panel hidden" style="border:2px solid #ffcc00">
+<b>📖 Panduan Kurir</b> <button id="btnTutupPanduanKurir" type="button" style="float:right;background:#f1f1f1;border:0;border-radius:999px;padding:4px 10px;cursor:pointer">✕ Tutup</button>
+<div style="margin-top:10px;font-size:13px;line-height:1.7">
+<b>1.</b> Order muncul kalau jarak jemput ≤ 40 km DAN saldo kamu ≥ <b>5% dari ongkir</b>.<br>
+<b>2.</b> Admin hanya potong <b>5%</b> dari saldo kamu saat pengantaran selesai. Kamu terima <b>95%</b>.<br>
+<b>3.</b> Klik <b>Terima</b> untuk ambil order, <b>Tolak</b> untuk lewati.
+</div>
+</div>
 <div class="panel">
 <div style="display:flex;justify-content:space-between;align-items:center"><div><b id="namaKurir">Kurir...</b><div class="muted" id="emailKurir">Memuat sesi login dari e-wallet...</div></div><span style="background:#e8f8ee;color:#087443;padding:4px 10px;border-radius:20px;font-size:11px;font-weight:800" id="statusLogin">CEK LOGIN</span></div>
 
 <div class="kpi">
-<div><small>Saldo Deposit</small><b id="txtSaldo">Rp 0</b><small id="txtSaldoNote">Harus >= total COD</small></div>
-<div><small>Order Masuk</small><b id="txtJml">0</b><small>Radius 40 km</small></div>
-<div><small>Admin</small><b>5%</b><small>Dari ongkir</small></div>
+<div><small>Saldo Deposit</small><b id="txtSaldo">Rp 0</b></div>
+<div><small>Order Masuk</small><b id="txtJml">0</b></div>
+<div><small>Admin</small><b>5%</b></div>
 </div>
 
 <label>Kendaraan Saya (biar pelanggan yang pilih Mobil bisa nemu kamu)<br><select id="myKendaraan" style="width:100%;padding:10px;border:1px solid #ddd;border-radius:10px;margin:6px 0">
@@ -77,7 +85,7 @@ Lokasi Saya (Lat)</label>
 <button class="btn btn-grey" id="btnGps" style="margin-top:6px">📍 Pakai GPS Saya</button>
 <button class="btn btn-black" id="btnRefresh" style="margin-top:8px">🔄 Refresh Orderan</button>
 
-<div class="muted" style="margin-top:8px">Aturan: Order cuma muncul kalau <b>jarak jemput ≤ 40 km</b> DAN <b>saldo deposit kamu ≥ total COD</b>. Kalau saldo kurang, order tidak tampil. Jadi tidak ada talangan dari aplikasi, modal murni kurir. Admin cuma ambil <b>5%</b>.</div>
+
 </div>
 
 <div class="panel">
@@ -159,7 +167,7 @@ async function loadOrder(){
       const myKen=String(document.getElementById('myKendaraan')?.value||myData.kendaraan||myData.jenisKendaraan||'Motor').toLowerCase();
       if(orderJenis==='mobil' && !myKen.includes('mobil')) alasan='Order Mobil, kendaraan kamu Motor';
       if(orderJenis==='motor' && !myKen.includes('motor')) alasan='Order Motor, kendaraan kamu Mobil';
-      if(mySaldo < total) alasan='Saldo Rp '+mySaldo.toLocaleString('id-ID')+' < total COD Rp '+total.toLocaleString('id-ID')+' - top up dulu';
+      const butuh5=Math.ceil(total*0.05); if(mySaldo < butuh5) alasan='Saldo Rp '+mySaldo.toLocaleString('id-ID')+' < 5% ongkir Rp '+butuh5.toLocaleString('id-ID')+' - top up dulu. Admin cuma potong 5% saat selesai.';
       // Kurir target: kalau order ditawarkan ke kurir lain dan belum diterima, tetap tampil sebagai cadangan (biar tidak hilang total)
       // Tapi kalau sudah ditawarkan ke kurir lain, kasih label cadangan
       const isTarget = !o.kurirUid || o.kurirUid===currentUser.uid || (Array.isArray(o.ditawarkanKe) && o.ditawarkanKe.includes(currentUser.uid));
@@ -185,8 +193,8 @@ async function loadOrder(){
       return `<div class="order">${labelHtml}${alasanHtml}
         <div style="display:flex;justify-content:space-between"><b>Pelanggan: ${o.pelangganEmail||o.pelangganNama||'Pelanggan'}</b><span style="background:#e8f8ee;color:#087443;padding:3px 8px;border-radius:20px;font-size:11px;font-weight:800">📍 ${o.jarakKeJemput.toFixed(2)} km dari kamu</span></div>
         <div class="muted">Jemput: ${o.jemputAlamat||`GPS ${Number(o.jemputLat||0).toFixed(6)}, ${Number(o.jemputLng||0).toFixed(6)}`}<br><small>📍 GPS Jemput: ${Number(o.jemputLat||0).toFixed(6)}, ${Number(o.jemputLng||0).toFixed(6)}</small><br>Tujuan: ${o.tujuanAlamat||`GPS ${Number(o.tujuanLat||0).toFixed(6)}, ${Number(o.tujuanLng||0).toFixed(6)}`}<br><small>🎯 GPS Tujuan: ${Number(o.tujuanLat||0).toFixed(6)}, ${Number(o.tujuanLng||0).toFixed(6)}</small><br>Jenis: ${o.jenisKendaraan||'motor'} • Jarak kirim: ${(Number(o.jarakKm)||0).toFixed(2)} km<br><a href="https://www.google.com/maps/dir/?api=1&origin=${o.jemputLat},${o.jemputLng}&destination=${o.tujuanLat},${o.tujuanLng}" target="_blank" style="color:#087443;font-weight:700">🗺️ Buka Rute Jemput → Tujuan di Google Maps</a></div>
-        <div class="row" style="margin-top:8px"><div style="background:#f9faf8;border:1px solid #eee;border-radius:10px;padding:8px"><small>Ongkir / Total COD</small><b>${rupiah(o.total)}</b></div><div style="background:#fff;border:1px solid #e5e5e5;border-radius:10px;padding:8px"><small>Deposit ditahan</small><b>${rupiah(o.total)}</b><br><small>Admin 5% = ${rupiah(adminFee)} • Kamu terima ${rupiah(kurirTerima)}</small></div></div>
-        <div class="muted" style="margin-top:6px">Saldo kamu ${rupiah(mySaldo)} ≥ deposit ${rupiah(o.total)} ✅ — bisa terima. Setelah selesai & setor, deposit balik + kamu dapat ${rupiah(kurirTerima)} (95%).</div>
+        <div class="row" style="margin-top:8px"><div style="background:#f9faf8;border:1px solid #eee;border-radius:10px;padding:8px"><small>Ongkir / Total COD</small><b>${rupiah(o.total)}</b></div><div style="background:#fff;border:1px solid #e5e5e5;border-radius:10px;padding:8px"><small>Admin 5% dipotong saat selesai</small><b>${rupiah(adminFee)}</b><br><small>Admin 5% = ${rupiah(adminFee)} • Kamu terima ${rupiah(kurirTerima)}</small></div></div>
+        <div class="muted" style="margin-top:6px">Saldo kamu ${rupiah(mySaldo)} ≥ 5% = ${rupiah(adminFee)} ✅ — bisa terima. Admin 5% dipotong dari saldo kamu saat pengantaran selesai. Kamu terima ${rupiah(kurirTerima)} (95%).</div>
         <div class="row" style="margin-top:8px">${terimaBtn}<button class="btn btn-red" onclick="window.tolakOrder('${o.id}')">❌ Tolak</button></div>
       </div>`;
     }).join('');
@@ -199,7 +207,7 @@ async function loadOrder(){
 
 window.terimaOrder=async(id)=>{
   const o=orderList.find(x=>x.id===id); if(!o) return;
-  if(!confirm(`Terima order ini?\nTotal COD ${rupiah(o.total)}\nDeposit ${rupiah(o.total)} akan ditahan dari saldo kamu.\nAdmin 5% = ${rupiah(Math.round(o.total*0.05))}`)) return;
+  if(!confirm(`Terima order ini?\nTotal COD ${rupiah(o.total)}\nAdmin 5% = ${rupiah(Math.round(o.total*0.05))} akan dipotong dari saldo kamu saat pengantaran selesai.\nAdmin 5% = ${rupiah(Math.round(o.total*0.05))}`)) return;
   try{
     await runTransaction(db, async(tx)=>{
       const orderRef=doc(db,'orders',id);
@@ -212,10 +220,10 @@ window.terimaOrder=async(id)=>{
       const kData=kSnap.exists()?kSnap.data():{};
       const saldo=Number(kData.saldo ?? kData.saldoEwallet ?? 0)||0;
       const total=Number(oData.total ?? oData.ongkir ?? 0)||0;
-      if(saldo < total) throw new Error(`Saldo kurang. Butuh ${rupiah(total)}, kamu punya ${rupiah(saldo)}`);
+      const adminFeeTx=Math.round(total*0.05); if(saldo < adminFeeTx) throw new Error(`Saldo kurang. Butuh 5% = ${rupiah(adminFeeTx)}, kamu punya ${rupiah(saldo)}`);
       const adminFee=Math.round(total*0.05);
       // Tahan deposit: saldo berkurang, saldoDitahan bertambah
-      tx.update(kurirRef,{ saldo: saldo - total, saldoDitahan: (Number(kData.saldoDitahan)||0)+total });
+      tx.update(kurirRef,{ saldo: saldo - adminFeeTx, saldoDitahan: (Number(kData.saldoDitahan)||0)+adminFeeTx }); // Hanya potong 5% admin, bukan full total. Dipotong saat terima, dihitung sebagai selesai.
       tx.update(orderRef,{ status:'diterima_kurir', kurirUid: currentUser.uid, kurirNama: myData.nama||currentUser.email, diterimaAt: serverTimestamp(), depositDitahan: total, adminFee, kurirTerima: total-adminFee });
     });
     alert("✅ Order diterima! Deposit ditahan. Sekarang jemput & antar.");
@@ -243,6 +251,8 @@ document.getElementById('myKendaraan')?.addEventListener('change', async (e)=>{
   }catch(err){ log('Gagal simpan kendaraan: '+err.message); alert('Gagal simpan kendaraan: '+err.message+' - cek Rules users sudah boleh update kendaraan'); }
 });
 
+document.getElementById('btnPanduanKurir')?.addEventListener('click',()=>{ document.getElementById('panelPanduanKurir')?.classList.toggle('hidden'); });
+document.getElementById('btnTutupPanduanKurir')?.addEventListener('click',()=>{ document.getElementById('panelPanduanKurir')?.classList.add('hidden'); });
 </script>
 <script>(function(){var loc=location.href.replace(/#.*$/,"");var ATTR_NAMES=["data-product-id","data-productid","data-product_id","product-id","productid","product_id","data-source-entity-id","source-entity-id","source_entity_id","data-product","data-metadata","data-meta"];var DATASET_KEYS=["productId","productid","product_id","sourceEntityId","sourceentityid","source_entity_id","product","metadata","meta"];function readProductId(value){if(typeof value!=="string"||value.length===0)return null;if(/^[0-9]{6,}$/.test(value))return value;var match=value.match(/(?:product(?:_|-)?id|source(?:_|-)?entity(?:_|-)?id)["'=:\s]+([0-9]{6,})/i);return match?match[1]:null}function extractProductId(start){for(var node=start;node&&node!==document.body;node=node.parentElement){for(var i=0;i<ATTR_NAMES.length;i++){var attrValue=node.getAttribute&&node.getAttribute(ATTR_NAMES[i]);var attrProductId=readProductId(attrValue);if(attrProductId)return attrProductId}var dataset=node.dataset||null;if(dataset){for(var j=0;j<DATASET_KEYS.length;j++){var dataValue=dataset[DATASET_KEYS[j]];var dataProductId=readProductId(dataValue);if(dataProductId)return dataProductId}}}return null}function isInlineMediaSlotElement(node){return !!(node&&node.getAttribute&&node.getAttribute("data-clippy-inline-media-slot")!==null)}function findInlineMediaSlot(start){for(var node=start;node&&node!==document.body;node=node.parentElement){if(isInlineMediaSlotElement(node))return node}return null}function readInlineMediaUrl(node){if(!node)return null;return node.getAttribute&&((node.getAttribute("data-clippy-inline-media-url")||node.getAttribute("data-url")||node.getAttribute("data_url")))||node.href||null}function stripHash(url){return String(url).replace(/#.*$/,"")}function urlsMatch(a,b){if(!a||!b)return false;try{return stripHash(new URL(a,loc).href)===stripHash(new URL(b,loc).href)}catch(_){return stripHash(a)===stripHash(b)}}function isFirstPartyReelUrl(value){try{var url=new URL(value,loc);if(url.protocol!=="https:")return false;var host=url.hostname.toLowerCase();var supported=host==="instagram.com"||host.endsWith(".instagram.com")||host==="facebook.com"||host.endsWith(".facebook.com");return supported&&/\/reels?\//i.test(url.pathname)}catch(_){return false}}function isInlineMediaUrlClick(node,href){var slot=findInlineMediaSlot(node);if(!slot)return false;var slotUrl=readInlineMediaUrl(slot);if(slotUrl)return urlsMatch(href,slotUrl);return isFirstPartyReelUrl(href)}function findDataHref(start){for(var node=start;node&&node!==document.body;node=node.parentElement){if(node.getAttribute){var href=node.getAttribute("data-href")||node.getAttribute("data-url");if(href)return{href:href,node:node}}}return null}var nativeOpen=window.open;window.open=function(url){if(parent!==window&&typeof url==="string"&&/^https?:\/\//.test(url)){parent.postMessage({type:"ecto:usercontent-link-click",href:url},"*");return null}return nativeOpen?nativeOpen.apply(window,arguments):null};document.addEventListener("click",function(e){var target=e.target instanceof Element?e.target:null;if(!target)return;if(parent===window)return;var a=target.closest?target.closest("a[href]"):null;if(a&&a.href&&/^https?:\/\//.test(a.href)&&a.href.replace(/#.*$/,"")!==loc){if(isInlineMediaUrlClick(a,a.href))return;var productId=extractProductId(target)||extractProductId(a);if(productId){e.preventDefault();parent.postMessage({type:"ecto-artifact-link-click",productId:productId},"*");return}e.preventDefault();parent.postMessage({type:"ecto:usercontent-link-click",href:a.href},"*");return}var dataHref=findDataHref(target);if(dataHref&&/^https?:\/\//.test(dataHref.href)&&dataHref.href.replace(/#.*$/,"")!==loc){if(isInlineMediaUrlClick(dataHref.node,dataHref.href))return;e.preventDefault();parent.postMessage({type:"ecto:usercontent-link-click",href:dataHref.href},"*")}},true)})();</script><script>(function(){var FOCUS_TYPE="ecto:artifact-focus-request";var CLOSE_TYPE="ecto:artifact-close-request";function focusArtifactDocument(){var body=document.body;if(!body)return;try{window.focus();}catch(e){}if(!body.hasAttribute("tabindex"))body.setAttribute("tabindex","-1");try{body.focus({preventScroll:true});}catch(e){try{body.focus();}catch(e2){}}}window.addEventListener("message",function(event){if(event.source!==window.parent)return;var data=event.data;if(!data||typeof data!=="object"||data.type!==FOCUS_TYPE)return;if(document.readyState==="loading"){document.addEventListener("DOMContentLoaded",focusArtifactDocument,{once:true});return;}focusArtifactDocument();});window.addEventListener("keydown",function(event){if(event.key!=="Escape")return;window.setTimeout(function(){if(event.defaultPrevented)return;window.parent.postMessage({type:CLOSE_TYPE},"*");},0);});})();</script></body>
 </html>
