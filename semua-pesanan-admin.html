@@ -181,7 +181,15 @@ async function loadVerifikasi(){
     if(!docs.length){ $("content").innerHTML='<div class="ok">Tidak ada menunggu verifikasi keuangan ✅</div>'; return; }
     $("content").innerHTML=`<div class="list">${docs.map(o=>{
       const s=parseSplit(o);
-      return `<div class="item" style="border:2px solid var(--yellow)"><b>#${esc(o.nomorPesanan||o.id.slice(0,6))} - ${esc(o.status)}</b><div class="meta">OCR: ${esc((o.buktiPenyerahanOcr||o.buktiSerahTerimaOcr||o.buktiResiOcr||o.resiOcrText||o.resiTeksOcr||'Belum ada teks OCR').slice(0,120))}... | Foto Sheet Kolom J: ${o.buktiGambarDiSpreadsheet?'✅':'-'}</div>
+      const ocrKurir=o.buktiSerahTerimaOcr||o.buktiPenyerahanOcr||'';
+      const ocrMitra=o.buktiResiOcr||o.resiOcrText||o.resiTeksOcr||'';
+      const ocrGabung=[ocrKurir,ocrMitra].filter(v=>String(v||'').trim()).join('\n---\n');
+      const ocrTampil=ocrGabung||'Belum ada teks OCR';
+      const ocrKurirTampil=ocrKurir||'-';
+      const ocrMitraTampil=ocrMitra||'-';
+      return `<div class="item" style="border:2px solid var(--yellow)"><b>#${esc(o.nomorPesanan||o.id.slice(0,6))} - ${esc(o.status)}</b><div class="meta">Mitra: ${esc(o.mitraUid||'').slice(0,8)} • Kurir: ${esc(o.kurirUid||'').slice(0,8)||'-'} • Metode: ${esc(o.metodePenyerahan||'-')} • Foto Sheet Kolom J: ${o.buktiGambarDiSpreadsheet?'✅':'-'}</div>
+      <div style="margin-top:8px"><div style="font-size:11px;font-weight:800">OCR Kurir / Penyerahan:</div><div style="font-size:11px;white-space:pre-wrap;background:#f3f4f6;border-radius:8px;padding:8px;max-height:180px;overflow:auto">${esc(ocrKurirTampil)}</div>
+      <div style="font-size:11px;font-weight:800;margin-top:6px">OCR Mitra / Resi:</div><div style="font-size:11px;white-space:pre-wrap;background:#fff8d6;border-radius:8px;padding:8px;max-height:180px;overflow:auto">${esc(ocrMitraTampil)}</div></div>
       <div style="margin-top:6px">${([o.buktiPenyerahanOcr,o.buktiSerahTerimaOcr,o.buktiResiOcr,o.resiOcrText,o.resiTeksOcr,o.resiOcr,o.ocrText,o.buktiOcr,o.buktiPengirimanOcr,o.buktiFotoUrl,o.buktiPenyerahanUrl,o.buktiGambarDiSpreadsheet].some(v=>String(v||'').trim().length>0))?`<button class="btn yellow" onclick="verifikasiKeuangan('${o.id}')">✅ Verifikasi & Bagi (Mitra 95% + Kurir 95% + Admin 5%)</button>`:'<div class="err">Status menunggu verifikasi terbaca, tetapi bukti/OCR belum tersedia.</div>'}</div></div>`;
     }).join('')}</div>`;
   }catch(e){ $("content").innerHTML=`<div class="err">${esc(e.message)}</div>`; }
