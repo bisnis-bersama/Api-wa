@@ -167,7 +167,7 @@ async function loadOrder(){
     }).join('');
     log(`Order masuk: ${orderList.length} cocok (radius 40km + saldo cukup)`);
   }catch(e){
-    $("listOrder").innerHTML='<div style="color:#b42318;background:#fff0f0;padding:10px;border-radius:10px">Gagal baca order: '+e.message+'<br><small>Ini yang kemarin error permission. Cek Rules di bawah.</small></div>';
+    $("listOrder").innerHTML='<div style="color:#b42318;background:#fff0f0;padding:10px;border-radius:10px">Gagal baca order: '+e.message+'<br><br><b>FIX RULES - copy ke Firebase Console > Firestore Database > Rules, lalu Publish:</b><br><code style="display:block;background:#111;color:#ffd400;padding:8px;border-radius:8px;margin-top:6px;white-space:pre-wrap">rules_version = \'2\';\nservice cloud.firestore {\n  match /databases/{database}/documents {\n    match /orders/{id} { allow read: if true; allow create: if true; allow update: if true; }\n    match /users/{id} { allow read: if true; allow update: if request.auth != null; }\n    match /{document=**} { allow read, write: if request.auth != null; }\n  }\n}</code></div>';
     log("Gagal load order: "+e.message);
   }
 }
