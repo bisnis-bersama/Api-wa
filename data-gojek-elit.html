@@ -21,11 +21,6 @@
 :where(code, pre, kbd, samp) {
   font-family: "Optimistic Mono", ui-monospace, monospace;
 }
-</style><style>
-@font-face { font-family: "Optimistic"; font-style: normal; font-weight: 400 600; font-display: swap; src: url("/fonts/OptimisticAI_VF_Optimized.woff2") format("woff2"); }
-@font-face { font-family: "Optimistic Mono"; font-style: normal; font-weight: 400; font-display: swap; src: url("/fonts/OptimisticMono_W_TextRegular.woff2") format("woff2"); }
-:where(html) { font-family: "Optimistic", system-ui, sans-serif; }
-:where(code, pre, kbd, samp) { font-family: "Optimistic Mono", ui-monospace, monospace; }
 </style>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
@@ -57,7 +52,7 @@ input:focus{outline:2px solid #ffcc00;background:#fff}
 #pinTengah{position:absolute;left:50%;top:50%;transform:translate(-50%,-100%);font-size:36px;z-index:500;pointer-events:none;text-shadow:0 2px 6px #0008}
 #pinTengah::after{content:'';position:absolute;left:50%;bottom:-4px;transform:translateX(-50%);width:10px;height:10px;background:#ffcc00;border:2px solid #111;border-radius:50%}
 #labelTengah{position:absolute;left:8px;right:8px;bottom:8px;background:#111;color:#fff;padding:8px 10px;border-radius:10px;font-size:12px;z-index:500;text-align:center}
-#mapTujuan{height:340px;border-radius:14px;border:1px solid #e2e2e2;margin-top:10px;z-index:1;background:#e8e8e8}
+#mapTujuan{height:340px;border-radius:14px;border:1px solid #e2e2e2;margin-top:10px;z-index:1}
 .map-switch{display:flex;gap:6px;margin-top:10px}
 .map-switch button{flex:1;padding:9px;border:1px solid #e2e2e2;background:#fff;border-radius:10px;font-weight:700;cursor:pointer;font-size:13px}
 .map-switch button.active{background:#111;color:#fff;border-color:#111}
@@ -78,6 +73,15 @@ input:focus{outline:2px solid #ffcc00;background:#fff}
 nav.bottom{position:fixed;left:0;right:0;bottom:0;background:#111;display:grid;grid-template-columns:repeat(4,1fr);text-align:center;padding:8px 0;z-index:10}
 nav.bottom a{color:#aaa;text-decoration:none;font-size:11px} nav.bottom a.active{color:#ffcc00}
 .hidden{display:none}
+  /* MODE BERSIH — hilangkan info & petunjuk */
+  .muted{display:none!important}
+  .step p{display:none!important}
+  #statusJemput,#statusTujuan,#gpsJemputText,#gpsTujuanText,#txtJarakKurir,#infoCari,#peringatanLokasi{display:none!important}
+  #infoScan{display:block!important;color:#111;background:#fffbe6;border:1px solid #ffe08a;padding:8px 10px;border-radius:10px;font-size:12px;margin-top:8px}
+  #debugKurir{display:block!important;font-size:12px;background:#fff;border:1px solid #eee;border-radius:10px;padding:10px;margin-top:8px}
+  #alamatLengkapJemput,#alamatLengkapTujuan{font-size:12px;padding:8px}
+  .card{padding:14px}
+  
 #overlayCari{position:fixed;inset:0;background:#fff;z-index:100;display:none;flex-direction:column}
 #overlayCari .top-cari{display:flex;gap:8px;align-items:center;padding:12px;background:#fff;box-shadow:0 1px 6px #00000012;position:sticky;top:0}
 #overlayCari .input-cari{flex:1;background:#f1f1f1;border:0;border-radius:999px;padding:12px 14px;font-size:16px}
@@ -89,26 +93,25 @@ nav.bottom a{color:#aaa;text-decoration:none;font-size:11px} nav.bottom a.active
 .judul-cari{font-size:16px;font-weight:600}
 .sub-cari{font-size:13px;color:#666;margin-top:2px}
 .btn-nomor{background:#d6f6ff;border:0;border-radius:999px;padding:10px 16px;font-weight:700;color:#0a5a6b;cursor:pointer;margin:10px 14px;font-size:14px}
-/* MODE BERSIH — info & petunjuk disembunyikan, fungsi tetap jalan */
-.step p, #statusJemput, #statusTujuan, #gpsJemputText, #gpsTujuanText, #koordinatTengah, #pesanInfo, #labelTengah, .petunjuk{display:none!important}
+
 </style>
 </head>
 <body>
 <header class="top"><div class="top-inner">
 <div class="logo"><div class="logo-icon">🛵</div><div><b>GOJEK ELIT</b><small>Toko Siap Antar • Radius 40 km</small></div></div>
-<div class="pelanggan"><button id="btnPanduan" type="button" style="background:#ffcc00;border:0;border-radius:999px;padding:6px 10px;font-weight:800;cursor:pointer;color:#111;font-size:12px;white-space:nowrap;flex-shrink:0">❓ Panduan</button><div><b id="headerNamaPelanggan">Pelanggan</b><small id="headerSubPelanggan">Silakan login</small></div><div class="avatar" id="headerAvatar">P</div></div>
+<div class="pelanggan"><button id="btnPanduan" type="button" style="background:#ffcc00;border:0;border-radius:999px;padding:8px 12px;font-weight:800;cursor:pointer;color:#111">❓ Panduan</button><div><b id="headerNamaPelanggan">Pelanggan</b><small id="headerSubPelanggan">Silakan login</small></div><div class="avatar" id="headerAvatar">P</div></div>
 </div></header>
 
 <main>
 <div id="panelPanduan" class="card hidden" style="border:2px solid #ffcc00">
-<b>📖 Panduan Pengguna</b> <button id="btnTutupPanduan" type="button" style="float:right;background:#f1f1f1;border:0;border-radius:999px;padding:4px 10px;cursor:pointer">✕ Tutup</button>
+<b>📖 Panduan</b> <button id="btnTutupPanduan" type="button" style="float:right;background:#f1f1f1;border:0;border-radius:999px;padding:4px 10px;cursor:pointer">✕ Tutup</button>
 <div style="margin-top:10px;font-size:13px;line-height:1.7">
 <b>1. Jemput:</b> Klik <b>📍 Gunakan Lokasi Saya</b>. Peta ikut ke lokasi kamu.<br>
 <b>2. Tujuan:</b> Cari di <b>kolom pencarian</b> — ketik jalan / desa / pasar / RS, pilih yang muncul.<br>
 <b>3. Kalau tidak ketemu:</b> Cari di peta — geser peta sampai pin 📍 pas di tempatnya, lalu tekan <b>📌 Kunci Tujuan di Sini</b>. Bisa pakai mode <b>🛰️ Satelit</b> biar kelihatan rumah.<br>
 <b>4. Kendaraan:</b> Pilih Motor / Mobil, ongkir langsung kehitung.<br>
-<b>5. Kurir:</b> Klik <b>🔍 Cari Kurir</b>, pilih kurir terdekat.<br>
-<b>6. Pesan:</b> Klik <b>✅ Order Kurir Terdekat</b>.
+<b>5. Kurir:</b> Klik <b>Cari Kurir</b>. Kurir yang tampil adalah yang saldonya ≥ <b>5% dari ongkir</b>. Admin hanya potong 5% dari saldo kurir saat pengantaran selesai.<br>
+<b>6. Pesan:</b> Pilih kurir, klik Pesan.
 </div>
 </div>
 <!-- 1. LOKASI TERKINI -->
@@ -174,7 +177,7 @@ nav.bottom a{color:#aaa;text-decoration:none;font-size:11px} nav.bottom a.active
 <!-- 4. KURIR -->
 <div class="card">
 <h3 style="margin:0">Kurir Terdekat (Radius 40 km dari Jemput)</h3>
-<p class="petunjuk muted" style="margin:4px 0">Diurutkan dari yang paling dekat.</p>
+<p class="muted" style="margin:4px 0">Diurutkan dari yang paling dekat. Filter: kendaraan sama + jarak kurir ke jemput &le; 40 km + saldo kurir &ge; ongkir.</p>
 <div id="infoScan" style="font-size:12px;color:#666;margin-bottom:6px"></div><div id="listKurir"><div class="muted">Belum cari. Tentukan lokasi awal & tujuan dulu, lalu tekan Cari Kurir.</div></div>
 <button class="btn btn-yellow" id="btnPesan" disabled style="margin-top:10px">✅ Order Kurir Terdekat</button>
 <div class="muted" id="pesanInfo" style="margin-top:6px">Order akan dibuat status <b>mencari_kurir</b> dan ditawarkan ke kurir terdekat dulu.</div>
@@ -220,25 +223,8 @@ async function updateHeaderPelanggan(u){
   $("headerSubPelanggan").textContent=u.email||'Pelanggan Gojek Elit';
   $("headerAvatar").textContent=nama.charAt(0).toUpperCase();
 }
-// BACA SESI E-WALLET: E-Wallet nyimpen login di localStorage Toko Siap Antar, bukan cuma Firebase Auth.
-function bacaSesiEwallet(){
-  try{
-    const keys=['tsa_user','toko_user','user','pelanggan','ewallet_user','currentUser','authUser'];
-    for(const k of keys){
-      const raw=localStorage.getItem(k)||sessionStorage.getItem(k); if(!raw) continue;
-      try{ const o=JSON.parse(raw); if(o && (o.email||o.uid||o.id||o.nama)){ return {uid:o.uid||o.id||o.email, email:o.email||'', displayName:o.nama||o.namaUsaha||o.name||o.email?.split('@')[0]||'Pelanggan'}; } }catch(e){ if(raw.includes('@')) return {uid:raw, email:raw, displayName:raw.split('@')[0]}; }
-    }
-    for(let i=0;i<localStorage.length;i++){ const k=localStorage.key(i); if(!k||keys.includes(k)) continue; try{ const raw=localStorage.getItem(k); if(!raw||raw.length<5||raw.length>5000) continue; const o=JSON.parse(raw); if(o && typeof o==='object' && (o.email||o.uid) && (o.nama||o.email)){ return {uid:o.uid||o.id||o.email, email:o.email||'', displayName:o.nama||o.namaUsaha||o.email.split('@')[0]}; } }catch(e){} }
-  }catch(e){}
-  return null;
-}
-onAuthStateChanged(auth,u=>{
-  if(u){ currentUser=u; updateHeaderPelanggan(u); return; }
-  const ew=bacaSesiEwallet();
-  if(ew){ currentUser=ew; updateHeaderPelanggan(ew); return; }
-  currentUser=null; updateHeaderPelanggan(null);
-});
-setTimeout(()=>{ if(!currentUser){ const ew=bacaSesiEwallet(); if(ew){ currentUser=ew; updateHeaderPelanggan(ew); } } }, 1000);
+onAuthStateChanged(auth,u=>{ currentUser=u||null; updateHeaderPelanggan(u); });
+
 function log(m){ console.log(m); }
 function haversineKm(lat1,lng1,lat2,lng2){
   const R=6371, dLat=(lat2-lat1)*Math.PI/180, dLng=(lng2-lng1)*Math.PI/180;
@@ -363,10 +349,9 @@ function gpsUntukJemput(){
 }
 $("btnGpsJemput").onclick=gpsUntukJemput;
 // Panduan tersembunyi — tampil saat diklik
-if($("btnPanduan")) $("btnPanduan").onclick=()=>{ $("panelPanduan").classList.toggle('hidden'); if(!$("panelPanduan").classList.contains('hidden')) $("panelPanduan").scrollIntoView({behavior:'smooth'}); };
-if($("btnTutupPanduan")) $("btnTutupPanduan").onclick=()=>{ $("panelPanduan").classList.add('hidden'); };
-// Panduan tersembunyi — tampil saat diklik
-};
+$("btnPanduan").onclick=()=>{ $("panelPanduan").classList.toggle('hidden'); $("panelPanduan").scrollIntoView({behavior:'smooth'}); };
+$("btnTutupPanduan").onclick=()=>{ $("panelPanduan").classList.add('hidden'); };
+
 // === CARI ALAMAT TUJUAN - ketik, peta ikut ===
 // === PENCARIAN ALA GOOGLE MAPS - overlay fullscreen ===
 let debounceCari=null, hasilCariTerakhir=[];
@@ -545,14 +530,8 @@ function initPeta(){
   const tLat=parseFloat($("tujuanLat").value), tLng=parseFloat($("tujuanLng").value);
   const pusat=(!isNaN(tLat)&&!isNaN(tLng))?[tLat,tLng]:[jLat,jLng];
   mapTujuan=L.map('mapTujuan').setView(pusat, 14);
-  // Kalau peta putih karena tile Google belum ke-load / jaringan lemot, paksa ukur ulang
-  setTimeout(()=>{ try{ mapTujuan.invalidateSize(); }catch(e){} }, 500);
-  setTimeout(()=>{ try{ mapTujuan.invalidateSize(); }catch(e){} }, 1500);
   // PETA GOOGLE MAPS — tile Google, bukan OpenStreetMap lagi
   layerPeta=L.tileLayer('https://mt1.google.com/vt/lyrs=m&x={x}&y={y}&z={z}',{maxZoom:20, attribution:'© Google Maps'}).addTo(mapTujuan);
-  // Fallback: kalau tile Google gagal / diblokir, ganti ke OSM biar peta tidak putih
-  layerPeta.on('tileerror', ()=>{ try{ if(mapTujuan.hasLayer(layerPeta)) mapTujuan.removeLayer(layerPeta); if(!mapTujuan.hasLayer(layerFallback)) mapTujuan.addLayer(layerFallback); }catch(e){} });
-  var layerFallback=L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',{maxZoom:19, attribution:'© OpenStreetMap'});
   layerSatelit=L.tileLayer('https://mt1.google.com/vt/lyrs=s,h&x={x}&y={y}&z={z}',{maxZoom:20, attribution:'© Google Maps'});
   markerJemput=L.marker([jLat,jLng]).addTo(mapTujuan).bindPopup('📍 Lokasi Awal - GPS Pelanggan');
   const posT=(!isNaN(tLat)&&!isNaN(tLng))?[tLat,tLng]:[jLat,jLng];
@@ -633,34 +612,61 @@ $("btnCari").onclick=async ()=>{
   const h=hitung(); if(!h) return;
   const jLat=parseFloat($("jemputLat").value), jLng=parseFloat($("jemputLng").value);
   const pilihJenis=$("jenisKendaraan").value;
-  $("listKurir").innerHTML='<div class="muted">Mencari kurir dalam 40 km...</div>';
+  const butuh5=Math.ceil(h.ongkir*0.05);
+  $("listKurir").innerHTML='<div class="muted" style="display:block!important">Mencari kurir dalam 40 km...</div>';
+  $("debugKurir").style.display='block'; $("debugKurir").innerHTML='⏳ Scan...';
   try{
-    const q=query(collection(db,'users'), where('role','==','kurir'));
-    const qs=await getDocs(q); kurirList=[];
+    // Ambil SEMUA users, filter di JS — biar ketauan kalau role-nya bukan 'kurir' tapi 'mitra' / dll.
+    const qs=await getDocs(collection(db,'users')); kurirList=[];
+    let scan=0, lolosKendaraan=0, lolosJarak=0, lolosSaldo=0, tanpaLokasi=0, bukanKurir=0;
+    let debugRows=[];
     qs.forEach(doc=>{
-      const d=doc.data()||{}; const pos=ambilLatLngKurir(d); if(!pos) return;
+      const d=doc.data()||{}; scan++;
+      const roleRaw=String(d.role||d.jenis||d.tipe||'').toLowerCase();
+      const isKurir = roleRaw.includes('kurir')||roleRaw.includes('mitra')||roleRaw.includes('driver')||roleRaw.includes('ojek')||roleRaw.includes('gojek');
+      if(!isKurir){ bukanKurir++; return; }
+      const pos=ambilLatLngKurir(d);
+      if(!pos){ tanpaLokasi++; debugRows.push(`❌ ${d.nama||d.email||doc.id} — lokasi kosong (lat/lng belum ada di users). Kurir harus buka Orderan Kurir / set lokasi.`); return; }
       const ken=kendaraanKurir(d);
-      if(pilihJenis==='mobil' && ken!=='mobil') return;
-      if(pilihJenis==='motor' && ken!=='motor') return;
-      const jarakKeJemput=haversineKm(jLat,jLng,pos.lat,pos.lng); if(jarakKeJemput>40) return;
-      const kurirSaldo=Number(d.saldo??d.saldoEwallet??d.saldoWallet??d.deposit??d.saldoCOD??0)||0; if(kurirSaldo < Math.ceil(h.ongkir*0.05)) return;
+      if(pilihJenis==='mobil' && ken!=='mobil'){ debugRows.push(`❌ ${d.nama||d.email} — kendaraan ${ken}, kamu pilih Mobil.`); return; }
+      if(pilihJenis==='motor' && ken!=='motor'){ debugRows.push(`❌ ${d.nama||d.email} — kendaraan ${ken}, kamu pilih Motor.`); return; }
+      lolosKendaraan++;
+      const jarakKeJemput=haversineKm(jLat,jLng,pos.lat,pos.lng); if(jarakKeJemput>40){ debugRows.push(`❌ ${d.nama||d.email} — jarak ${jarakKeJemput.toFixed(1)} km > 40 km.`); return; }
+      lolosJarak++;
+      const kurirSaldo=Number(d.saldo??d.saldoEwallet??d.saldoWallet??d.deposit??d.saldoCOD??0)||0;
+      const saldoCukup = kurirSaldo >= butuh5;
+      if(saldoCukup) lolosSaldo++; else debugRows.push(`⚠️ ${d.nama||d.email} — saldo Rp ${kurirSaldo.toLocaleString('id-ID')} < 5% = Rp ${butuh5.toLocaleString('id-ID')}. Top up dulu biar lolos.`);
       const online=d.online===true||d.status==='online'||d.aktif===true||d.status==='aktif';
-      kurirList.push({id:doc.id, ...d, jarakKeJemput, online, lat:pos.lat, lng:pos.lng, saldo:kurirSaldo});
+      // TAMPIL SEMUA yang lolos kendaraan + jarak, walau saldo kurang — biar tidak hilang total. Yang saldo kurang ditandai, tetap bisa dilihat.
+      kurirList.push({id:doc.id, ...d, jarakKeJemput, online, lat:pos.lat, lng:pos.lng, saldo:kurirSaldo, saldoCukup, butuh5});
     });
-    const totalScan=qs.size||0;
-    $("infoScan").textContent=`Di-scan: ${totalScan} kurir • Lolos: ${kurirList.length}`;
+    $("infoScan").textContent=`Di-scan: ${scan} users • Kurir: ${scan-bukanKurir} • Lolos kendaraan: ${lolosKendaraan} • Lolos 40 km: ${lolosJarak} • Lolos saldo 5% (${rupiah(butuh5)}): ${lolosSaldo} • Tanpa lokasi: ${tanpaLokasi}`;
+    $("debugKurir").innerHTML = debugRows.length? `<b>Kenapa ga ketemu?</b><br>`+debugRows.join('<br>') : `<b>✅ Semua kurir lolos.</b>`;
     kurirList.sort((a,b)=>a.jarakKeJemput-b.jarakKeJemput);
-    if(!kurirList.length){ $("listKurir").innerHTML='<div style="background:#fff;border:1px solid #e5e5e5;padding:10px;border-radius:10px">Tidak ada kurir '+(pilihJenis==='mobil'?'Mobil':'Motor')+' yang lolos filter.</div>'; $("btnPesan").disabled=true; return; }
+    if(!kurirList.length){ $("listKurir").innerHTML='<div style="background:#fff;border:1px solid #e5e5e5;padding:10px;border-radius:10px">Tidak ada kurir dalam 40 km. Cek debug di bawah: lokasi kurir kosong / kendaraan beda / jarak > 40 km.</div>'; $("btnPesan").disabled=true; return; }
     $("listKurir").innerHTML=kurirList.map((k,i)=>{
       const nama=k.nama||k.namaUsaha||k.email||'Kurir';
       const kendaraan=kendaraanKurir(k)==='mobil'?'Mobil':'Motor';
-      return `<div class="kurir"><div><b>${i+1}. ${nama}</b><br><small>🚖 ${kendaraan} • 📍 ${k.jarakKeJemput.toFixed(2)} km dari jemput • ${k.noHp||k.telepon||''}</small></div><div><span class="badge ${k.online?'':'badge-off'}">${k.online?'Online':'Offline'}</span><br><button class="btn btn-dark" style="padding:6px 10px;margin-top:6px" onclick="window.pilihKurir('${k.id}')">Pilih</button></div></div>`; }).join(''); kurirTerpilih=[kurirList[0]]; $("btnPesan").disabled=false; $("txtJarakKurir").textContent=`✅ Ketemu ${kurirList.length} kurir dalam 40 km. Terdekat: ${kurirList[0].nama||kurirList[0].email} (${kurirList[0].jarakKeJemput.toFixed(2)} km)`; }catch(e){ $("listKurir").innerHTML='<div style="color:red">Gagal cari kurir: '+e.message+'</div>'; } };
-
+      const saldoTxt = k.saldoCukup ? `✅ Saldo ${rupiah(k.saldo)} ≥ 5% ${rupiah(k.butuh5)}` : `⚠️ Saldo ${rupiah(k.saldo)} < 5% ${rupiah(k.butuh5)} — top up dulu`;
+      return `<div class="kurir" style="${k.saldoCukup?'':'opacity:.75'}"><div><b>${i+1}. ${nama}</b><br><small>🚖 ${kendaraan} • 📍 ${k.jarakKeJemput.toFixed(2)} km dari jemput • ${k.noHp||k.telepon||''}</small><br><small>${saldoTxt}</small></div><div><span class="badge ${k.online?'':'badge-off'}">${k.online?'Online':'Offline'}</span><br><button class="btn btn-dark" style="padding:6px 10px;margin-top:6px" onclick="window.pilihKurir('${k.id}')">Pilih</button></div></div>`;
+    }).join('');
+    // Otomatis pilih yang saldo cukup & terdekat. Kalau semua saldo kurang, pilih yang terdekat tapi kasih tau.
+    const yangCukup=kurirList.find(k=>k.saldoCukup);
+    if(yangCukup){ kurirTerpilih=[yangCukup]; $("btnPesan").disabled=false; $("txtJarakKurir").textContent=`✅ Ketemu ${kurirList.length} kurir dalam 40 km. Terdekat cukup saldo: ${yangCukup.nama||yangCukup.email}`; }
+    else { kurirTerpilih=[kurirList[0]]; $("btnPesan").disabled=false; $("txtJarakKurir").textContent=`⚠️ Ketemu ${kurirList.length} kurir, tapi semua saldo < 5%. Top up dulu salah satu biar bisa pesan.`; }
+  }catch(e){ $("listKurir").innerHTML='<div style="color:red">Gagal cari kurir: '+e.message+'</div>'; $("debugKurir").innerHTML='Error: '+e.message+' — cek Rules Firestore sudah Publish belum.'; }
+};
+window.pilihKurir('${k.id}')">Pilih</button></div></div>`;
+    }).join('');
+    kurirTerpilih=[kurirList[0]]; $("btnPesan").disabled=false;
+    $("txtJarakKurir").textContent=`✅ Ketemu ${kurirList.length} kurir dalam 40 km. Terdekat: ${kurirList[0].nama||kurirList[0].email} (${kurirList[0].jarakKeJemput.toFixed(2)} km)`;
+  }catch(e){ $("listKurir").innerHTML='<div style="color:red">Gagal cari kurir: '+e.message+'</div>'; }
+};
 window.pilihKurir=(id)=>{ const k=kurirList.find(x=>x.id===id); if(!k) return; kurirTerpilih=[k]; $("btnPesan").disabled=false; alert(`Kurir dipilih: ${k.nama||k.email} (${k.jarakKeJemput.toFixed(2)} km dari jemput)`); };
 
 $("btnPesan").onclick=async ()=>{
   const h=hitung(); if(!h) return;
-  if(!currentUser){ const ew=bacaSesiEwallet(); if(ew){ currentUser=ew; updateHeaderPelanggan(ew); } else { alert("Login dulu sebagai pelanggan lewat e-wallet / login pelanggan."); return; } }
+  if(!currentUser){ alert("Login dulu sebagai pelanggan lewat e-wallet / login pelanggan."); return; }
   if(!kurirTerpilih.length){ alert("Cari kurir dulu."); return; }
   if(!confirm(`Order atas nama ${namaPelanggan}?\nPesan kurir ${kurirTerpilih[0].nama||kurirTerpilih[0].email}?\nJarak ${h.jarakKm.toFixed(2)} km • Ongkir ${rupiah(h.ongkir)}`)) return;
   try{
