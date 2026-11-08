@@ -161,7 +161,7 @@ async function enrichOrders(){
 
 let kurirProfiles=[];
 let courierGps=null;
-const MAX_JARAK_KM=25;
+const MAX_JARAK_KM=40;
 
 function getCoords(d){
   const lat=num(get(d,['lat','lokasi.lat','currentLat','latitude','latMitra','tokoLat']));
@@ -192,12 +192,18 @@ function getItemList(o){
 }
 function getOfferCourier(o){
   const rejected=Array.isArray(o.kurirDitolak)?o.kurirDitolak:[];
+  // Checkout menyimpan kurir yang lolos radius ke mitraCandidateUids.
+  // Jika daftar ini tersedia, gunakan daftar tersebut sebagai sumber kandidat
+  // agar halaman Kurir tidak menghitung ulang dan berbeda dari Checkout.
+  const savedCandidates=Array.isArray(o.mitraCandidateUids)
+    ? o.mitraCandidateUids.filter(Boolean).map(String)
+    : null;
   const candidates=kurirProfiles
     .filter(k=>k.uid && !rejected.includes(k.uid))
+    .filter(k=>!savedCandidates || savedCandidates.includes(String(k.uid)))
     .map(k=>({profile:k,...courierDistance(o,k.data)}))
     .filter(k=>k.basis!==null)
     .sort((a,b)=>{
-      // Semua kurir dalam radius 25 km diprioritaskan, lalu kurir di luar radius.
       if(a.eligible!==b.eligible) return a.eligible?-1:1;
       return a.basis-b.basis;
     });
