@@ -105,7 +105,8 @@
     <button class="proof-option" type="button" onclick="document.getElementById('proofGallery').click()">🖼️ Pilih dari Galeri</button>
     <img id="proofPreview" class="proof-preview" alt="Pratinjau bukti penyerahan">
     <div id="proofFileName" style="font-size:11px;color:#666;margin-top:7px"></div>
-    <div id="proofOcr" style="font-size:12px;color:#333;background:#f3f4f6;border-radius:8px;padding:9px;margin-top:8px;white-space:pre-wrap">Hasil OCR bukti akan tampil di sini.</div>
+    <button class="proof-option" type="button" id="proofReadOcr" onclick="bacaOCR()" disabled>🔎 Baca OCR Foto Bukti</button>
+    <div id="proofOcr" style="font-size:12px;color:#333;background:#f3f4f6;border-radius:8px;padding:9px;margin-top:8px;white-space:pre-wrap">Pilih foto, lalu tekan Baca OCR Foto Bukti.</div>
     <div class="row2" style="margin-top:12px">
       <button class="btn btn-dark" type="button" onclick="tutupBukti()">Batal</button>
       <button class="btn btn-green" type="button" id="proofSubmit" onclick="kirimBukti()" disabled>Upload Bukti & Ajukan Verifikasi</button>
@@ -330,27 +331,23 @@ async function pilihBukti(file){
   proofFile=file; proofOcrText='';
   if(proofPreviewUrl) URL.revokeObjectURL(proofPreviewUrl);
   proofPreviewUrl=URL.createObjectURL(file);
-  $('proofPreview').src=proofPreviewUrl;
-  $('proofPreview').style.display='block';
-  $('proofFileName').textContent=file.name;
-  $('proofSubmit').disabled=true;
-  $('proofStatus').textContent='Membaca foto bukti yang dipilih (Bahasa Indonesia + Inggris)...';
-  $('proofOcr').textContent='OCR sedang membaca foto yang dipilih. Pastikan foto ini bukti paket diserahkan ke pelanggan, bukan screenshot halaman aplikasi.';
+  $('proofPreview').src=proofPreviewUrl; $('proofPreview').style.display='block';
+  $('proofFileName').textContent=file.name; $('proofOcr').textContent='Foto siap. Tekan tombol Baca OCR Foto Bukti.';
+  $('proofReadOcr').disabled=false; $('proofSubmit').disabled=false;
+  $('proofStatus').textContent='Pastikan foto adalah bukti serah terima paket, bukan screenshot aplikasi.';
+}
+async function bacaOCR(){
+  if(!proofFile){alert('Pilih foto bukti terlebih dahulu.');return;}
+  const btn=$('proofReadOcr');btn.disabled=true;btn.textContent='⏳ Membaca OCR...';
+  $('proofOcr').textContent='OCR sedang membaca foto bukti yang dipilih (Indonesia + Inggris).';
   try{
-    const { createWorker } = await import('https://cdn.jsdelivr.net/npm/tesseract.js@5/dist/tesseract.esm.min.js');
+    const {createWorker}=await import('https://cdn.jsdelivr.net/npm/tesseract.js@5/dist/tesseract.esm.min.js');
     const worker=await createWorker('ind+eng');
-    const result=await worker.recognize(file);
-    proofOcrText=String(result?.data?.text||'').trim();
-    await worker.terminate();
-    $('proofOcr').textContent=proofOcrText||'OCR tidak menemukan teks yang terbaca. Foto tetap dapat diajukan untuk verifikasi admin.';
-    $('proofStatus').textContent='OCR selesai. Periksa teks hasil bacaan; foto asli yang dipilih akan menjadi bukti unggahan.';
-    $('proofSubmit').disabled=false;
-  }catch(err){
-    console.error('OCR gagal:',err);
-    $('proofOcr').textContent='OCR gagal dijalankan. Foto tetap dapat diunggah dan diperiksa admin.';
-    $('proofStatus').textContent='OCR tidak tersedia; foto dapat tetap diajukan.';
-    $('proofSubmit').disabled=false;
-  }
+    const result=await worker.recognize(proofFile);proofOcrText=String(result?.data?.text||'').trim();await worker.terminate();
+    $('proofOcr').textContent=proofOcrText||'OCR tidak menemukan teks. Foto tetap dapat diajukan untuk pemeriksaan admin.';
+    $('proofStatus').textContent='OCR selesai. Periksa hasil bacaan sebelum mengajukan.';
+  }catch(err){console.error('OCR gagal:',err);proofOcrText='';$('proofOcr').textContent='OCR gagal. Foto masih dapat diajukan untuk pemeriksaan admin.';$('proofStatus').textContent='OCR tidak tersedia.';}
+  finally{btn.disabled=false;btn.textContent='🔎 Baca OCR Foto Bukti';}
 }
 $('proofCamera').addEventListener('change',e=>pilihBukti(e.target.files?.[0]));
 $('proofGallery').addEventListener('change',e=>pilihBukti(e.target.files?.[0]));
