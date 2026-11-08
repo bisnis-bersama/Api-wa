@@ -407,6 +407,7 @@ async function bacaOCR(){
     $('proofSubmit').disabled=true;
   }finally{btn.disabled=false;btn.textContent='🔎 Baca OCR Foto Bukti';}
 }
+window.bacaOCR=bacaOCR;
 $('proofCamera').addEventListener('change',e=>pilihBukti(e.target.files?.[0]));
 $('proofGallery').addEventListener('change',e=>pilihBukti(e.target.files?.[0]));
 window.selesai=(id)=>{
