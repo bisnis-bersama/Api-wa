@@ -62,7 +62,10 @@ main{max-width:820px;margin:-10px auto 0;padding:0 10px 80px;position:relative;z
 <div class="wallet-row">
 <div class="wallet-stat"><div class="label">Total Pendapatan</div><div class="value" id="income">Memuat...</div></div>
 <div class="wallet-stat"><div class="label">Total Dicairkan</div><div class="value" id="withdrawn">Memuat...</div></div>
-</div><div id="actionMsg"></div></div>
+</div><div id="actionMsg"></div>
+<button id="fixAdminSaldoBtn" class="btn btn-yellow" style="width:100%;margin-top:8px;padding:10px;font-weight:800">🔧 Perbaiki Saldo Admin dari Pesanan Selesai (yang kemarin admin belum dapat)</button>
+<div id="fixAdminSaldoInfo" style="font-size:11px;color:#666;margin-top:6px">Tombol ini menjumlah 5% dari semua pesanan status selesai yang belum dihitung ke admin, lalu masukkan ke admin_saldo/total. Kalau sudah pernah diperbaiki, tidak akan double.</div>
+</div>
 <div class="panel"><div style="margin-bottom:12px"><h2 style="margin:0;font-size:14px;font-weight:800">Navigasi Admin</h2></div><div class="grid">
 <a class="menu" href="./semua-pesanan-admin.html"><div class="menu-icon">📦</div><b>Pesanan</b><small>Fix Saldo</small></a>
 <a class="menu" href="./data-mitra.html"><div class="menu-icon">🏪</div><b>Mitra</b><small>Mitra Usaha</small></a>
@@ -142,6 +145,47 @@ onAuthStateChanged(auth,async u=>{
 /* Saat kembali dari halaman lain, perbarui data tanpa reload paksa. */
 window.addEventListener('pageshow',()=>{if(user){loadAdminWallet();loadQueues()}});
 
+// Perbaiki saldo admin lama: hitung 5% dari pesanan selesai yang belum dihitung admin - semua baca dulu, baru tulis
+  $('fixAdminSaldoBtn').onclick=async()=>{
+    if(!user){ alert('Login dulu'); return; }
+    if(!confirm('Hitung ulang saldo admin 5% dari semua pesanan selesai yang belum dihitung? Ini tidak akan double.')) return;
+    const btn=$('fixAdminSaldoBtn'); btn.disabled=true; btn.textContent='Menghitung...';
+    try{
+      const qs=await getDocs(query(collection(db,'orders'), where('status','==','selesai')));
+      let tambah=0, hitung=0, skip=0;
+      const toMark=[];
+      qs.forEach(d=>{
+        const o=d.data()||{};
+        if(o.adminSaldoMasuk===true){ skip++; return; }
+        const total=Number(o.total||0);
+        let sub=Number(o.subtotal ?? o.subTotal ?? 0);
+        let ongkir=Number(o.ongkir ?? o.ongkosKirim ?? 0);
+        if(!sub && total && ongkir) sub=total-ongkir;
+        if(!sub && total && !ongkir) sub=total;
+        const kotor=sub+ongkir;
+        const adminCredit=Math.round(kotor*0.05);
+        if(adminCredit>0){ tambah+=adminCredit; hitung++; toMark.push(d.id); }
+        else skip++;
+      });
+      if(tambah===0){ msg('Tidak ada pesanan selesai yang belum dihitung ke admin. Saldo sudah benar.', true); btn.disabled=false; btn.textContent='🔧 Perbaiki Saldo Admin dari Pesanan Selesai (yang kemarin admin belum dapat)'; return; }
+      await runTransaction(db, async tx=>{
+        const ref=doc(db,'admin_saldo','total');
+        const snap=await tx.get(ref);
+        const d=snap.exists()?snap.data():{};
+        const oldSaldo=Number(d.saldo||0);
+        const oldPend=Number(d.totalPendapatanPesanan??d.totalPendapatan??0);
+        // Semua baca dulu
+        const orderSnaps=[];
+        for(const id of toMark){ const oref=doc(db,'orders',id); const osnap=await tx.get(oref); orderSnaps.push({oref, osnap}); }
+        // Baru tulis
+        if(snap.exists()) tx.update(ref,{saldo:oldSaldo+tambah, totalPendapatanPesanan:oldPend+tambah, totalPendapatan:oldPend+tambah, updatedAt:serverTimestamp()});
+        else tx.set(ref,{saldo:tambah, totalPendapatanPesanan:tambah, totalPendapatan:tambah, totalDicairkan:0, createdAt:serverTimestamp(), updatedAt:serverTimestamp()});
+        for(const {oref, osnap} of orderSnaps){ if(osnap.exists()) tx.update(oref,{adminSaldoMasuk:true, adminSaldoDiperbaikiAt:serverTimestamp()}); }
+      });
+      msg('Perbaikan berhasil ✅ Ditambah Rp '+tambah.toLocaleString('id-ID')+' dari '+hitung+' pesanan selesai. '+skip+' pesanan sudah dihitung sebelumnya.', true);
+    }catch(e){ msg('Gagal perbaiki: '+e.message); }
+    btn.disabled=false; btn.textContent='🔧 Perbaiki Saldo Admin dari Pesanan Selesai (yang kemarin admin belum dapat)';
+  };
 document.addEventListener('click',async e=>{
  const b=e.target.closest('[data-action]');if(!b)return;
  const action=b.dataset.action,col=b.dataset.col,id=b.dataset.id,uid=b.dataset.uid,amount=Number(b.dataset.amount||0);
