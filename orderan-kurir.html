@@ -98,7 +98,8 @@ Lokasi Saya (Lat)</label>
 
 <script type="module">
 import {initializeApp,getApps,getApp} from "https://www.gstatic.com/firebasejs/12.4.0/firebase-app.js";
-import {getAuth,onAuthStateChanged} from "https://www.gstatic.com/firebasejs/12.4.0/firebase-auth.js";
+import {getAuth,function bacaSesiEwallet(){ try{ const keys=['fixzy_user','fixzy_session','ewallet_user','user','pelanggan']; for(const k of keys){ const raw=localStorage.getItem(k)||sessionStorage.getItem(k); if(!raw) continue; try{ const o=JSON.parse(raw); if(o&&(o.email||o.uid||o.nama)) return {uid:o.uid||o.id||o.email, email:o.email||'', displayName:o.nama||o.email?.split('@')[0]}; }catch(e){} } }catch(e){} return null; }
+onAuthStateChanged} from "https://www.gstatic.com/firebasejs/12.4.0/firebase-auth.js";
 import {getFirestore,collection,query,where,getDocs,doc,getDoc,updateDoc,runTransaction,serverTimestamp,arrayRemove} from "https://www.gstatic.com/firebasejs/12.4.0/firebase-firestore.js";
 const firebaseConfig={apiKey:"AIzaSyBxqZhl6t3RwrXMwVdJeIkg0NzGfwvlweM",authDomain:"toko-siap-antar-9a7bb.firebaseapp.com",projectId:"toko-siap-antar-9a7bb",storageBucket:"toko-siap-antar-9a7bb.firebasestorage.app",messagingSenderId:"351335838712",appId:"1:351335838712:web:6e2b3e0b0e0b0e0b0e0b0e0b"};
 const app=getApps().length?getApp():initializeApp(firebaseConfig);
