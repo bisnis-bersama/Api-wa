@@ -84,7 +84,7 @@ async function fetchOrdersByStatus(statuses){
   }catch(e){ log('fetch error '+e.message); return []; }
 }
 async function loadPending(){
-  $("tabPending").classList.add("active"); $("tabProses").classList.remove("active"); $("tabVerifikasi").classList.remove("active");
+  $("tabPending").classList.add("active"); $("tabVerifikasi").classList.remove("active");
   $("content").innerHTML='Memuat pending...';
   log('loadPending mulai');
   try{
@@ -121,7 +121,7 @@ async function loadPending(){
 }
 window.loadPending=loadPending;
 async function loadProses(){
-  $("tabPending").classList.remove("active"); $("tabProses").classList.add("active"); $("tabVerifikasi").classList.remove("active");
+  $("tabPending").classList.remove("active"); $("tabVerifikasi").classList.remove("active");
   $("content").innerHTML='Memuat di proses...';
   try{
     const docs=await fetchOrdersByStatus(['disetujui','dikemas','menunggu_kurir','diantar']);
@@ -139,7 +139,7 @@ async function loadVerifikasi(){
   $("tabPending").classList.remove("active"); $("tabProses").classList.remove("active"); $("tabVerifikasi").classList.add("active");
   $("content").innerHTML='Memuat verifikasi...';
   try{
-    const docs=await fetchOrdersByStatus(['menunggu_verifikasi_admin']).filter(o=>o.saldoDibagi!==true && Boolean(o.buktiPenyerahanOcr || o.buktiResiOcr || o.buktiFotoUrl || o.buktiPenyerahanUrl || o.buktiGambarDiSpreadsheet));
+    const docs=(await fetchOrdersByStatus(['menunggu_verifikasi_admin'])).filter(o=>o.saldoDibagi!==true && Boolean(o.buktiPenyerahanOcr || o.buktiResiOcr || o.buktiFotoUrl || o.buktiPenyerahanUrl || o.buktiGambarDiSpreadsheet));
     $("countVerifikasi").textContent=docs.length;
     if(!docs.length){ $("content").innerHTML='<div class="ok">Tidak ada menunggu verifikasi keuangan ✅</div>'; return; }
     $("content").innerHTML=`<div class="list">${docs.map(o=>{
