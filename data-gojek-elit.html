@@ -231,15 +231,21 @@ $("btnPesan").onclick=async()=>{
   if(!kurirTerpilih.length){ alert("Cari kurir dulu. Kalau list kosong, berarti tidak ada kurir yang lolos filter: kendaraan sama + jarak <= 40 km + saldo >= ongkir. Top up dulu saldo salah satu kurir minimal Rp 8.000 (Motor) / Rp 15.000 (Mobil) di e-wallet kurir / Firestore users -> saldo."); return; }
   if(!confirm(`Pesan kurir ${kurirTerpilih[0].nama||kurirTerpilih[0].email}?\nJarak ${h.jarakKm.toFixed(2)} km • Ongkir ${rupiah(h.ongkir)}`)) return;
   try{
+    // FIX GPS: kalau alamat teks kosong, isi dengan GPS biar di kurir tidak tampil '-'
+    const jLatV = parseFloat($("jemputLat").value), jLngV = parseFloat($("jemputLng").value);
+    const tLatV = parseFloat($("tujuanLat").value), tLngV = parseFloat($("tujuanLng").value);
+    if(jLatV===tLatV && jLngV===tLngV){ alert("Jemput dan Tujuan GPS-nya sama persis, jarak jadi 0.00 km. Isi Tujuan dengan lokasi yang beda (tekan 'Pakai GPS Saya untuk Tujuan' di lokasi tujuan, atau isi Lat/Lng tujuan manual)."); return; }
+    const jemputAlamatFix = ($("jemputAlamat").value||"").trim() || `GPS ${jLatV.toFixed(6)}, ${jLngV.toFixed(6)}`;
+    const tujuanAlamatFix = ($("tujuanAlamat").value||"").trim() || `GPS ${tLatV.toFixed(6)}, ${tLngV.toFixed(6)}`;
     const order={
       pelangganUid: currentUser?currentUser.uid:null,
       pelangganEmail: currentUser?currentUser.email:null,
-      jemputAlamat: $("jemputAlamat").value||"",
-      jemputLat: parseFloat($("jemputLat").value),
-      jemputLng: parseFloat($("jemputLng").value),
-      tujuanAlamat: $("tujuanAlamat").value||"",
-      tujuanLat: parseFloat($("tujuanLat").value),
-      tujuanLng: parseFloat($("tujuanLng").value),
+      jemputAlamat: jemputAlamatFix,
+      jemputLat: jLatV,
+      jemputLng: jLngV,
+      tujuanAlamat: tujuanAlamatFix,
+      tujuanLat: tLatV,
+      tujuanLng: tLngV,
       jenisKendaraan: $("jenisKendaraan").value,
       jarakKm: h.jarakKm,
       ongkir: h.ongkir,
