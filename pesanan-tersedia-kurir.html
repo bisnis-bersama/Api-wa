@@ -336,18 +336,44 @@ async function pilihBukti(file){
   $('proofReadOcr').disabled=false; $('proofSubmit').disabled=false;
   $('proofStatus').textContent='Pastikan foto adalah bukti serah terima paket, bukan screenshot aplikasi.';
 }
+let tesseractScriptPromise=null;
+function muatTesseract(){
+  if(window.Tesseract)return Promise.resolve(window.Tesseract);
+  if(tesseractScriptPromise)return tesseractScriptPromise;
+  tesseractScriptPromise=new Promise((resolve,reject)=>{
+    const script=document.createElement('script');
+    script.src='https://cdn.jsdelivr.net/npm/tesseract.js@5/dist/tesseract.min.js';
+    script.onload=()=>window.Tesseract?resolve(window.Tesseract):reject(new Error('Library Tesseract gagal dimuat.'));
+    script.onerror=()=>reject(new Error('Tidak dapat memuat Tesseract. Periksa koneksi internet lalu coba lagi.'));
+    document.head.appendChild(script);
+  });
+  return tesseractScriptPromise;
+}
 async function bacaOCR(){
-  if(!proofFile){alert('Pilih foto bukti terlebih dahulu.');return;}
-  const btn=$('proofReadOcr');btn.disabled=true;btn.textContent='⏳ Membaca OCR...';
-  $('proofOcr').textContent='OCR sedang membaca foto bukti yang dipilih (Indonesia + Inggris).';
+  if(!proofFile){$('proofOcr').textContent='Pilih foto bukti terlebih dahulu.';return;}
+  const btn=$('proofReadOcr'),status=$('proofStatus'),hasil=$('proofOcr');
+  btn.disabled=true;btn.textContent='⏳ Membaca OCR...';
+  hasil.textContent='Memuat mesin OCR. Pastikan koneksi internet aktif.';
+  status.textContent='OCR sedang diproses…';proofOcrText='';
+  let worker=null;
   try{
-    const {createWorker}=await import('https://cdn.jsdelivr.net/npm/tesseract.js@5/dist/tesseract.esm.min.js');
-    const worker=await createWorker('ind+eng');
-    const result=await worker.recognize(proofFile);proofOcrText=String(result?.data?.text||'').trim();await worker.terminate();
-    $('proofOcr').textContent=proofOcrText||'OCR tidak menemukan teks. Foto tetap dapat diajukan untuk pemeriksaan admin.';
-    $('proofStatus').textContent='OCR selesai. Periksa hasil bacaan sebelum mengajukan.';
-  }catch(err){console.error('OCR gagal:',err);proofOcrText='';$('proofOcr').textContent='OCR gagal. Foto masih dapat diajukan untuk pemeriksaan admin.';$('proofStatus').textContent='OCR tidak tersedia.';}
-  finally{btn.disabled=false;btn.textContent='🔎 Baca OCR Foto Bukti';}
+    const T=await muatTesseract();
+    worker=await T.createWorker('ind+eng',1,{logger:m=>{
+      if(m.status){hasil.textContent=m.status+(m.progress!=null?' '+Math.round(m.progress*100)+'%':'');}
+    }});
+    const result=await worker.recognize(proofFile);
+    proofOcrText=String(result?.data?.text||'').trim();
+    if(!proofOcrText){hasil.textContent='OCR selesai, tetapi tidak menemukan teks. Foto tetap bisa diajukan untuk pemeriksaan admin.';status.textContent='Tidak ada teks yang terbaca.';return;}
+    hasil.textContent=proofOcrText;
+    status.textContent='OCR selesai. Periksa hasil bacaan sebelum mengajukan.';
+  }catch(err){
+    console.error('OCR gagal:',err);
+    hasil.textContent='OCR gagal: '+(err?.message||'Kesalahan tidak diketahui')+'. Coba lagi dengan koneksi internet aktif.';
+    status.textContent='OCR gagal dimuat atau diproses.';
+  }finally{
+    if(worker){try{await worker.terminate();}catch(e){console.warn('Worker OCR gagal ditutup',e);}}
+    btn.disabled=false;btn.textContent='🔎 Baca OCR Foto Bukti';
+  }
 }
 $('proofCamera').addEventListener('change',e=>pilihBukti(e.target.files?.[0]));
 $('proofGallery').addEventListener('change',e=>pilihBukti(e.target.files?.[0]));
