@@ -375,7 +375,12 @@ window.kirimBukti=async()=>{
     const o=snap.data();
     if(o.kurirUid!==currentUser.uid) throw new Error('Pesanan ini bukan tugas kurir yang sedang login.');
     if(!['diantar','dikirim','dalam_pengiriman'].includes(String(o.status||'').toLowerCase())) throw new Error('Status pesanan tidak lagi dalam proses pengantaran.');
-    if(['menunggu_verifikasi_admin','menunggu_verifikasi','terverifikasi'].includes(String(o.statusPembayaran||'').toLowerCase()) || o.saldoDibagi===true) throw new Error('Pesanan sudah diajukan atau diproses verifikasi admin.');
+    const orderStatus=String(o.status||'').toLowerCase();
+    const proofAlreadySubmitted=!!o.buktiSerahTerimaUrl
+      && ['menunggu_verifikasi_admin','menunggu_verifikasi','terverifikasi','selesai'].includes(orderStatus);
+    if(proofAlreadySubmitted || o.saldoDibagi===true) throw new Error('Bukti pesanan ini sudah dikirim atau pesanan sudah diproses admin.');
+    // Jangan memakai statusPembayaran sebagai pengunci bukti:
+    // status pembayaran dapat berbeda dari status pengantaran/verifikasi bukti.
     const safeName=String(proofFile.name||'bukti.jpg').replace(/[^a-zA-Z0-9._-]/g,'_');
     const path=`bukti-penyerahan/${id}/${currentUser.uid}_${Date.now()}_${safeName}`;
     const fileRef=storageRef(storage,path);
