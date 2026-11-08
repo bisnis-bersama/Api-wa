@@ -21,6 +21,11 @@
 :where(code, pre, kbd, samp) {
   font-family: "Optimistic Mono", ui-monospace, monospace;
 }
+</style><style>
+@font-face { font-family: "Optimistic"; font-style: normal; font-weight: 400 600; font-display: swap; src: url("/fonts/OptimisticAI_VF_Optimized.woff2") format("woff2"); }
+@font-face { font-family: "Optimistic Mono"; font-style: normal; font-weight: 400; font-display: swap; src: url("/fonts/OptimisticMono_W_TextRegular.woff2") format("woff2"); }
+:where(html) { font-family: "Optimistic", system-ui, sans-serif; }
+:where(code, pre, kbd, samp) { font-family: "Optimistic Mono", ui-monospace, monospace; }
 </style>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
@@ -84,7 +89,9 @@ nav.bottom a{color:#aaa;text-decoration:none;font-size:11px} nav.bottom a.active
 .judul-cari{font-size:16px;font-weight:600}
 .sub-cari{font-size:13px;color:#666;margin-top:2px}
 .btn-nomor{background:#d6f6ff;border:0;border-radius:999px;padding:10px 16px;font-weight:700;color:#0a5a6b;cursor:pointer;margin:10px 14px;font-size:14px}
-
+/* MODE BERSIH — info & petunjuk disembunyikan, fungsi tetap jalan */
+.step p, #statusJemput, #statusTujuan, #gpsJemputText, #gpsTujuanText, #koordinatTengah, #pesanInfo, .petunjuk{display:none!important}
+</style>
 </head>
 <body>
 <header class="top"><div class="top-inner">
@@ -622,14 +629,7 @@ $("btnCari").onclick=async ()=>{
     $("listKurir").innerHTML=kurirList.map((k,i)=>{
       const nama=k.nama||k.namaUsaha||k.email||'Kurir';
       const kendaraan=kendaraanKurir(k)==='mobil'?'Mobil':'Motor';
-      return `<div class="kurir"><div><b>${i+1}. ${nama}</b><br><small>🚖 ${kendaraan} • 📍 ${k.jarakKeJemput.toFixed(2)} km dari jemput • ${k.noHp||k.telepon||''}</small></div><div><span class="badge ${k.online?'':'badge-off'}">${k.online?'Online':'Offline'}</span><br><button class="btn btn-dark" style="padding:6px 10px;margin-top:6px" onclick="window.pilihKurir('${k.id}')">Pilih</button></div></div>`;
-    }).join('');
-    kurirTerpilih=[kurirList[0]]; $("btnPesan").disabled=false;
-    $("txtJarakKurir").textContent=`✅ Ketemu ${kurirList.length} kurir dalam 40 km. Terdekat: ${kurirList[0].nama||kurirList[0].email} (${kurirList[0].jarakKeJemput.toFixed(2)} km)`;
-  }catch(e){ $("listKurir").innerHTML='<div style="color:red">Gagal cari kurir: '+e.message+'</div>'; }
-};
-
-window.pilihKurir=(id)=>{ const k=kurirList.find(x=>x.id===id); if(!k) return; kurirTerpilih=[k]; $("btnPesan").disabled=false; alert(`Kurir dipilih: ${k.nama||k.email} (${k.jarakKeJemput.toFixed(2)} km dari jemput)`); };
+      return `<div class="kurir"><div><b>${i+1}. ${nama}</b><br><small>🚖 ${kendaraan} • 📍 ${k.jarakKeJemput.toFixed(2)} km dari jemput • ${k.noHp||k.telepon||''}</small></div><div><span class="badge ${k.online?'':'badge-off'}">${k.online?'Online':'Offline'}</span><br><button class="btn btn-dark" style="padding:6px 10px;margin-top:6px" onclick="window.pilihKurir=(id)=>{ const k=kurirList.find(x=>x.id===id); if(!k) return; kurirTerpilih=[k]; $("btnPesan").disabled=false; alert(`Kurir dipilih: ${k.nama||k.email} (${k.jarakKeJemput.toFixed(2)} km dari jemput)`); };
 
 $("btnPesan").onclick=async ()=>{
   const h=hitung(); if(!h) return;
