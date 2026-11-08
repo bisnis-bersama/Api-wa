@@ -73,15 +73,6 @@ input:focus{outline:2px solid #ffcc00;background:#fff}
 nav.bottom{position:fixed;left:0;right:0;bottom:0;background:#111;display:grid;grid-template-columns:repeat(4,1fr);text-align:center;padding:8px 0;z-index:10}
 nav.bottom a{color:#aaa;text-decoration:none;font-size:11px} nav.bottom a.active{color:#ffcc00}
 .hidden{display:none}
-  /* MODE BERSIH — hilangkan info & petunjuk */
-  .muted{display:none!important}
-  .step p{display:none!important}
-  #statusJemput,#statusTujuan,#gpsJemputText,#gpsTujuanText,#txtJarakKurir,#infoCari,#peringatanLokasi{display:none!important}
-  #infoScan{display:block!important;color:#111;background:#fffbe6;border:1px solid #ffe08a;padding:8px 10px;border-radius:10px;font-size:12px;margin-top:8px}
-  #debugKurir{display:block!important;font-size:12px;background:#fff;border:1px solid #eee;border-radius:10px;padding:10px;margin-top:8px}
-  #alamatLengkapJemput,#alamatLengkapTujuan{font-size:12px;padding:8px}
-  .card{padding:14px}
-  
 #overlayCari{position:fixed;inset:0;background:#fff;z-index:100;display:none;flex-direction:column}
 #overlayCari .top-cari{display:flex;gap:8px;align-items:center;padding:12px;background:#fff;box-shadow:0 1px 6px #00000012;position:sticky;top:0}
 #overlayCari .input-cari{flex:1;background:#f1f1f1;border:0;border-radius:999px;padding:12px 14px;font-size:16px}
@@ -99,24 +90,13 @@ nav.bottom a{color:#aaa;text-decoration:none;font-size:11px} nav.bottom a.active
 <body>
 <header class="top"><div class="top-inner">
 <div class="logo"><div class="logo-icon">🛵</div><div><b>GOJEK ELIT</b><small>Toko Siap Antar • Radius 40 km</small></div></div>
-<div class="pelanggan"><button id="btnPanduan" type="button" style="background:#ffcc00;border:0;border-radius:999px;padding:8px 12px;font-weight:800;cursor:pointer;color:#111">❓ Panduan</button><div><b id="headerNamaPelanggan">Pelanggan</b><small id="headerSubPelanggan">Silakan login</small></div><div class="avatar" id="headerAvatar">P</div></div>
+<div class="pelanggan"><div><b id="headerNamaPelanggan">Pelanggan</b><small id="headerSubPelanggan">Silakan login</small></div><div class="avatar" id="headerAvatar">P</div></div>
 </div></header>
 
 <main>
-<div id="panelPanduan" class="card hidden" style="border:2px solid #ffcc00">
-<b>📖 Panduan</b> <button id="btnTutupPanduan" type="button" style="float:right;background:#f1f1f1;border:0;border-radius:999px;padding:4px 10px;cursor:pointer">✕ Tutup</button>
-<div style="margin-top:10px;font-size:13px;line-height:1.7">
-<b>1. Jemput:</b> Klik <b>📍 Gunakan Lokasi Saya</b>. Peta ikut ke lokasi kamu.<br>
-<b>2. Tujuan:</b> Cari di <b>kolom pencarian</b> — ketik jalan / desa / pasar / RS, pilih yang muncul.<br>
-<b>3. Kalau tidak ketemu:</b> Cari di peta — geser peta sampai pin 📍 pas di tempatnya, lalu tekan <b>📌 Kunci Tujuan di Sini</b>. Bisa pakai mode <b>🛰️ Satelit</b> biar kelihatan rumah.<br>
-<b>4. Kendaraan:</b> Pilih Motor / Mobil, ongkir langsung kehitung.<br>
-<b>5. Kurir:</b> Klik <b>Cari Kurir</b>. Kurir yang tampil adalah yang saldonya ≥ <b>5% dari ongkir</b>. Admin hanya potong 5% dari saldo kurir saat pengantaran selesai.<br>
-<b>6. Pesan:</b> Pilih kurir, klik Pesan.
-</div>
-</div>
 <!-- 1. LOKASI TERKINI -->
 <div class="card">
-<div class="step"><div class="num">1</div><div><h3>Lokasi Terkini Kamu</h3></div></div>
+<div class="step"><div class="num">1</div><div><h3>Lokasi Terkini Kamu</h3><p>Tentukan lokasi awal / jemput. Ini GPS kamu saat memesan kurir.</p></div></div>
 <button class="btn btn-dark" id="btnGpsJemput" style="margin-top:12px">📍 Gunakan Lokasi Saya</button>
 <div id="statusJemput" class="muted" style="margin-top:8px">Belum ditentukan. Tekan Gunakan Lokasi Saya.</div>
 <div id="alamatLengkapJemput" class="alamat-lengkap hidden"></div>
@@ -127,38 +107,41 @@ nav.bottom a{color:#aaa;text-decoration:none;font-size:11px} nav.bottom a.active
 
 <!-- 2. TUJUAN -->
 <div class="card">
-<div class="step"><div class="num">2</div><div><h3>Tujuan</h3></div></div>
-
-<input id="tujuanAlamat" readonly placeholder="🔍 Tujuan" style="cursor:pointer;background:#fff">
+<div class="step"><div class="num">2</div><div><h3>Tujuan</h3><p>Ketik alamat tujuan seperti di Google Maps — bisa di kota / desa mana saja. Pilih dari saran, peta akan ikut. Atau langsung tap peta.</p></div></div>
+<label>Alamat Tujuan</label>
+<input id="tujuanAlamat" readonly placeholder="🔍 Ketik seperti di Google Maps — contoh: Pasar Maja Selatan" style="cursor:pointer;background:#fff">
 <div id="saranTujuan" class="saran"></div>
 <div id="statusTujuan" class="muted" style="margin-top:8px">Belum ditentukan. Cari di kolom pencarian di atas. Kalau tidak ketemu, cari di peta.</div>
 <div id="alamatLengkapTujuan" class="alamat-lengkap hidden"></div>
 <input id="tujuanLat" class="hidden"><input id="tujuanLng" class="hidden">
 <div class="muted" id="gpsTujuanText" style="margin-top:6px"></div>
 
-
+<div style="margin-top:12px"><b>🗺️ Peta Tujuan</b><span class="muted"> — tap peta atau geser pin merah</span></div>
 <div class="map-switch">
 <button id="btnLayerPeta" class="active" type="button">🗺️ Peta</button>
 <button id="btnLayerSatelit" type="button">🛰️ Satelit (Lihat Rumah)</button>
 </div>
 <div id="wrapMap"><div id="mapTujuan"></div><div id="pinTengah">📍</div><div id="labelTengah">Geser peta sampai pin pas di atap rumah tujuan</div></div>
-
+<div style="margin-top:8px;background:#fffbe6;border:1px solid #ffe08a;padding:10px;border-radius:12px;font-size:12px">🎯 <b>Cara tepat:</b> 1. Pindah ke mode <b>Satelit</b> → 2. Zoom sampai kelihatan rumah → 3. Geser peta sampai pin 📍 pas di atap rumah tujuan → 4. Tekan <b>Kunci Tujuan di Sini</b></div>
 <button class="btn btn-yellow" id="btnKunciTengah" type="button" style="margin-top:8px">📌 Kunci Tujuan di Sini (Pin Tengah Peta)</button>
 <div class="row" style="margin-top:8px"><button class="btn btn-grey" id="btnPetaJemput" type="button">🎯 Pusatkan ke Jemput</button><button class="btn btn-grey" id="btnPetaHapusTujuan" type="button">🗑️ Hapus Tujuan</button></div>
-
-
-
-
-
+<div style="margin-top:12px;background:#fffbe6;border:1px solid #ffe08a;border-radius:14px;padding:12px">
+  <b>🔍 Cara cari tujuan:</b><br>
+  <span class="muted">1. <b>Cari di kolom pencarian</b> di atas — ketik nama jalan / desa / pasar / RS, pilih yang muncul.<br>2. Kalau tidak ketemu, <b>cari di peta</b>: geser peta sampai pin 📍 pas di tempatnya, lalu tekan <b>📌 Kunci Tujuan di Sini</b>. Atau tekan <b>🗺️ Peta</b> / <b>🛰️ Satelit</b> biar kelihatan rumahnya.</span>
+</div>
+<button class="btn btn-dark" id="btnBukaGmaps" type="button" style="margin-top:8px">🗺️ Buka Titik Ini di Aplikasi Google Maps</button>
+<div class="muted" style="margin-top:6px;text-align:center">Peta di atas sudah pakai sistem Google Maps (jalan + satelit Google). GPS jemput pakai GPS satelit HP.</div>
+<div class="muted" id="koordinatTengah" style="margin-top:6px;text-align:center">Tengah peta: -</div>
+<a id="linkGmapsTujuan" href="#" target="_blank" style="display:block;margin-top:8px;font-size:12px;color:#087443;font-weight:700">🗺️ Buka Rute di Google Maps</a>
 <div id="peringatanLokasi" style="display:none;background:#fff0f0;border:1px solid #f5c6c6;padding:10px;border-radius:12px;font-size:12px;margin-top:10px"></div>
 </div>
 
 <!-- 3. KENDARAAN + ONGKIR -->
 <div class="card">
-<div class="step"><div class="num">3</div><div><h3>Kendaraan</h3></div></div>
+<div class="step"><div class="num">3</div><div><h3>Kendaraan yang Dibutuhkan</h3><p>Pilih setelah kedua GPS (awal & tujuan) sudah ditentukan.</p></div></div>
 <div class="kendaraan">
-<button id="cardMotor" type="button"><b>🛵 Motor</b><small>Dasar Rp 8.000 + Rp 2.000/km</small></button>
-<button id="cardMobil" type="button"><b>🚗 Mobil</b><small>Dasar Rp 15.000 + Rp 3.500/km</small></button>
+<button id="cardMotor" type="button"><b>🛵 Motor</b><small>Dasar Rp 8.000 + Rp 2.000/km</small><small>Untuk paket kecil & cepat</small></button>
+<button id="cardMobil" type="button"><b>🚗 Mobil</b><small>Dasar Rp 15.000 + Rp 3.500/km</small><small>Untuk barang banyak / besar</small></button>
 </div>
 <select id="jenisKendaraan" class="hidden"><option value="motor">Motor</option><option value="mobil">Mobil</option></select>
 
@@ -348,9 +331,6 @@ function gpsUntukJemput(){
   }, e=>alert("Gagal ambil GPS: "+e.message), {enableHighAccuracy:true, timeout:10000});
 }
 $("btnGpsJemput").onclick=gpsUntukJemput;
-// Panduan tersembunyi — tampil saat diklik
-$("btnPanduan").onclick=()=>{ $("panelPanduan").classList.toggle('hidden'); $("panelPanduan").scrollIntoView({behavior:'smooth'}); };
-$("btnTutupPanduan").onclick=()=>{ $("panelPanduan").classList.add('hidden'); };
 
 // === CARI ALAMAT TUJUAN - ketik, peta ikut ===
 // === PENCARIAN ALA GOOGLE MAPS - overlay fullscreen ===
@@ -612,51 +592,28 @@ $("btnCari").onclick=async ()=>{
   const h=hitung(); if(!h) return;
   const jLat=parseFloat($("jemputLat").value), jLng=parseFloat($("jemputLng").value);
   const pilihJenis=$("jenisKendaraan").value;
-  const butuh5=Math.ceil(h.ongkir*0.05);
-  $("listKurir").innerHTML='<div class="muted" style="display:block!important">Mencari kurir dalam 40 km...</div>';
-  $("debugKurir").style.display='block'; $("debugKurir").innerHTML='⏳ Scan...';
+  $("listKurir").innerHTML='<div class="muted">Mencari kurir dalam 40 km...</div>';
   try{
-    // Ambil SEMUA users, filter di JS — biar ketauan kalau role-nya bukan 'kurir' tapi 'mitra' / dll.
-    const qs=await getDocs(collection(db,'users')); kurirList=[];
-    let scan=0, lolosKendaraan=0, lolosJarak=0, lolosSaldo=0, tanpaLokasi=0, bukanKurir=0;
-    let debugRows=[];
+    const q=query(collection(db,'users'), where('role','==','kurir'));
+    const qs=await getDocs(q); kurirList=[];
     qs.forEach(doc=>{
-      const d=doc.data()||{}; scan++;
-      const roleRaw=String(d.role||d.jenis||d.tipe||'').toLowerCase();
-      const isKurir = roleRaw.includes('kurir')||roleRaw.includes('mitra')||roleRaw.includes('driver')||roleRaw.includes('ojek')||roleRaw.includes('gojek');
-      if(!isKurir){ bukanKurir++; return; }
-      const pos=ambilLatLngKurir(d);
-      if(!pos){ tanpaLokasi++; debugRows.push(`❌ ${d.nama||d.email||doc.id} — lokasi kosong (lat/lng belum ada di users). Kurir harus buka Orderan Kurir / set lokasi.`); return; }
+      const d=doc.data()||{}; const pos=ambilLatLngKurir(d); if(!pos) return;
       const ken=kendaraanKurir(d);
-      if(pilihJenis==='mobil' && ken!=='mobil'){ debugRows.push(`❌ ${d.nama||d.email} — kendaraan ${ken}, kamu pilih Mobil.`); return; }
-      if(pilihJenis==='motor' && ken!=='motor'){ debugRows.push(`❌ ${d.nama||d.email} — kendaraan ${ken}, kamu pilih Motor.`); return; }
-      lolosKendaraan++;
-      const jarakKeJemput=haversineKm(jLat,jLng,pos.lat,pos.lng); if(jarakKeJemput>40){ debugRows.push(`❌ ${d.nama||d.email} — jarak ${jarakKeJemput.toFixed(1)} km > 40 km.`); return; }
-      lolosJarak++;
-      const kurirSaldo=Number(d.saldo??d.saldoEwallet??d.saldoWallet??d.deposit??d.saldoCOD??0)||0;
-      const saldoCukup = kurirSaldo >= butuh5;
-      if(saldoCukup) lolosSaldo++; else debugRows.push(`⚠️ ${d.nama||d.email} — saldo Rp ${kurirSaldo.toLocaleString('id-ID')} < 5% = Rp ${butuh5.toLocaleString('id-ID')}. Top up dulu biar lolos.`);
+      if(pilihJenis==='mobil' && ken!=='mobil') return;
+      if(pilihJenis==='motor' && ken!=='motor') return;
+      const jarakKeJemput=haversineKm(jLat,jLng,pos.lat,pos.lng); if(jarakKeJemput>40) return;
+      const kurirSaldo=Number(d.saldo??d.saldoEwallet??d.saldoWallet??d.deposit??d.saldoCOD??0)||0; const butuhAdmin= Math.ceil(h.ongkir*0.05); if(kurirSaldo < butuhAdmin) return; // CUKUP 5% SAJA. Admin hanya potong 5% dari saldo kurir saat pengantaran selesai. Bukan full ongkir.
       const online=d.online===true||d.status==='online'||d.aktif===true||d.status==='aktif';
-      // TAMPIL SEMUA yang lolos kendaraan + jarak, walau saldo kurang — biar tidak hilang total. Yang saldo kurang ditandai, tetap bisa dilihat.
-      kurirList.push({id:doc.id, ...d, jarakKeJemput, online, lat:pos.lat, lng:pos.lng, saldo:kurirSaldo, saldoCukup, butuh5});
+      kurirList.push({id:doc.id, ...d, jarakKeJemput, online, lat:pos.lat, lng:pos.lng, saldo:kurirSaldo});
     });
-    $("infoScan").textContent=`Di-scan: ${scan} users • Kurir: ${scan-bukanKurir} • Lolos kendaraan: ${lolosKendaraan} • Lolos 40 km: ${lolosJarak} • Lolos saldo 5% (${rupiah(butuh5)}): ${lolosSaldo} • Tanpa lokasi: ${tanpaLokasi}`;
-    $("debugKurir").innerHTML = debugRows.length? `<b>Kenapa ga ketemu?</b><br>`+debugRows.join('<br>') : `<b>✅ Semua kurir lolos.</b>`;
+    const totalScan=qs.size||0;
+    $("infoScan").textContent=`Di-scan: ${totalScan} kurir • Lolos (kendaraan + 40 km + saldo >= 5% = ${rupiah(Math.ceil(h.ongkir*0.05))} dari ongkir ${rupiah(h.ongkir)}): ${kurirList.length}`;
     kurirList.sort((a,b)=>a.jarakKeJemput-b.jarakKeJemput);
-    if(!kurirList.length){ $("listKurir").innerHTML='<div style="background:#fff;border:1px solid #e5e5e5;padding:10px;border-radius:10px">Tidak ada kurir dalam 40 km. Cek debug di bawah: lokasi kurir kosong / kendaraan beda / jarak > 40 km.</div>'; $("btnPesan").disabled=true; return; }
+    if(!kurirList.length){ $("listKurir").innerHTML='<div style="background:#fff;border:1px solid #e5e5e5;padding:10px;border-radius:10px">Tidak ada kurir '+(pilihJenis==='mobil'?'Mobil':'Motor')+' yang lolos filter.</div>'; $("btnPesan").disabled=true; return; }
     $("listKurir").innerHTML=kurirList.map((k,i)=>{
       const nama=k.nama||k.namaUsaha||k.email||'Kurir';
       const kendaraan=kendaraanKurir(k)==='mobil'?'Mobil':'Motor';
-      const saldoTxt = k.saldoCukup ? `✅ Saldo ${rupiah(k.saldo)} ≥ 5% ${rupiah(k.butuh5)}` : `⚠️ Saldo ${rupiah(k.saldo)} < 5% ${rupiah(k.butuh5)} — top up dulu`;
-      return `<div class="kurir" style="${k.saldoCukup?'':'opacity:.75'}"><div><b>${i+1}. ${nama}</b><br><small>🚖 ${kendaraan} • 📍 ${k.jarakKeJemput.toFixed(2)} km dari jemput • ${k.noHp||k.telepon||''}</small><br><small>${saldoTxt}</small></div><div><span class="badge ${k.online?'':'badge-off'}">${k.online?'Online':'Offline'}</span><br><button class="btn btn-dark" style="padding:6px 10px;margin-top:6px" onclick="window.pilihKurir('${k.id}')">Pilih</button></div></div>`;
-    }).join('');
-    // Otomatis pilih yang saldo cukup & terdekat. Kalau semua saldo kurang, pilih yang terdekat tapi kasih tau.
-    const yangCukup=kurirList.find(k=>k.saldoCukup);
-    if(yangCukup){ kurirTerpilih=[yangCukup]; $("btnPesan").disabled=false; $("txtJarakKurir").textContent=`✅ Ketemu ${kurirList.length} kurir dalam 40 km. Terdekat cukup saldo: ${yangCukup.nama||yangCukup.email}`; }
-    else { kurirTerpilih=[kurirList[0]]; $("btnPesan").disabled=false; $("txtJarakKurir").textContent=`⚠️ Ketemu ${kurirList.length} kurir, tapi semua saldo < 5%. Top up dulu salah satu biar bisa pesan.`; }
-  }catch(e){ $("listKurir").innerHTML='<div style="color:red">Gagal cari kurir: '+e.message+'</div>'; $("debugKurir").innerHTML='Error: '+e.message+' — cek Rules Firestore sudah Publish belum.'; }
-};
-window.pilihKurir('${k.id}')">Pilih</button></div></div>`;
+      const butuh5=Math.ceil(h.ongkir*0.05); return `<div class="kurir"><div><b>${i+1}. ${nama}</b><br><small>🚖 ${kendaraan} • 📍 ${k.jarakKeJemput.toFixed(2)} km dari jemput • ${k.noHp||k.telepon||''}</small><br><small>💰 Saldo ${rupiah(k.saldo)} • Butuh 5% = ${rupiah(butuh5)} • Admin potong 5% saat selesai</small></div><div><span class="badge ${k.online?'':'badge-off'}">${k.online?'Online':'Offline'}</span><br><button class="btn btn-dark" style="padding:6px 10px;margin-top:6px" onclick="window.pilihKurir('${k.id}')">Pilih</button></div></div>`;
     }).join('');
     kurirTerpilih=[kurirList[0]]; $("btnPesan").disabled=false;
     $("txtJarakKurir").textContent=`✅ Ketemu ${kurirList.length} kurir dalam 40 km. Terdekat: ${kurirList[0].nama||kurirList[0].email} (${kurirList[0].jarakKeJemput.toFixed(2)} km)`;
