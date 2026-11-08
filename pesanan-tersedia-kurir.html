@@ -109,7 +109,7 @@
     <div id="proofOcr" style="font-size:12px;color:#333;background:#f3f4f6;border-radius:8px;padding:9px;margin-top:8px;white-space:pre-wrap">Pilih foto, lalu tekan Baca OCR Foto Bukti.</div>
     <div class="row2" style="margin-top:12px">
       <button class="btn btn-dark" type="button" onclick="tutupBukti()">Batal</button>
-      <button class="btn btn-green" type="button" id="proofSubmit" onclick="kirimBukti()" disabled>Upload Bukti & Ajukan Verifikasi</button>
+      <button class="btn btn-green" type="button" id="proofSubmit" onclick="kirimBukti()" disabled>Simpan OCR & Ajukan Verifikasi</button>
     </div>
     <div id="proofStatus" style="font-size:11px;color:#666;margin-top:8px"></div>
   </div>
@@ -328,7 +328,7 @@ async function pilihBukti(file){
   if(!file) return;
   if(!file.type || !file.type.startsWith('image/')){ alert('File harus berupa foto/gambar.'); return; }
   if(file.size>10*1024*1024){ alert('Ukuran foto maksimal 10 MB.'); return; }
-  proofFile=file; proofOcrText=''; $('proofSubmit').disabled=true;
+  proofFile=file; proofOcrText='';
   if(proofPreviewUrl) URL.revokeObjectURL(proofPreviewUrl);
   proofPreviewUrl=URL.createObjectURL(file);
   $('proofPreview').src=proofPreviewUrl; $('proofPreview').style.display='block';
@@ -336,50 +336,46 @@ async function pilihBukti(file){
   $('proofReadOcr').disabled=false; $('proofSubmit').disabled=true;
   $('proofStatus').textContent='Pastikan foto adalah bukti serah terima paket, bukan screenshot aplikasi.';
 }
-let tesseractScriptPromise=null;
-function muatTesseract(){
+let kurirTesseractLoader=null;
+function loadKurirTesseract(){
   if(window.Tesseract)return Promise.resolve(window.Tesseract);
-  if(tesseractScriptPromise)return tesseractScriptPromise;
-  tesseractScriptPromise=new Promise((resolve,reject)=>{
+  if(kurirTesseractLoader)return kurirTesseractLoader;
+  kurirTesseractLoader=new Promise((resolve,reject)=>{
     const script=document.createElement('script');
     script.src='https://cdn.jsdelivr.net/npm/tesseract.js@5/dist/tesseract.min.js';
-    script.onload=()=>window.Tesseract?resolve(window.Tesseract):reject(new Error('Library Tesseract gagal dimuat.'));
-    script.onerror=()=>reject(new Error('Tidak dapat memuat Tesseract. Periksa koneksi internet lalu coba lagi.'));
+    script.onload=()=>window.Tesseract?resolve(window.Tesseract):reject(new Error('Library OCR tidak tersedia.'));
+    script.onerror=()=>reject(new Error('Gagal memuat Tesseract dari CDN. Periksa koneksi internet.'));
     document.head.appendChild(script);
   });
-  return tesseractScriptPromise;
+  return kurirTesseractLoader;
 }
 async function bacaOCR(){
-  if(!proofFile){$('proofOcr').textContent='Pilih foto bukti terlebih dahulu.';return;}
-  const btn=$('proofReadOcr'),status=$('proofStatus'),hasil=$('proofOcr');
-  btn.disabled=true;btn.textContent='⏳ Membaca OCR...';
-  hasil.textContent='Memuat mesin OCR. Pastikan koneksi internet aktif.';
-  status.textContent='OCR sedang diproses…';proofOcrText='';
-  let worker=null;
+  if(!proofFile){alert('Pilih foto bukti terlebih dahulu.');return;}
+  const btn=$('proofReadOcr');btn.disabled=true;btn.textContent='⏳ Membaca OCR...';
+  $('proofSubmit').disabled=true;proofOcrText='';
+  $('proofOcr').textContent='Memuat OCR…';
+  $('proofStatus').textContent='OCR sedang membaca foto (Indonesia + Inggris).';
   try{
-    const T=await muatTesseract();
-    worker=await T.createWorker('ind+eng',1,{logger:m=>{
-      if(m.status){hasil.textContent=m.status+(m.progress!=null?' '+Math.round(m.progress*100)+'%':'');}
+    const T=await loadKurirTesseract();
+    const result=await T.recognize(proofFile,'ind+eng',{logger:m=>{
+      if(m.status)$('proofStatus').textContent=m.status+(m.progress!==undefined?' '+Math.round(m.progress*100)+'%':'');
     }});
-    const result=await worker.recognize(proofFile);
     proofOcrText=String(result?.data?.text||'').trim();
-    if(!proofOcrText){hasil.textContent='OCR selesai, tetapi tidak menemukan teks. Foto tetap bisa diajukan untuk pemeriksaan admin.';status.textContent='Tidak ada teks yang terbaca.';return;}
-    hasil.textContent=proofOcrText;
-    status.textContent='OCR selesai. Hasil OCR siap disimpan bersama bukti.';
+    if(!proofOcrText)throw new Error('OCR tidak menemukan teks. Pilih foto yang lebih jelas.');
+    $('proofOcr').textContent=proofOcrText;
+    $('proofStatus').textContent='OCR selesai. Teks siap disimpan; foto tidak akan diunggah.';
     $('proofSubmit').disabled=false;
   }catch(err){
-    console.error('OCR gagal:',err);
-    hasil.textContent='OCR gagal: '+(err?.message||'Kesalahan tidak diketahui')+'. Coba lagi dengan koneksi internet aktif.';
-    status.textContent='OCR gagal dimuat atau diproses.';
-  }finally{
-    if(worker){try{await worker.terminate();}catch(e){console.warn('Worker OCR gagal ditutup',e);}}
-    btn.disabled=false;btn.textContent='🔎 Baca OCR Foto Bukti';
-  }
+    console.error('OCR gagal:',err);proofOcrText='';
+    $('proofOcr').textContent='OCR gagal: '+(err?.message||'Kesalahan tidak diketahui');
+    $('proofStatus').textContent='OCR gagal. Coba lagi atau pilih foto lain.';
+    $('proofSubmit').disabled=true;
+  }finally{btn.disabled=false;btn.textContent='🔎 Baca OCR Foto Bukti';}
 }
 $('proofCamera').addEventListener('change',e=>pilihBukti(e.target.files?.[0]));
 $('proofGallery').addEventListener('change',e=>pilihBukti(e.target.files?.[0]));
 window.selesai=(id)=>{
-  proofOrderId=id; proofFile=null; proofOcrText='';
+  proofOrderId=id; proofFile=null;
   $('proofCamera').value=''; $('proofGallery').value='';
   $('proofPreview').removeAttribute('src'); $('proofPreview').style.display='none';
   $('proofFileName').textContent=''; $('proofStatus').textContent=''; $('proofOcr').textContent='Hasil OCR bukti akan tampil di sini.'; proofOcrText=''; $('proofSubmit').disabled=true;
@@ -390,10 +386,10 @@ window.tutupBukti=()=>{
   if(proofPreviewUrl){URL.revokeObjectURL(proofPreviewUrl);proofPreviewUrl=null;}
 };
 window.kirimBukti=async()=>{
-  if(!proofOrderId || !proofFile){alert('Ambil foto atau pilih foto dari galeri terlebih dahulu.');return;}
-  if(!proofOcrText.trim()){alert('Jalankan Baca OCR Foto Bukti terlebih dahulu. Bukti belum bisa disimpan sebelum OCR selesai.');$('proofStatus').textContent='Baca OCR terlebih dahulu sebelum upload.';return;}
+  if(!proofOrderId){alert('Pesanan tidak dipilih.');return;}
+  if(!proofOcrText.trim()){alert('Tekan Baca OCR Foto Bukti dan pastikan teks berhasil terbaca sebelum upload.');return;}
   const id=proofOrderId, btn=$('proofSubmit');
-  btn.disabled=true; btn.textContent='Mengunggah...'; $('proofStatus').textContent='Mengunggah bukti penyerahan untuk diperiksa admin...';
+  btn.disabled=true; btn.textContent='Menyimpan OCR...'; $('proofStatus').textContent='Menyimpan teks OCR saja. Foto tidak diunggah.';
   try{
     const snap=await getDoc(doc(db,'orders',id));
     if(!snap.exists()) throw new Error('Pesanan tidak ditemukan.');
@@ -406,11 +402,6 @@ window.kirimBukti=async()=>{
     if(proofAlreadySubmitted || o.saldoDibagi===true) throw new Error('Bukti pesanan ini sudah dikirim atau pesanan sudah diproses admin.');
     // Jangan memakai statusPembayaran sebagai pengunci bukti:
     // status pembayaran dapat berbeda dari status pengantaran/verifikasi bukti.
-    const safeName=String(proofFile.name||'bukti.jpg').replace(/[^a-zA-Z0-9._-]/g,'_');
-    const path=`bukti-penyerahan/${id}/${currentUser.uid}_${Date.now()}_${safeName}`;
-    const fileRef=storageRef(storage,path);
-    await uploadBytes(fileRef,proofFile,{contentType:proofFile.type||'image/jpeg'});
-    const url=await getDownloadURL(fileRef);
     await updateDoc(doc(db,'orders',id),{
       status:'menunggu_verifikasi_admin',
       statusPemenuhan:'selesai',
@@ -418,21 +409,18 @@ window.kirimBukti=async()=>{
       verifikasiAdminStatus:'menunggu',
       saldoDibagi:false,
       statusPembayaranAt:serverTimestamp(),
-      buktiSerahTerimaUrl:url,
-      buktiSerahTerimaPath:path,
-      buktiSerahTerimaNama:proofFile.name||safeName,
-      buktiSerahTerimaTipe:proofFile.type||'image/jpeg',
-      buktiSerahTerimaUkuran:proofFile.size,
+      buktiPenyerahanOcr:proofOcrText,
+      buktiSerahTerimaOcr:proofOcrText,
+      buktiResiOcr:proofOcrText,
+      buktiSerahTerimaOcrStatus:'selesai',
       buktiSerahTerimaOleh:currentUser.uid,
       buktiSerahTerimaAt:serverTimestamp(),
-      buktiSerahTerimaOcr:proofOcrText,
-      buktiSerahTerimaOcrStatus:proofOcrText?'selesai':'tidak_terbaca',
       dikirimSelesaiAt:serverTimestamp()
     });
-    alert('Bukti berhasil diunggah dan OCR disimpan. Status pesanan berubah menjadi MENUNGGU VERIFIKASI ADMIN.');
+    alert('Teks OCR berhasil disimpan. Foto tidak diunggah. Status pesanan MENUNGGU VERIFIKASI ADMIN.');
     window.tutupBukti();
   }catch(e){console.error(e);$('proofStatus').textContent='Gagal: '+e.message;alert('Gagal mengirim bukti: '+e.message);}
-  finally{btn.disabled=!proofFile;btn.textContent='Upload Bukti & Ajukan Verifikasi';}
+  finally{btn.disabled=!proofOcrText.trim();btn.textContent='Simpan OCR & Ajukan Verifikasi';}
 };
 
 window.lacak=(id)=>{ localStorage.setItem('last_order_id',id); location.href='./perjalanan-kurir.html?orderId='+id; };
