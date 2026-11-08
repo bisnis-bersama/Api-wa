@@ -236,9 +236,11 @@ window.verifikasiKeuangan=async id=>{
       const mitraRef=mitraUid?doc(db,'users',mitraUid):null;
       const kurirRef=(kurirUid && !keMitraSemua)?doc(db,'users',kurirUid):null;
       const adminRef=doc(db,'users',currentUser.uid);
+      const adminSaldoRef=doc(db,'admin_saldo','total');
       const mitraSnap=mitraRef?await tx.get(mitraRef):null;
       const kurirSnap=kurirRef?await tx.get(kurirRef):null;
       const adminSnap=await tx.get(adminRef);
+      const adminSaldoSnap=await tx.get(adminSaldoRef);
       // Baru tulis setelah semua baca selesai
       if(mitraSnap && mitraSnap.exists()){
         const old=Number(mitraSnap.data().saldoEwallet??mitraSnap.data().saldo??0)||0;
@@ -255,13 +257,22 @@ window.verifikasiKeuangan=async id=>{
         tx.set(kurirRef,{saldoEwallet:s.kurir, saldo:s.kurir, updatedAt:serverTimestamp()},{merge:true});
       }
       const adminCredit=keMitraSemua?Math.round((s.subtotal+s.ongkir)*0.05):s.admin;
-      log(`bagi saldo: mitraUid=${mitraUid} kurirUid=${kurirUid||'-'} keMitraSemua=${keMitraSemua} mitraCredit=${keMitraSemua?Math.round((s.subtotal+s.ongkir)*0.95):s.mitra} kurirCredit=${s.kurir} adminCredit=${adminCredit} adminUid=${currentUser.uid} adminExists=${adminSnap.exists()}`);
+      log(`bagi saldo: mitraUid=${mitraUid} kurirUid=${kurirUid||'-'} keMitraSemua=${keMitraSemua} mitraCredit=${keMitraSemua?Math.round((s.subtotal+s.ongkir)*0.95):s.mitra} kurirCredit=${s.kurir} adminCredit=${adminCredit} -> admin_saldo/total saldo=${Number(adminSaldoSnap.data()?.saldo||0)}+${adminCredit} + users/${currentUser.uid} adminExists=${adminSnap.exists()}`);
       if(adminSnap.exists()){
         const old=Number(adminSnap.data().saldoEwallet??adminSnap.data().saldo??0)||0;
         tx.update(adminRef,{saldoEwallet:old+adminCredit, saldo:old+adminCredit, updatedAt:serverTimestamp()});
       }else{
         // Dokumen admin belum ada di users -> buatkan, jangan di-skip biar saldo admin tetap masuk
         tx.set(adminRef,{saldoEwallet:adminCredit, saldo:adminCredit, role:'admin', updatedAt:serverTimestamp(), createdAt:serverTimestamp()},{merge:true});
+      }
+      // Tempat saldo admin yang dibaca E-Wallet Admin: admin_saldo/total (bukan hanya users/{uid})
+      if(adminSaldoSnap.exists()){
+        const d=adminSaldoSnap.data()||{};
+        const oldSaldo=Number(d.saldo||0);
+        const oldPend=Number(d.totalPendapatanPesanan??d.totalPendapatan??0);
+        tx.update(adminSaldoRef,{saldo:oldSaldo+adminCredit, totalPendapatanPesanan:oldPend+adminCredit, totalPendapatan:oldPend+adminCredit, updatedAt:serverTimestamp()});
+      }else{
+        tx.set(adminSaldoRef,{saldo:adminCredit, totalPendapatanPesanan:adminCredit, totalPendapatan:adminCredit, totalDicairkan:0, updatedAt:serverTimestamp(), createdAt:serverTimestamp()},{merge:true});
       }
       tx.update(ref,{status:'selesai', saldoDibagi:true, diverifikasiAt:serverTimestamp(), diverifikasiAdminUid:currentUser.uid, updatedAt:serverTimestamp()});
     });
