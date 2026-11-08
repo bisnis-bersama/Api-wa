@@ -83,7 +83,7 @@ nav.bottom a{color:#aaa;text-decoration:none;font-size:11px} nav.bottom a.active
 
 <div class="panel">
 <h3 style="margin:0">Kurir Terdekat (Radius 40 km dari Jemput)</h3>
-<p class="muted" style="margin:4px 0">Diurutkan dari yang paling dekat. Kurir yang offline / di luar 40 km tidak ditampilkan.</p>
+<p class="muted" style="margin:4px 0">Diurutkan dari yang paling dekat. Filter: kendaraan sama + jarak kurir ke jemput <= 40 km + saldo kurir >= ongkir. Yang tidak lolos tidak ditampilkan.</p>
 <div id="listKurir"><div class="muted">Belum cari. Isi jemput & tujuan dulu, lalu tekan Cari Kurir.</div></div>
 <button class="btn btn-yellow" id="btnPesan" disabled style="margin-top:10px">✅ Pesan Kurir Terdekat</button>
 <div class="muted" id="pesanInfo" style="margin-top:6px">Pesan akan membuat order status <b>mencari_kurir</b> dan ditawarkan ke kurir terdekat dulu. Kalau 30 detik tidak diterima, lempar ke kurir berikutnya.</div>
@@ -101,7 +101,7 @@ const auth=getAuth(app); const db=getFirestore(app);
 const $=id=>document.getElementById(id);
 const rupiah=n=>"Rp "+(Number(n)||0).toLocaleString("id-ID");
 let currentUser=null, kurirTerpilih=[], jarakKm=0, ongkir=0, kurirList=[];
-console.log('VERSI v3 - Filter Mobil aktif');
+
 onAuthStateChanged(auth,u=>{ currentUser=u||null; });
 
 function log(m){ console.log(m); }
@@ -183,17 +183,22 @@ $("btnCari").onclick=async()=>{
       // FIX: filter kendaraan. Kalau pilih Mobil, jangan tampilkan kurir Motor.
       // Kalau belum ada yang daftar kurir mobil, list akan kosong - itu benar.
       const ken=kendaraanKurir(d);
+      // FILTER 1 - KENDARAAN: pilih Mobil = cuma kurir Mobil, pilih Motor = cuma kurir Motor
+      if(pilihJenis==='mobil' && ken!=='mobil') return;
+      if(pilihJenis==='motor' && ken!=='motor') return;
+      // FILTER 2 - RADIUS 40 KM: jarak kurir ke jemput harus <= 40 km
       const jarakKeJemput=haversineKm(jLat,jLng,pos.lat,pos.lng);
+      if(jarakKeJemput>40) return;
+      // FILTER 3 - SALDO: kurir harus punya saldo >= ongkir (deposit cukup), kalau tidak jangan tampil
+      const kurirSaldo = Number(d.saldo ?? d.saldoEwallet ?? d.saldoWallet ?? d.deposit ?? d.saldoCOD ?? 0) || 0;
+      if(kurirSaldo < h.ongkir) return;
       const online = d.online===true || d.status==='online' || d.aktif===true || d.status==='aktif';
-      // Tampilkan semua, tapi tandai yang offline. Filter utama 40 km.
-      if(jarakKeJemput<=40){
-        kurirList.push({id:doc.id, ...d, jarakKeJemput, online, lat:pos.lat, lng:pos.lng});
-      }
+      kurirList.push({id:doc.id, ...d, jarakKeJemput, online, lat:pos.lat, lng:pos.lng, saldo: kurirSaldo});
     });
     kurirList.sort((a,b)=>a.jarakKeJemput-b.jarakKeJemput);
     if(!kurirList.length){
       const pilihJenis2=$("jenisKendaraan").value;
-      $("listKurir").innerHTML='<div style="background:#fff;border:1px solid #e5e5e5;padding:10px;border-radius:10px">Tidak ada kurir '+(pilihJenis2==='mobil'?'Mobil':'Motor')+' dalam 40 km dari jemput. '+(pilihJenis2==='mobil'?'Belum ada yang daftar kurir pakai Mobil, jadi wajar kosong.':'Coba lagi nanti / kurir harus aktifkan GPS & status online.')+'</div>';
+      $("listKurir").innerHTML='<div style="background:#fff;border:1px solid #e5e5e5;padding:10px;border-radius:10px">Tidak ada kurir '+(pilihJenis2==='mobil'?'Mobil':'Motor')+' yang lolos 3 filter: kendaraan sama + jarak <= 40 km + saldo >= ongkir. '+(pilihJenis2==='mobil'?'Belum ada yang daftar kurir pakai Mobil, jadi wajar kosong.':'Coba lagi nanti / kurir harus aktifkan GPS & status online.')+'</div>';
       $("btnPesan").disabled=true;
       return;
     }
