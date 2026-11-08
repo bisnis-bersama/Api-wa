@@ -76,7 +76,7 @@ Lokasi Saya (Lat)</label>
 <div class="row"><input id="myLat" placeholder="-6.812"><input id="myLng" placeholder="108.28"></div>
 <button class="btn btn-grey" id="btnGps" style="margin-top:6px">📍 Pakai GPS Saya</button>
 <button class="btn btn-black" id="btnRefresh" style="margin-top:8px">🔄 Refresh Orderan</button>
-<div id="log"></div>
+
 <div class="muted" style="margin-top:8px">Aturan: Order cuma muncul kalau <b>jarak jemput ≤ 40 km</b> DAN <b>saldo deposit kamu ≥ total COD</b>. Kalau saldo kurang, order tidak tampil. Jadi tidak ada talangan dari aplikasi, modal murni kurir. Admin cuma ambil <b>5%</b>.</div>
 </div>
 
@@ -99,7 +99,7 @@ const $=id=>document.getElementById(id);
 const rupiah=n=>"Rp "+(Number(n)||0).toLocaleString("id-ID");
 let currentUser=null, myData={}, mySaldo=0, myLat=0, myLng=0, orderList=[];
 
-function log(m){const el=$("log"); el.style.display='block'; el.textContent+=m+"\n";}
+function log(m){ console.log(m); }
 function havKm(lat1,lng1,lat2,lng2){const R=6371,dLat=(lat2-lat1)*Math.PI/180,dLng=(lng2-lng1)*Math.PI/180;const a=Math.sin(dLat/2)**2+Math.cos(lat1*Math.PI/180)*Math.cos(lat2*Math.PI/180)*Math.sin(dLng/2)**2;return 2*R*Math.asin(Math.sqrt(a));}
 function setDot(on){$("dotHeader").classList.toggle("on",on); $("dotNav").classList.toggle("on",on);}
 
@@ -143,31 +143,44 @@ async function loadOrder(){
       const jLat=Number(o.jemputLat), jLng=Number(o.jemputLng);
       if(isNaN(jLat)||isNaN(jLng)) return;
       const jarak=havKm(myLat,myLng,jLat,jLng);
-      if(jarak>40) return; // di luar 40 km, jangan tampil
       const total=Number(o.total ?? o.ongkir ?? 0)||0;
-      if(mySaldo < total) return; // saldo tidak cukup untuk deposit, jangan tampil — sesuai obrolan
-      // Kalau order sudah ditawarkan ke kurir lain saja, skip. Kalau ditawarkan ke kamu atau belum ada kurir, tampil.
-      // ditawarkanKe adalah array uid kurir yang ditawari. Kalau ada dan kamu tidak ada di dalamnya, dan kurirUid bukan kamu, skip.
-      if(o.kurirUid && o.kurirUid!==currentUser.uid) return;
-      if(Array.isArray(o.ditawarkanKe) && o.ditawarkanKe.length && !o.ditawarkanKe.includes(currentUser.uid)) return;
-      orderList.push({...o, jarakKeJemput:jarak, total});
+      // FIX: jangan langsung buang, kumpulkan alasan biar ketahuan kenapa tidak muncul
+      let alasan='';
+      if(jarak>40) alasan='Jarak '+jarak.toFixed(1)+' km > 40 km';
+      // Kendaraan: kalau pelanggan pilih Mobil, kurir Motor jangan tampil. Kalau pelanggan pilih Motor, kurir Mobil jangan tampil.
+      const orderJenis=String(o.jenisKendaraan||'motor').toLowerCase();
+      const myKen=String(document.getElementById('myKendaraan')?.value||myData.kendaraan||myData.jenisKendaraan||'Motor').toLowerCase();
+      if(orderJenis==='mobil' && !myKen.includes('mobil')) alasan='Order Mobil, kendaraan kamu Motor';
+      if(orderJenis==='motor' && !myKen.includes('motor')) alasan='Order Motor, kendaraan kamu Mobil';
+      if(mySaldo < total) alasan='Saldo Rp '+mySaldo.toLocaleString('id-ID')+' < total COD Rp '+total.toLocaleString('id-ID')+' - top up dulu';
+      // Kurir target: kalau order ditawarkan ke kurir lain dan belum diterima, tetap tampil sebagai cadangan (biar tidak hilang total)
+      // Tapi kalau sudah ditawarkan ke kurir lain, kasih label cadangan
+      const isTarget = !o.kurirUid || o.kurirUid===currentUser.uid || (Array.isArray(o.ditawarkanKe) && o.ditawarkanKe.includes(currentUser.uid));
+      const labelTarget = isTarget ? 'Untuk kamu' : 'Cadangan - ditawarkan ke kurir lain dulu';
+      // Tampilkan SEMUA order dalam 40km, walau saldo kurang / bukan target, tapi bedakan statusnya
+      // Kalau jarak >40km saja yang benar-benar disembunyikan
+      if(jarak>40) return;
+      orderList.push({...o, jarakKeJemput:jarak, total, alasan, labelTarget, isTarget, bisaTerima: !alasan && isTarget});
     });
     orderList.sort((a,b)=>a.jarakKeJemput-b.jarakKeJemput);
     $("txtJml").textContent=orderList.length;
     setDot(orderList.length>0);
     if(!orderList.length){
-      $("listOrder").innerHTML='<div style="background:#fff8d8;border:1px dashed #f4df80;padding:10px;border-radius:10px">Tidak ada order yang cocok. Bisa jadi: (1) tidak ada order dalam 40 km, (2) saldo deposit kamu kurang dari total COD, atau (3) order sudah diambil kurir lain.</div>';
+      $("listOrder").innerHTML='<div style="background:#fff;border:1px solid #e5e5e5;padding:10px;border-radius:10px">Belum ada order <b>mencari_kurir</b> di Firestore sama sekali. Coba order dulu dari <b>cari-kurir.html</b> sebagai pelanggan, lalu Refresh di sini. Kalau sudah order tapi tetap kosong, cek Rules sudah Publish belum.</div>';
       return;
     }
     $("listOrder").innerHTML=orderList.map(o=>{
       const adminFee=Math.round(o.total*0.05);
       const kurirTerima=o.total - adminFee; // 95% untuk kurir
-      return `<div class="order">
+      const alasanHtml = o.alasan ? `<div style="background:#fff0f0;border:1px solid #f5c6c6;padding:8px;border-radius:10px;margin-top:8px;font-size:12px">⚠️ ${o.alasan} - order tetap ditampilkan biar ketahuan, tombol Terima terkunci sampai syarat terpenuhi.</div>` : '';
+      const labelHtml = `<div style="margin-top:6px"><span style="background:${o.isTarget?'#e8f8ee':'#fff8d8'};color:#333;padding:3px 8px;border-radius:20px;font-size:11px;font-weight:800">${o.labelTarget}</span> <span style="background:#f0f0f0;padding:3px 8px;border-radius:20px;font-size:11px">Jenis: ${o.jenisKendaraan||'motor'}</span></div>`;
+      const terimaBtn = o.bisaTerima ? `<button class="btn btn-yellow" onclick="window.terimaOrder('${o.id}')">✅ Terima</button>` : `<button class="btn btn-yellow" disabled style="opacity:.5">🔒 Terima (terkunci)</button>`;
+      return `<div class="order">${labelHtml}${alasanHtml}
         <div style="display:flex;justify-content:space-between"><b>Pelanggan: ${o.pelangganEmail||o.pelangganNama||'Pelanggan'}</b><span style="background:#e8f8ee;color:#087443;padding:3px 8px;border-radius:20px;font-size:11px;font-weight:800">📍 ${o.jarakKeJemput.toFixed(2)} km dari kamu</span></div>
         <div class="muted">Jemput: ${o.jemputAlamat||'-'}<br>Tujuan: ${o.tujuanAlamat||'-'}<br>Jenis: ${o.jenisKendaraan||'motor'} • Jarak kirim: ${(Number(o.jarakKm)||0).toFixed(2)} km</div>
-        <div class="row" style="margin-top:8px"><div style="background:#f9faf8;border:1px solid #eee;border-radius:10px;padding:8px"><small>Ongkir / Total COD</small><b>${rupiah(o.total)}</b></div><div style="background:#fff8d8;border:1px solid #f4df80;border-radius:10px;padding:8px"><small>Deposit ditahan</small><b>${rupiah(o.total)}</b><br><small>Admin 5% = ${rupiah(adminFee)} • Kamu terima ${rupiah(kurirTerima)}</small></div></div>
+        <div class="row" style="margin-top:8px"><div style="background:#f9faf8;border:1px solid #eee;border-radius:10px;padding:8px"><small>Ongkir / Total COD</small><b>${rupiah(o.total)}</b></div><div style="background:#fff;border:1px solid #e5e5e5;border-radius:10px;padding:8px"><small>Deposit ditahan</small><b>${rupiah(o.total)}</b><br><small>Admin 5% = ${rupiah(adminFee)} • Kamu terima ${rupiah(kurirTerima)}</small></div></div>
         <div class="muted" style="margin-top:6px">Saldo kamu ${rupiah(mySaldo)} ≥ deposit ${rupiah(o.total)} ✅ — bisa terima. Setelah selesai & setor, deposit balik + kamu dapat ${rupiah(kurirTerima)} (95%).</div>
-        <div class="row" style="margin-top:8px"><button class="btn btn-yellow" onclick="window.terimaOrder('${o.id}')">✅ Terima</button><button class="btn btn-red" onclick="window.tolakOrder('${o.id}')">❌ Tolak</button></div>
+        <div class="row" style="margin-top:8px">${terimaBtn}<button class="btn btn-red" onclick="window.tolakOrder('${o.id}')">❌ Tolak</button></div>
       </div>`;
     }).join('');
     log(`Order masuk: ${orderList.length} cocok (radius 40km + saldo cukup)`);
