@@ -125,6 +125,11 @@ nav.bottom a{color:#aaa;text-decoration:none;font-size:11px} nav.bottom a.active
 <div style="margin-top:8px;background:#fffbe6;border:1px solid #ffe08a;padding:10px;border-radius:12px;font-size:12px">🎯 <b>Cara tepat:</b> 1. Pindah ke mode <b>Satelit</b> → 2. Zoom sampai kelihatan rumah → 3. Geser peta sampai pin 📍 pas di atap rumah tujuan → 4. Tekan <b>Kunci Tujuan di Sini</b></div>
 <button class="btn btn-yellow" id="btnKunciTengah" type="button" style="margin-top:8px">📌 Kunci Tujuan di Sini (Pin Tengah Peta)</button>
 <div class="row" style="margin-top:8px"><button class="btn btn-grey" id="btnPetaJemput" type="button">🎯 Pusatkan ke Jemput</button><button class="btn btn-grey" id="btnPetaHapusTujuan" type="button">🗑️ Hapus Tujuan</button></div>
+<div style="margin-top:12px;background:#fff;border:1px solid #eee;border-radius:14px;padding:12px">
+  <div style="display:flex;justify-content:space-between;align-items:center"><b>📍 Nama di Peta Ini</b><button id="btnMuatNamaPeta" type="button" style="background:#ffcc00;border:0;border-radius:999px;padding:8px 14px;font-weight:800;cursor:pointer">🔄 Muat Nama</button></div>
+  <div class="muted" style="margin-top:4px">Geser / zoom peta ke daerah tujuan. Nama-nama yang ada di peta itu (jalan, desa, pasar, RS, dll) akan muncul di bawah. Tap salah satu, langsung jadi tujuan.</div>
+  <div id="listNamaPeta" style="margin-top:10px;display:flex;flex-wrap:wrap;gap:6px"><span class="muted">Geser peta, lalu tekan Muat Nama.</span></div>
+</div>
 <button class="btn btn-dark" id="btnBukaGmaps" type="button" style="margin-top:8px">🗺️ Buka Titik Ini di Aplikasi Google Maps</button>
 <div class="muted" style="margin-top:6px;text-align:center">Peta di atas sudah pakai sistem Google Maps (jalan + satelit Google). GPS jemput pakai GPS satelit HP.</div>
 <div class="muted" id="koordinatTengah" style="margin-top:6px;text-align:center">Tengah peta: -</div>
@@ -524,6 +529,8 @@ function initPeta(){
     }, 800);
   }
   mapTujuan.on('move', updateTengah);
+  // Kalau peta digeser, otomatis baca nama di peta baru (tunggu 1 detik setelah berhenti geser)
+  mapTujuan.on('moveend', ()=>{ clearTimeout(_timerNamaPeta); _timerNamaPeta=setTimeout(muatNamaDiPeta, 1000); });
   mapTujuan.on('moveend', updateTengah);
   updateTengah();
   $("btnKunciTengah").onclick=()=>{
@@ -536,6 +543,60 @@ function initPeta(){
   updateLinkGmaps();
 }
 setTimeout(initPeta, 300);
+// ===== BACA NAMA YANG ADA DI PETA =====
+// Peta yang kelihatan (bbox) dibaca datanya dari OpenStreetMap via Overpass.
+// Jadi tidak perlu ketik, tidak perlu hafal. Geser peta ke Cideres, muncul nama Cideres. Geser ke Cigasong, muncul Cigasong.
+async function muatNamaDiPeta(){
+  if(!mapTujuan) return;
+  const box=$("listNamaPeta"); if(box) box.innerHTML='<span class="muted">⏳ Membaca nama di peta ini...</span>';
+  const b=mapTujuan.getBounds();
+  const south=b.getSouth().toFixed(5), west=b.getWest().toFixed(5), north=b.getNorth().toFixed(5), east=b.getEast().toFixed(5);
+  // Overpass: ambil node + way yang punya nama di dalam kotak peta yang kelihatan, maks 40
+  const q=`[out:json][timeout:12];(node["name"](${south},${west},${north},${east});way["name"](${south},${west},${north},${east}););out center 40;`;
+  try{
+    const res=await fetch('https://overpass-api.de/api/interpreter', {method:'POST', body:'data='+encodeURIComponent(q), headers:{'Content-Type':'application/x-www-form-urlencoded'}});
+    const j=await res.json();
+    const seen=new Map();
+    (j.elements||[]).forEach(el=>{
+      const nama=el.tags?.name; if(!nama) return;
+      const lat=el.lat||el.center?.lat; const lng=el.lon||el.center?.lon; if(lat==null||lng==null) return;
+      const key=nama.toLowerCase();
+      if(!seen.has(key)) seen.set(key, {nama, lat, lng, jenis: el.tags?.amenity||el.tags?.shop||el.tags?.highway||el.tags?.place||''});
+    });
+    const list=[...seen.values()].slice(0,30);
+    if(!list.length){ box.innerHTML='<span class="muted">Tidak ada nama di peta ini. Zoom lebih dekat / geser ke kota / desa.</span>'; return; }
+    const jLat=parseFloat($("jemputLat").value), jLng=parseFloat($("jemputLng").value);
+    box.innerHTML=list.map((it,i)=>{
+      const jarak = (!isNaN(jLat)&&!isNaN(jLng)) ? haversineKm(jLat,jLng,it.lat,it.lng).toFixed(1)+' km' : '';
+      const ikon = it.jenis==='hospital'?'🏥':it.jenis==='school'?'🏫':it.jenis==='marketplace'?'🛒':it.jenis==='place'?'📍':'📌';
+      return `<button type="button" data-nama-peta="${i}" style="background:#f6f7f9;border:1px solid #e5e5e5;border-radius:999px;padding:8px 12px;font-size:13px;cursor:pointer">${ikon} ${it.nama} ${jarak?`• ${jarak}`:''}</button>`;
+    }).join('');
+    // Simpan list ke window biar bisa dipilih
+    window._listNamaPeta=list;
+    box.querySelectorAll('[data-nama-peta]').forEach(btn=>{
+      btn.onclick=()=>{
+        const it=window._listNamaPeta[Number(btn.dataset.namaPeta)];
+        if(!it) return;
+        // Load & tampilkan di peta: pindah peta ke titik itu, pin pindah, tujuan dikunci
+        $("tujuanLat").value=Number(it.lat).toFixed(6);
+        $("tujuanLng").value=Number(it.lng).toFixed(6);
+        $("tujuanAlamat").value=it.nama;
+        const elLengkap=$("alamatLengkapTujuan"); if(elLengkap){ elLengkap.classList.remove('hidden'); elLengkap.innerHTML=`📍 <b>${it.nama}</b><br><small>${it.jenis||'Tempat di peta'}</small><br><small>GPS: ${Number(it.lat).toFixed(6)}, ${Number(it.lng).toFixed(6)}</small>`; }
+        updateStatusLokasi();
+        if(markerTujuan) markerTujuan.setLatLng([Number(it.lat), Number(it.lng)]);
+        if(mapTujuan) mapTujuan.setView([Number(it.lat), Number(it.lng)], 17);
+        const h=hitung(); if(h) console.log('Tujuan dari nama di peta', it.nama, h);
+        alert(`✅ Tujuan: ${it.nama}\n\nSudah tampil di peta, pin sudah pindah ke sana.`);
+      };
+    });
+  }catch(e){
+    if(box) box.innerHTML='<span class="muted">Gagal baca nama di peta. Coba tekan Muat Nama lagi / cek internet.</span>';
+  }
+}
+// Auto-muat kalau peta digeser (debounce 1 detik)
+let _timerNamaPeta=null;
+
+$("btnMuatNamaPeta").onclick=()=>{ muatNamaDiPeta(); };
 $("btnBukaGmaps").onclick=()=>{
   const tLat=parseFloat($("tujuanLat").value), tLng=parseFloat($("tujuanLng").value);
   const jLat=parseFloat($("jemputLat").value), jLng=parseFloat($("jemputLng").value);
