@@ -65,12 +65,16 @@ nav.bottom a{color:#aaa;text-decoration:none;font-size:11px} nav.bottom a.active
 <div class="row"><input id="jemputLat" placeholder="Lat jemput, contoh -6.812"><input id="jemputLng" placeholder="Lng jemput, contoh 108.28"></div>
 <button class="btn btn-grey" id="btnGpsJemput" style="margin-top:6px">📍 Pakai GPS Saya untuk Jemput</button>
 <div id="statusJemput" class="muted" style="margin-top:4px">❌ Lokasi Awal belum ditentukan</div>
+<button class="btn btn-grey" id="btnCariNamaJemput" type="button" style="margin-top:4px;padding:8px;font-size:12px">🔍 Cari Nama Jalan / Desa / Blok Jemput</button>
+<div id="alamatLengkapJemput" class="muted" style="margin-top:4px"></div>
 
 <label>2. LOKASI TUJUAN — WAJIB, HARUS BEDA DARI LOKASI AWAL</label>
 <input id="tujuanAlamat" placeholder="Contoh: Alun-alun Cirebon — jangan isi dengan lokasi kamu sekarang kalau mau kirim ke tempat lain">
 <div class="row"><input id="tujuanLat" placeholder="Lat tujuan"><input id="tujuanLng" placeholder="Lng tujuan"></div>
 <button class="btn btn-grey" id="btnGpsTujuan" style="margin-top:6px">📍 Pakai GPS Saya untuk Tujuan (hanya kalau tujuan = lokasi kamu sekarang)</button>
 <div id="statusTujuan" class="muted" style="margin-top:4px">❌ Lokasi Tujuan belum ditentukan</div>
+<button class="btn btn-grey" id="btnCariNamaTujuan" type="button" style="margin-top:4px;padding:8px;font-size:12px">🔍 Cari Nama Jalan / Desa / Blok Tujuan</button>
+<div id="alamatLengkapTujuan" class="muted" style="margin-top:4px"></div>
 <div style="margin-top:10px"><b>🗺️ Pilih Tujuan Lewat Peta</b><div class="muted">Cara 1: Tap peta di titik tujuan. Cara 2: Geser pin merah. Cara 3: Isi Lat/Lng manual di kolom atas — peta ikut pindah.</div>
 <div id="mapTujuan"></div>
 <div class="row" style="margin-top:6px"><button class="btn btn-grey" id="btnPetaJemput" type="button">🎯 Pusatkan Peta ke Jemput</button><button class="btn btn-grey" id="btnPetaHapusTujuan" type="button">🗑️ Hapus Tujuan</button></div>
@@ -145,6 +149,46 @@ function updateStatusLokasi(){
     } else per.style.display='none';
   }
 }
+// === CARI NAMA ALAMAT LENGKAP DARI GPS (Nominatim - gratis, tanpa API key) ===
+async function ambilNamaAlamat(lat, lng){
+  try{
+    const url = `https://nominatim.openstreetmap.org/reverse?format=jsonv2&lat=${lat}&lon=${lng}&zoom=18&addressdetails=1&accept-language=id`;
+    const res = await fetch(url, {headers:{'Accept':'application/json'}});
+    const data = await res.json();
+    const a = data.address || {};
+    // Susun dari paling detail -> paling umum: Jalan, Blok / Kampung, Desa, Kecamatan, Kabupaten, Provinsi
+    const jalan = a.road || a.pedestrian || a.footway || a.path || a.cycleway || '';
+    const nomor = a.house_number ? 'No. '+a.house_number : '';
+    const blok = a.neighbourhood || a.hamlet || a.suburb || a.quarter || a.residential || '';
+    const desa = a.village || a.town || a.city || a.municipality || '';
+    const kecamatan = a.city_district || a.district || a.suburb || '';
+    const kabupaten = a.county || '';
+    const provinsi = a.state || '';
+    const kodepos = a.postcode || '';
+    const parts = [];
+    if(jalan) parts.push((jalan + (nomor ? ' '+nomor : '')).trim());
+    if(blok && blok!==jalan && blok!==desa) parts.push(blok.includes('Blok')||blok.includes('blok') ? blok : 'Blok / Kampung '+blok);
+    if(desa) parts.push('Desa/Kel. '+desa);
+    if(kecamatan && kecamatan!==desa && kecamatan!==blok) parts.push('Kec. '+kecamatan);
+    if(kabupaten) parts.push('Kab. '+kabupaten.replace('Kabupaten ',''));
+    if(provinsi) parts.push(provinsi);
+    if(kodepos) parts.push(kodepos);
+    let lengkap = parts.join(', ');
+    if(!lengkap && data.display_name) lengkap = data.display_name;
+    if(!lengkap) lengkap = `GPS ${lat.toFixed(6)}, ${lng.toFixed(6)}`;
+    return {lengkap, jalan, blok, desa, kecamatan, kabupaten, provinsi, kodepos, display_name: data.display_name||''};
+  }catch(e){ console.log('Gagal cari nama alamat', e); return {lengkap:`GPS ${lat.toFixed(6)}, ${lng.toFixed(6)}`, jalan:'', blok:'', desa:'', kecamatan:'', kabupaten:'', provinsi:'', kodepos:''}; }
+}
+async function isiAlamatDariGPS(lat, lng, targetAlamatId, targetLengkapId){
+  const el = document.getElementById(targetLengkapId);
+  if(el) el.textContent = '🔍 Mencari nama jalan / desa / blok...';
+  const hasil = await ambilNamaAlamat(lat, lng);
+  const inp = document.getElementById(targetAlamatId);
+  if(inp) inp.value = hasil.lengkap;
+  if(el) el.innerHTML = `📍 <b>${hasil.lengkap}</b><br><small>${hasil.jalan ? 'Jalan: '+hasil.jalan+' • ' : ''}${hasil.desa ? 'Desa: '+hasil.desa+' • ' : ''}${hasil.blok ? 'Blok/Kampung: '+hasil.blok+' • ' : ''}${hasil.kecamatan ? 'Kec: '+hasil.kecamatan : ''}<br>GPS: ${lat.toFixed(6)}, ${lng.toFixed(6)}</small>`;
+  updateStatusLokasi();
+  return hasil;
+}
 function validasiLokasi(){
   updateStatusLokasi();
   const jLat=parseFloat($("jemputLat").value), jLng=parseFloat($("jemputLng").value);
@@ -184,7 +228,8 @@ function gpsUntuk(targetLat, targetLng){
     $(targetLng).value=pos.coords.longitude.toFixed(6);
     // Kalau alamat masih kosong, isi otomatis biar tidak '-'
     const alamatId = targetLat==='jemputLat' ? 'jemputAlamat' : 'tujuanAlamat';
-    if(!$(alamatId).value) $(alamatId).value=`GPS ${pos.coords.latitude.toFixed(6)}, ${pos.coords.longitude.toFixed(6)}`;
+    const lengkapId = targetLat==='jemputLat' ? 'alamatLengkapJemput' : 'alamatLengkapTujuan';
+    isiAlamatDariGPS(pos.coords.latitude, pos.coords.longitude, alamatId, lengkapId);
     updateStatusLokasi(); updateLinkGmaps();
     if(mapTujuan && targetLat==='jemputLat'){ mapTujuan.setView([pos.coords.latitude, pos.coords.longitude], 14); if(markerJemput) markerJemput.setLatLng([pos.coords.latitude, pos.coords.longitude]); }
     // Kalau jemput (GPS pelanggan) berubah dan tujuan sudah ada, ongkir langsung disesuaikan
@@ -206,9 +251,9 @@ let mapTujuan=null, markerJemput=null, markerTujuan=null;
 function setTujuanFromMap(lat, lng, dariKlik=true){
   $("tujuanLat").value = lat.toFixed(6);
   $("tujuanLng").value = lng.toFixed(6);
-  if(! $("tujuanAlamat").value || $("tujuanAlamat").value.startsWith("GPS") || $("tujuanAlamat").value.startsWith("Peta")){
-    $("tujuanAlamat").value = `Peta ${lat.toFixed(6)}, ${lng.toFixed(6)}`;
-  }
+  // Isi sementara, lalu cari nama jalan/desa/blok lengkap
+  $("tujuanAlamat").value = `Mencari nama jalan... ${lat.toFixed(6)}, ${lng.toFixed(6)}`;
+  isiAlamatDariGPS(lat, lng, 'tujuanAlamat', 'alamatLengkapTujuan');
   if(markerTujuan) markerTujuan.setLatLng([lat, lng]);
   updateStatusLokasi();
   updateLinkGmaps();
@@ -252,6 +297,16 @@ function initPetaTujuan(){
   });
 }
 setTimeout(initPetaTujuan, 300);
+document.getElementById('btnCariNamaJemput')?.addEventListener('click', async ()=>{
+  const la=parseFloat($("jemputLat").value), lo=parseFloat($("jemputLng").value);
+  if(isNaN(la)||isNaN(lo)){ alert('Isi dulu Lat/Lng Jemput'); return; }
+  await isiAlamatDariGPS(la, lo, 'jemputAlamat', 'alamatLengkapJemput');
+});
+document.getElementById('btnCariNamaTujuan')?.addEventListener('click', async ()=>{
+  const la=parseFloat($("tujuanLat").value), lo=parseFloat($("tujuanLng").value);
+  if(isNaN(la)||isNaN(lo)){ alert('Isi dulu Lat/Lng Tujuan'); return; }
+  await isiAlamatDariGPS(la, lo, 'tujuanAlamat', 'alamatLengkapTujuan');
+});
 document.getElementById('btnPetaJemput')?.addEventListener('click', ()=>{
   const jl=parseFloat($("jemputLat").value), jg=parseFloat($("jemputLng").value);
   if(isNaN(jl)||isNaN(jg)){ alert('Isi dulu GPS Jemput'); return; }
