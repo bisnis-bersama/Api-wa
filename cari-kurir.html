@@ -51,7 +51,7 @@ nav.bottom a{color:#aaa;text-decoration:none;font-size:11px} nav.bottom a.active
 <header class="top"><div class="topline"><div><div class="brand">TOKO SIAP ANTAR</div><div class="sub">Cari Kurir • Mirip Grab • Radius 40 km</div></div><a href="./index.html" style="color:#ffcc00;text-decoration:none;font-weight:800">← Menu</a></div></header>
 <main>
 <div class="panel">
-<h2 style="margin:0">🚖 Cari Kurir Terdekat</h2>
+<h2 style="margin:0">🚖 Cari Kurir Terdekat <span style="background:#111;color:#ffd400;padding:2px 6px;border-radius:6px;font-size:10px">v2 FIX MOBIL</span></h2>
 <p class="muted" style="margin:4px 0 0">Pelanggan isi titik jemput & tujuan, sistem hitung jarak + ongkir, lalu cari kurir online dalam radius 40 km.</p>
 
 <label>Titik Jemput - Alamat / Patokan</label>
@@ -153,9 +153,15 @@ function ambilLatLngKurir(d){
   return {lat:Number(lat), lng:Number(lng)};
 }
 function kendaraanKurir(d){
-  const v = String(d.jenisKendaraan || d.kendaraan || d.vehicle || d.tipeKendaraan || d.jenis || '').toLowerCase().trim();
-  if(v.includes('mobil') || v.includes('car')) return 'mobil';
-  if(v.includes('motor') || v.includes('matic') || v.includes('bebek') || v.includes('sport')) return 'motor';
+  // Cek SEMUA field yang mungkin dipakai di Firestore, termasuk kalau kendaraan disimpan sebagai object
+  let raw = d.jenisKendaraan || d.kendaraan || d.vehicle || d.tipeKendaraan || d.jenis || d.kendaraanJenis || d.kendaraanKurir || d.jenisKendaraanKurir || '';
+  if(raw && typeof raw === 'object'){
+    raw = raw.jenis || raw.type || raw.nama || raw.kendaraan || raw.vehicle || JSON.stringify(raw);
+  }
+  const v = String(raw || '').toLowerCase().trim();
+  // Dari screenshot Firestore kamu: field-nya namanya 'kendaraan' isinya 'Motor' -> harus kebaca motor
+  if(v.includes('mobil') || v.includes('car') || v.includes('avanza') || v.includes('xenia') || v.includes('calya')) return 'mobil';
+  if(v.includes('motor') || v.includes('matic') || v.includes('bebek') || v.includes('sport') || v.includes('vario') || v.includes('beat') || v.includes('nmax')) return 'motor';
   if(v==='') return 'motor'; // data lama tanpa field kendaraan dianggap motor
   return v;
 }
@@ -175,8 +181,11 @@ $("btnCari").onclick=async()=>{
       // FIX: filter kendaraan. Kalau pilih Mobil, jangan tampilkan kurir Motor.
       // Kalau belum ada yang daftar kurir mobil, list akan kosong - itu benar.
       const ken=kendaraanKurir(d);
-      if(pilihJenis==='mobil' && ken!=='mobil') return;
-      if(pilihJenis==='motor' && ken!=='motor') return;
+      // DEBUG: biar ketahuan di log kenapa dibuang / lolos
+      log(`Cek kurir ${d.nama||d.email||doc.id}: kendaraan di DB='${d.kendaraan||d.jenisKendaraan||'(kosong)'}' -> dibaca='${ken}', pilih='${pilihJenis}'`);
+      if(pilihJenis==='mobil' && ken!=='mobil'){ log(` -> BUANG, karena bukan Mobil`); return; }
+      if(pilihJenis==='motor' && ken!=='motor'){ log(` -> BUANG, karena bukan Motor`); return; }
+      log(` -> LOLOS`);
       const jarakKeJemput=haversineKm(jLat,jLng,pos.lat,pos.lng);
       const online = d.online===true || d.status==='online' || d.aktif===true || d.status==='aktif';
       // Tampilkan semua, tapi tandai yang offline. Filter utama 40 km.
