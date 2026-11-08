@@ -24,203 +24,188 @@
 </style>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
-<title>Riwayat Kurir | Toko Siap Antar</title>
+<title>Terima Orderan - Kurir | Toko Siap Antar</title>
 <style>
-:root{--yellow:#ffcc00;--muted:#64756f;--bg:#f1f2f4;--ok:#087443;--err:#b42318;--line:#e6e7e8}
-*{box-sizing:border-box}body{margin:0;background:var(--bg);color:#171717;font:14px/1.4 system-ui,sans-serif;padding-bottom:80px}
-button,input,select{font:inherit}
-.top{background:#111;color:#fff;padding:10px 14px 16px;border-radius:0 0 20px 20px;position:sticky;top:0;z-index:5}
-.topline{max-width:900px;margin:auto;display:flex;justify-content:space-between;align-items:center;gap:8px}
-.brandWrap{display:flex;align-items:center;gap:8px}
-.brandWrap img{width:36px;height:36px;border-radius:10px;background:#fff;padding:3px;object-fit:contain}
-.brand{color:var(--yellow);font-weight:900;font-size:15px;line-height:1.1}
-.sub{color:#c7cbd0;font-size:9px;font-weight:600}
-.greet{font-size:12px;color:#fff;font-weight:800;margin-top:1px}
-.logout{background:#202020;border:1px solid #444;color:white;border-radius:10px;padding:6px 10px;font-size:11px;font-weight:750;cursor:pointer}
-main{max-width:900px;margin:-10px auto 0;padding:0 10px 90px;position:relative;z-index:2}
-.panel{background:white;border-radius:16px;padding:12px;margin-bottom:8px;box-shadow:0 4px 16px #00000008}
-.section-title{display:flex;justify-content:space-between;gap:8px;margin:2px 2px 8px;align-items:center}
-.section-title h2{font-size:13px;margin:0;font-weight:800}
-.section-title span{font-size:10px;color:var(--muted);font-weight:700}
-.eyebrow{font-size:9px;letter-spacing:.5px;color:var(--muted);font-weight:800;text-transform:uppercase}
-.muted{color:var(--muted);font-size:11px}
-.notice{background:#fff8d8;border:1px solid #f4df80;border-radius:10px;padding:8px 10px;font-size:11px;color:#5c4b00;margin-top:8px;line-height:1.3}
-.list{display:grid;gap:8px}
-.item{border:1px solid var(--line);border-radius:12px;padding:10px;background:#fff;cursor:pointer}
-.itemtop{display:flex;justify-content:space-between;gap:8px;align-items:start}
-.order-id{font-weight:850;font-size:13px}
-.status{font-size:10px;font-weight:800;border-radius:999px;padding:4px 8px;white-space:nowrap;border:1px solid transparent}
-.status-selesai{background:#dcfce7;color:#166534;border-color:#bbf7d0}
-.status-antar{background:#dbeafe;color:#1e40af;border-color:#bfdbfe}
-.status-cair{background:#fef3c7;color:#92400e;border-color:#fde68a}
-.status-topup{background:#e0e7ff;color:#3730a3;border-color:#c7d2fe}
-.status-batal{background:#fee2e2;color:#991b1b;border-color:#fecaca}
-.meta{font-size:11px;color:var(--muted);margin-top:4px;line-height:1.3}
-.btn{border:0;border-radius:10px;background:var(--yellow);padding:10px 14px;font-weight:850;cursor:pointer;font-size:12px}
-.btn.dark{background:#111;color:var(--yellow)}
-.btn.small{padding:7px 10px;font-size:11px;border-radius:8px}
-.hidden{display:none!important}
-.err{color:var(--err);background:#fff0ed;border:1px solid #f5c6c1;border-radius:10px;padding:8px 10px;font-size:11px;margin-top:8px}
-.ok{color:var(--ok);background:#e6f7ef;border:1px solid #c3ead7;border-radius:10px;padding:8px 10px;font-size:11px;margin-top:8px}
-.filter-bar{display:flex;gap:6px;overflow-x:auto;padding:4px 0 6px;white-space:nowrap;scrollbar-width:none}
-.filter-bar::-webkit-scrollbar{display:none}
-.filter-bar button{border:1px solid #e0e4e2;border-radius:999px;background:#f2f4f3;padding:7px 12px;font-weight:750;font-size:11px;cursor:pointer;flex:0 0 auto}
-.filter-bar button.active{background:#111;color:var(--yellow);border-color:#111}
-.search-row{display:flex;gap:6px;margin-top:8px}
-.search-row input{flex:1;border:1px solid #cbd1d6;border-radius:10px;padding:10px 11px;background:white;font-size:13px}
-.tabs{display:grid;grid-template-columns:repeat(3,1fr);gap:6px;margin-bottom:10px}
-.tabs button{background:#f2f4f3;border:1px solid #e0e4e2;border-radius:10px;padding:8px 4px;font-weight:750;font-size:11px;cursor:pointer}
-.tabs button.active{background:#111;color:var(--yellow)}
-.bottom{position:fixed;bottom:0;left:0;right:0;background:#111;border-top:3px solid var(--yellow);display:flex;justify-content:space-around;padding:8px 5px calc(8px + env(safe-area-inset-bottom));z-index:5}
-.bottom a{color:var(--yellow);text-decoration:none;text-align:center;font-size:10px;font-weight:800;display:flex;flex-direction:column;align-items:center;gap:2px}
-.bottom a.active{color:#fff}
-.ico{display:block;font-size:18px;line-height:1}
-.wallet-stat{border:1px solid #e8e8e8;border-radius:10px;background:#f7f8f8;padding:8px 10px}
-.wallet-stat span{font-size:9px;color:#737d8b;font-weight:700;text-transform:uppercase}
-.wallet-stat strong{display:block;font-size:15px;margin-top:3px;color:#173b32}
+*{box-sizing:border-box}body{margin:0;background:#f1f2f4;font:14px/1.5 system-ui,sans-serif;padding-bottom:90px}
+.top{background:#111;color:#fff;padding:12px 14px 18px;border-radius:0 0 20px 20px}
+.topline{max-width:900px;margin:auto;display:flex;justify-content:space-between;align-items:center}
+.brand{font-weight:900;font-size:17px;color:#ffcc00}.sub{font-size:11px;color:#c7cbd0}
+.icon-wrap{position:relative;width:44px;height:44px;background:#222;border-radius:12px;display:flex;align-items:center;justify-content:center;font-size:22px}
+.dot{position:absolute;top:-4px;right:-4px;width:16px;height:16px;background:#22c55e;border:3px solid #fff;border-radius:50%;display:none;box-shadow:0 0 0 0 rgba(34,197,94,.7);animation:pulse 1.5s infinite}
+.dot.on{display:block}
+@keyframes pulse{0%{box-shadow:0 0 0 0 rgba(34,197,94,.7)}70%{box-shadow:0 0 0 10px rgba(34,197,94,0)}100%{box-shadow:0 0 0 0 rgba(34,197,94,0)}}
+main{max-width:820px;margin:-10px auto 0;padding:0 10px;position:relative;z-index:2}
+.panel{background:#fff;border-radius:16px;padding:14px;margin-bottom:10px;box-shadow:0 4px 16px #0000000a}
+label{font-size:11px;font-weight:700;color:#555;display:block;margin:10px 0 4px}
+input{width:100%;padding:10px 12px;border:1px solid #ddd;border-radius:10px;font-size:14px}
+.btn{border:0;border-radius:12px;padding:12px;font-weight:800;cursor:pointer;width:100%;font-size:14px}
+.btn-yellow{background:#ffcc00;color:#111}.btn-black{background:#111;color:#fff}.btn-grey{background:#eee;color:#111}.btn-red{background:#ffe8e8;color:#a00}
+.btn:disabled{opacity:.5}
+.order{border:1px solid #eee;border-radius:14px;padding:12px;margin-top:10px}
+.order b{font-size:15px}.muted{color:#666;font-size:12px}
+.row{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.kpi{display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;margin-top:10px}
+.kpi div{background:#f9faf8;border:1px solid #eee;border-radius:12px;padding:10px;text-align:center}
+.kpi b{font-size:16px;display:block}
+#log{white-space:pre-wrap;font-size:11px;color:#555;background:#fff8d8;border:1px dashed #f4df80;padding:8px;border-radius:10px;display:none;margin-top:8px}
+nav.bottom{position:fixed;left:0;right:0;bottom:0;background:#111;display:grid;grid-template-columns:repeat(4,1fr);text-align:center;padding:8px 0;z-index:10}
+nav.bottom a{color:#aaa;text-decoration:none;font-size:11px;position:relative} nav.bottom a.active{color:#ffcc00}
+.dot-nav{position:absolute;top:-2px;right:22px;width:12px;height:12px;background:#22c55e;border:2px solid #111;border-radius:50%;display:none;box-shadow:0 0 0 0 rgba(34,197,94,.7);animation:pulse 1.5s infinite}
+.dot-nav.on{display:block}
 </style>
 </head>
 <body>
-<header class="top"><div class="topline"><div class="brandWrap">
-<img src="logo2.png" alt="Logo" onerror="this.src='logo3.png'">
-<div><div class="brand">🛵 TOKO SIAP ANTAR</div><div class="sub">Riwayat Kurir · Mode Bersih</div><div class="greet" id="welcomeTop">Halo, Kak, Kurir</div></div>
-</div><button id="logoutBtn" class="logout hidden" type="button">Keluar</button></div></header>
-
+<header class="top"><div class="topline"><div><div class="brand">E-WALLET KURIR</div><div class="sub">Terima Orderan • Deposit • Admin 5% aja</div></div>
+<div class="icon-wrap">📦<span class="dot" id="dotHeader"></span></div></div></header>
 <main>
-<section id="loginPanel" class="panel"><div class="eyebrow">AKSES AKUN KURIR</div><h1 style="font-size:18px;margin:4px 0 8px;font-weight:900">Masuk Kurir</h1><form id="loginForm"><label>Email</label><input id="email" type="email" required><label>Password</label><input id="password" type="password" required><button class="btn" style="width:100%;margin-top:10px" type="submit">Masuk</button></form><div id="loginMsg" class="err hidden"></div></section>
+<div class="panel">
+<div style="display:flex;justify-content:space-between;align-items:center"><div><b id="namaKurir">Kurir...</b><div class="muted" id="emailKurir">Memuat sesi login dari e-wallet...</div></div><span style="background:#e8f8ee;color:#087443;padding:4px 10px;border-radius:20px;font-size:11px;font-weight:800" id="statusLogin">CEK LOGIN</span></div>
 
-<section id="dashboard" class="hidden">
-<div class="panel"><div class="section-title"><h2>Ringkasan Riwayat</h2><span id="countLabelTop">0 data</span></div>
-<div style="display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:6px;margin-top:6px">
-<div class="wallet-stat"><span>Pengantaran Selesai</span><strong id="statSelesai">0</strong></div>
-<div class="wallet-stat"><span>Total Top-up</span><strong id="statTopup">Rp 0</strong></div>
-<div class="wallet-stat"><span>Total Cair</span><strong id="statCair">Rp 0</strong></div>
-</div>
-<div class="notice">ℹ️ Riwayat mencakup: <b>riwayat pengantaran, pencairan & topup</b> — semua ada di 3 tab bawah.</div>
+<div class="kpi">
+<div><small>Saldo Deposit</small><b id="txtSaldo">Rp 0</b><small id="txtSaldoNote">Harus >= total COD</small></div>
+<div><small>Order Masuk</small><b id="txtJml">0</b><small>Radius 40 km</small></div>
+<div><small>Admin</small><b>5%</b><small>Dari ongkir</small></div>
 </div>
 
-<div class="panel"><div class="tabs"><button class="active" data-tab="antar">📦 Pengantaran</button><button data-tab="topup">＋ Top-up</button><button data-tab="cair">↗ Pencairan</button></div>
-<div class="filter-bar" id="filterBar"><button class="active" data-f="semua">📋 Semua</button><button data-f="selesai">🟢 Selesai</button><button data-f="topup">＋ Top-up</button><button data-f="cair">↗ Cair</button></div>
-<div class="search-row"><input id="searchBox" placeholder="Cari nomor pesanan / nominal..."><button class="btn small dark" id="reloadBtn" type="button">↻ Muat</button></div>
-<div id="filterMsg" class="meta" style="margin-top:6px"></div>
+<label>Lokasi Saya (Lat)</label>
+<div class="row"><input id="myLat" placeholder="-6.812"><input id="myLng" placeholder="108.28"></div>
+<button class="btn btn-grey" id="btnGps" style="margin-top:6px">📍 Pakai GPS Saya</button>
+<button class="btn btn-black" id="btnRefresh" style="margin-top:8px">🔄 Refresh Orderan</button>
+<div id="log"></div>
+<div class="muted" style="margin-top:8px">Aturan: Order cuma muncul kalau <b>jarak jemput ≤ 40 km</b> DAN <b>saldo deposit kamu ≥ total COD</b>. Kalau saldo kurang, order tidak tampil. Jadi tidak ada talangan dari aplikasi, modal murni kurir. Admin cuma ambil <b>5%</b>.</div>
 </div>
 
-<div class="panel"><div class="section-title"><h2>Daftar Riwayat</h2><span id="countLabel">0 data</span></div><div id="listAntar" class="list"></div><div id="listTopup" class="list hidden"></div><div id="listCair" class="list hidden"></div></div>
-</section>
+<div class="panel">
+<h3 style="margin:0">Orderan Masuk Untuk Kamu</h3>
+<p class="muted" style="margin:4px 0">Dipisah per akun login. Kurir lain tidak bisa lihat orderan kamu.</p>
+<div id="listOrder"><div class="muted">Belum ada order. Tekan Refresh.</div></div>
+</div>
 </main>
-
-<nav id="bottomNav" class="bottom hidden"><a href="./pesanan-tersedia-kurir.html"><span class="ico">📦</span>Pesanan Masuk</a><a href="./pengantaran-kurir.html"><span class="ico">🛵</span>Pengantaran</a><a href="./riwayat-pengantaran-kurir.html" class="active"><span class="ico">↻</span>Riwayat</a></nav>
+<nav class="bottom"><a href="./index.html">🏠<br>Beranda</a><a href="./ewallet-kurir.html">💳<br>E-Wallet</a><a href="./kurir-terima-order.html" class="active">📦<br>Orderan<span class="dot-nav" id="dotNav"></span></a><a href="./profil.html">👤<br>Profil</a></nav>
 
 <script type="module">
-import {auth,db} from "./firebase-config.js";
-import {onAuthStateChanged,signInWithEmailAndPassword,signOut} from "https://www.gstatic.com/firebasejs/12.4.0/firebase-auth.js";
-import {doc,getDoc,collection,query,where,getDocs,limit} from "https://www.gstatic.com/firebasejs/12.4.0/firebase-firestore.js";
-const $=id=>document.getElementById(id), ROLE='kurir';
-let userNow=null, profile={}, currentFilter='semua', currentTab='antar';
-const esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
-const money=n=>'Rp '+Number(n||0).toLocaleString('id-ID');
-function formatDate(v){if(!v)return '-';let d=null;if(v.toDate)d=v.toDate();else if(v.seconds)d=new Date(v.seconds*1000);else d=new Date(v);return d.toLocaleString('id-ID',{dateStyle:'short',timeStyle:'short'});}
-function roleOf(p){let r=String(p.role||'').toLowerCase();return r==='courier'?'kurir':r;}
-async function getProfile(u){let s=await getDoc(doc(db,'users',u.uid));if(s.exists())return s.data();let q=await getDocs(query(collection(db,'users'),where('email','==',u.email||''),limit(1)));if(!q.empty)return q.docs[0].data();throw Error('Profil tidak ditemukan');}
+import {initializeApp,getApps,getApp} from "https://www.gstatic.com/firebasejs/12.4.0/firebase-app.js";
+import {getAuth,onAuthStateChanged} from "https://www.gstatic.com/firebasejs/12.4.0/firebase-auth.js";
+import {getFirestore,collection,query,where,getDocs,doc,getDoc,updateDoc,runTransaction,serverTimestamp,arrayRemove} from "https://www.gstatic.com/firebasejs/12.4.0/firebase-firestore.js";
+const firebaseConfig={apiKey:"AIzaSyBxqZhl6t3RwrXMwVdJeIkg0NzGfwvlweM",authDomain:"toko-siap-antar-9a7bb.firebaseapp.com",projectId:"toko-siap-antar-9a7bb",storageBucket:"toko-siap-antar-9a7bb.firebasestorage.app",messagingSenderId:"351335838712",appId:"1:351335838712:web:6e2b3e0b0e0b0e0b0e0b0e0b"};
+const app=getApps().length?getApp():initializeApp(firebaseConfig);
+const auth=getAuth(app); const db=getFirestore(app);
+const $=id=>document.getElementById(id);
+const rupiah=n=>"Rp "+(Number(n)||0).toLocaleString("id-ID");
+let currentUser=null, myData={}, mySaldo=0, myLat=0, myLng=0, orderList=[];
 
-async function loadAll(){
-  const allAntar=[], allTopup=[], allCair=[];
+function log(m){const el=$("log"); el.style.display='block'; el.textContent+=m+"\n";}
+function havKm(lat1,lng1,lat2,lng2){const R=6371,dLat=(lat2-lat1)*Math.PI/180,dLng=(lng2-lng1)*Math.PI/180;const a=Math.sin(dLat/2)**2+Math.cos(lat1*Math.PI/180)*Math.cos(lat2*Math.PI/180)*Math.sin(dLng/2)**2;return 2*R*Math.asin(Math.sqrt(a));}
+function setDot(on){$("dotHeader").classList.toggle("on",on); $("dotNav").classList.toggle("on",on);}
+
+onAuthStateChanged(auth, async (u)=>{
+  currentUser=u||null;
+  if(!u){ $("statusLogin").textContent="BELUM LOGIN"; $("emailKurir").textContent="Login dulu lewat e-wallet kurir. Halaman ini baca sesi loginnya aja."; return; }
+  $("statusLogin").textContent="LOGIN ✅"; $("emailKurir").textContent=u.email||u.uid;
+  // Baca data kurir dari users/{uid} - ini yang bikin data kepisah per kurir
   try{
-    const col=collection(db,'orders');
-    const q1=query(col,where('kurirUid','==',userNow.uid),limit(100));
-    const snap1=await getDocs(q1);
-    snap1.docs.forEach(d=>allAntar.push({id:d.id,type:'antar',...d.data()}));
-  }catch{}
+    const snap=await getDoc(doc(db,'users',u.uid));
+    myData=snap.exists()?snap.data():{};
+    $("namaKurir").textContent=myData.nama||myData.namaUsaha||u.email||"Kurir";
+    mySaldo=Number(myData.saldo ?? myData.saldoEwallet ?? myData.deposit ?? 0)||0;
+    $("txtSaldo").textContent=rupiah(mySaldo);
+    // Lokasi kurir dari users, kalau ada
+    const lat=myData.lat ?? myData.latitude ?? myData.lokasi?.lat;
+    const lng=myData.lng ?? myData.longitude ?? myData.lokasi?.lng;
+    if(lat!=null && lng!=null){ myLat=Number(lat); myLng=Number(lng); $("myLat").value=myLat; $("myLng").value=myLng; }
+    loadOrder();
+  }catch(e){ log("Gagal baca users: "+e.message+" — cek Rules users, harus boleh baca dokumen sendiri."); }
+});
+
+$("btnGps").onclick=()=>{
+  if(!navigator.geolocation) return alert("GPS tidak didukung");
+  navigator.geolocation.getCurrentPosition(p=>{ myLat=p.coords.latitude; myLng=p.coords.longitude; $("myLat").value=myLat.toFixed(6); $("myLng").value=myLng.toFixed(6); log("GPS kurir: "+myLat+","+myLng); loadOrder(); },e=>alert("Gagal GPS: "+e.message),{enableHighAccuracy:true,timeout:10000});
+};
+$("btnRefresh").onclick=()=>loadOrder();
+
+async function loadOrder(){
+  if(!currentUser) return alert("Login dulu lewat e-wallet");
+  myLat=parseFloat($("myLat").value)||myLat; myLng=parseFloat($("myLng").value)||myLng;
+  if(!myLat || !myLng){ $("listOrder").innerHTML='<div class="muted">Isi dulu Lat/Lng kamu atau tekan Pakai GPS Saya.</div>'; return; }
+  $("listOrder").innerHTML='<div class="muted">Mencari orderan untuk kamu...</div>';
   try{
-    const col2=collection(db,'ewallet_topups');
-    const snap2=await getDocs(query(col2,where('uid','==',userNow.uid),limit(100)));
-    snap2.docs.forEach(d=>allTopup.push({id:d.id,type:'topup',...d.data()}));
-  }catch{}
-  try{
-    const col3=collection(db,'ewallet_withdrawals');
-    const snap3=await getDocs(query(col3,where('uid','==',userNow.uid),limit(100)));
-    snap3.docs.forEach(d=>allCair.push({id:d.id,type:'cair',...d.data()}));
-  }catch{}
-  window._all={antar:allAntar, topup:allTopup, cair:allCair};
-  // stats
-  $('statSelesai').textContent=allAntar.filter(x=>String(x.status||'').includes('selesai')).length;
-  $('statTopup').textContent=money(allTopup.reduce((a,b)=>a+Number(b.amount||0),0));
-  $('statCair').textContent=money(allCair.reduce((a,b)=>a+Number(b.amount||0),0));
-  render();
-}
-
-function render(){
-  const q=$('searchBox').value.trim().toLowerCase();
-  const all=window._all||{antar:[],topup:[],cair:[]};
-  let totalShown=0;
-  // Antar
-  let filteredAntar=all.antar.filter(o=>{
-    const st=String(o.status||'').toLowerCase();
-    if(currentFilter==='selesai' && !st.includes('selesai')) return false;
-    if(currentFilter==='topup' || currentFilter==='cair') return false;
-    if(!q) return true;
-    return String(o.nomorPesanan||o.id||'').toLowerCase().includes(q);
-  });
-  // Topup
-  let filteredTopup=all.topup.filter(o=>{
-    if(currentFilter==='selesai' || currentFilter==='cair') return false;
-    if(currentFilter==='topup' || currentFilter==='semua'){ if(q){return String(o.amount||'').includes(q)||String(o.method||'').toLowerCase().includes(q);} return true; } return false;
-  });
-  // Cair
-  let filteredCair=all.cair.filter(o=>{
-    if(currentFilter==='selesai' || currentFilter==='topup') return false;
-    if(currentFilter==='cair' || currentFilter==='semua'){ if(q){return String(o.amount||'').includes(q)||String(o.bankName||'').toLowerCase().includes(q);} return true; } return false;
-  });
-
-  // Decide which list visible based on tab
-  $('listAntar').classList.toggle('hidden', currentTab!=='antar');
-  $('listTopup').classList.toggle('hidden', currentTab!=='topup');
-  $('listCair').classList.toggle('hidden', currentTab!=='cair');
-
-  if(currentTab==='antar'){
-    $('countLabel').textContent=filteredAntar.length+' pengantaran';
-    $('countLabelTop').textContent=(all.antar.length+all.topup.length+all.cair.length)+' data';
-    $('listAntar').innerHTML=filteredAntar.length?filteredAntar.map(o=>{
-      const nomor=esc(o.nomorPesanan||o.id.slice(0,8).toUpperCase());
-      const tgl=formatDate(o.createdAt||o.selesaiAt||o.updatedAt);
-      const alamat=esc(o.alamat||o.alamatPengiriman?.alamat||'-');
-      const st=esc(o.status||'selesai');
-      return `<div class="item"><div class="itemtop"><span class="order-id">${nomor}</span><span class="status status-selesai">${st}</span></div><div class="meta">🕒 ${esc(tgl)}</div><div class="meta">📍 ${alamat.slice(0,80)}</div></div>`;
-    }).join(''):`<div class="meta" style="text-align:center;padding:14px">Belum ada riwayat pengantaran untuk filter <b>${esc(currentFilter)}</b></div>`;
-    $('filterMsg').textContent=`Pengantaran: ${filteredAntar.length} dari ${all.antar.length}`;
-  } else if(currentTab==='topup'){
-    $('countLabel').textContent=filteredTopup.length+' top-up';
-    $('listTopup').innerHTML=filteredTopup.length?filteredTopup.map(o=>{
-      const amt=money(o.amount); const tgl=formatDate(o.createdAt); const st=esc(o.status||'menunggu');
-      return `<div class="item"><div class="itemtop"><strong>${amt}</strong><span class="status status-topup">${st}</span></div><div class="meta">🕒 ${esc(tgl)} · ${esc(o.method||'')}</div></div>`;
-    }).join(''):`<div class="meta" style="text-align:center;padding:14px">Belum ada top-up</div>`;
-    $('filterMsg').textContent=`Top-up: ${filteredTopup.length} dari ${all.topup.length}`;
-  } else {
-    $('countLabel').textContent=filteredCair.length+' pencairan';
-    $('listCair').innerHTML=filteredCair.length?filteredCair.map(o=>{
-      const amt=money(o.amount); const tgl=formatDate(o.createdAt); const st=esc(o.status||'menunggu');
-      return `<div class="item"><div class="itemtop"><strong>${amt}</strong><span class="status status-cair">${st}</span></div><div class="meta">🕒 ${esc(tgl)} · ${esc(o.bankName||'')} - ${esc(o.accountNumber||'')}</div></div>`;
-    }).join(''):`<div class="meta" style="text-align:center;padding:14px">Belum ada pencairan</div>`;
-    $('filterMsg').textContent=`Pencairan: ${filteredCair.length} dari ${all.cair.length}`;
+    // Ambil order status mencari_kurir. Filter per-kurir + jarak + saldo dilakukan di sini biar tidak kena permission yang aneh.
+    // Rules yang benar: allow read if request.auth != null (lihat bawah)
+    const qs=await getDocs(query(collection(db,'orders'), where('status','==','mencari_kurir')));
+    orderList=[];
+    qs.forEach(d=>{
+      const o={id:d.id, ...d.data()};
+      const jLat=Number(o.jemputLat), jLng=Number(o.jemputLng);
+      if(isNaN(jLat)||isNaN(jLng)) return;
+      const jarak=havKm(myLat,myLng,jLat,jLng);
+      if(jarak>40) return; // di luar 40 km, jangan tampil
+      const total=Number(o.total ?? o.ongkir ?? 0)||0;
+      if(mySaldo < total) return; // saldo tidak cukup untuk deposit, jangan tampil — sesuai obrolan
+      // Kalau order sudah ditawarkan ke kurir lain saja, skip. Kalau ditawarkan ke kamu atau belum ada kurir, tampil.
+      // ditawarkanKe adalah array uid kurir yang ditawari. Kalau ada dan kamu tidak ada di dalamnya, dan kurirUid bukan kamu, skip.
+      if(o.kurirUid && o.kurirUid!==currentUser.uid) return;
+      if(Array.isArray(o.ditawarkanKe) && o.ditawarkanKe.length && !o.ditawarkanKe.includes(currentUser.uid)) return;
+      orderList.push({...o, jarakKeJemput:jarak, total});
+    });
+    orderList.sort((a,b)=>a.jarakKeJemput-b.jarakKeJemput);
+    $("txtJml").textContent=orderList.length;
+    setDot(orderList.length>0);
+    if(!orderList.length){
+      $("listOrder").innerHTML='<div style="background:#fff8d8;border:1px dashed #f4df80;padding:10px;border-radius:10px">Tidak ada order yang cocok. Bisa jadi: (1) tidak ada order dalam 40 km, (2) saldo deposit kamu kurang dari total COD, atau (3) order sudah diambil kurir lain.</div>';
+      return;
+    }
+    $("listOrder").innerHTML=orderList.map(o=>{
+      const adminFee=Math.round(o.total*0.05);
+      const kurirTerima=o.total - adminFee; // 95% untuk kurir
+      return `<div class="order">
+        <div style="display:flex;justify-content:space-between"><b>Pelanggan: ${o.pelangganEmail||o.pelangganNama||'Pelanggan'}</b><span style="background:#e8f8ee;color:#087443;padding:3px 8px;border-radius:20px;font-size:11px;font-weight:800">📍 ${o.jarakKeJemput.toFixed(2)} km dari kamu</span></div>
+        <div class="muted">Jemput: ${o.jemputAlamat||'-'}<br>Tujuan: ${o.tujuanAlamat||'-'}<br>Jenis: ${o.jenisKendaraan||'motor'} • Jarak kirim: ${(Number(o.jarakKm)||0).toFixed(2)} km</div>
+        <div class="row" style="margin-top:8px"><div style="background:#f9faf8;border:1px solid #eee;border-radius:10px;padding:8px"><small>Ongkir / Total COD</small><b>${rupiah(o.total)}</b></div><div style="background:#fff8d8;border:1px solid #f4df80;border-radius:10px;padding:8px"><small>Deposit ditahan</small><b>${rupiah(o.total)}</b><br><small>Admin 5% = ${rupiah(adminFee)} • Kamu terima ${rupiah(kurirTerima)}</small></div></div>
+        <div class="muted" style="margin-top:6px">Saldo kamu ${rupiah(mySaldo)} ≥ deposit ${rupiah(o.total)} ✅ — bisa terima. Setelah selesai & setor, deposit balik + kamu dapat ${rupiah(kurirTerima)} (95%).</div>
+        <div class="row" style="margin-top:8px"><button class="btn btn-yellow" onclick="window.terimaOrder('${o.id}')">✅ Terima</button><button class="btn btn-red" onclick="window.tolakOrder('${o.id}')">❌ Tolak</button></div>
+      </div>`;
+    }).join('');
+    log(`Order masuk: ${orderList.length} cocok (radius 40km + saldo cukup)`);
+  }catch(e){
+    $("listOrder").innerHTML='<div style="color:#b42318;background:#fff0f0;padding:10px;border-radius:10px">Gagal baca order: '+e.message+'<br><small>Ini yang kemarin error permission. Cek Rules di bawah.</small></div>';
+    log("Gagal load order: "+e.message);
   }
 }
 
-document.querySelectorAll('[data-tab]').forEach(btn=>{
-  btn.onclick=()=>{document.querySelectorAll('[data-tab]').forEach(b=>b.classList.remove('active'));btn.classList.add('active');currentTab=btn.dataset.tab;render();};
-});
-document.getElementById('filterBar').querySelectorAll('button').forEach(btn=>{
-  btn.onclick=()=>{document.getElementById('filterBar').querySelectorAll('button').forEach(b=>b.classList.remove('active'));btn.classList.add('active');currentFilter=btn.dataset.f;render();};
-});
-$('searchBox').oninput=()=>render();
-$('reloadBtn').onclick=()=>loadAll();
+window.terimaOrder=async(id)=>{
+  const o=orderList.find(x=>x.id===id); if(!o) return;
+  if(!confirm(`Terima order ini?\nTotal COD ${rupiah(o.total)}\nDeposit ${rupiah(o.total)} akan ditahan dari saldo kamu.\nAdmin 5% = ${rupiah(Math.round(o.total*0.05))}`)) return;
+  try{
+    await runTransaction(db, async(tx)=>{
+      const orderRef=doc(db,'orders',id);
+      const kurirRef=doc(db,'users',currentUser.uid);
+      const oSnap=await tx.get(orderRef);
+      const kSnap=await tx.get(kurirRef);
+      if(!oSnap.exists()) throw new Error("Order sudah tidak ada");
+      const oData=oSnap.data();
+      if(oData.status!=='mencari_kurir') throw new Error("Order sudah diambil kurir lain");
+      const kData=kSnap.exists()?kSnap.data():{};
+      const saldo=Number(kData.saldo ?? kData.saldoEwallet ?? 0)||0;
+      const total=Number(oData.total ?? oData.ongkir ?? 0)||0;
+      if(saldo < total) throw new Error(`Saldo kurang. Butuh ${rupiah(total)}, kamu punya ${rupiah(saldo)}`);
+      const adminFee=Math.round(total*0.05);
+      // Tahan deposit: saldo berkurang, saldoDitahan bertambah
+      tx.update(kurirRef,{ saldo: saldo - total, saldoDitahan: (Number(kData.saldoDitahan)||0)+total });
+      tx.update(orderRef,{ status:'diterima_kurir', kurirUid: currentUser.uid, kurirNama: myData.nama||currentUser.email, diterimaAt: serverTimestamp(), depositDitahan: total, adminFee, kurirTerima: total-adminFee });
+    });
+    alert("✅ Order diterima! Deposit ditahan. Sekarang jemput & antar.");
+    loadOrder();
+  }catch(e){ alert("Gagal terima: "+e.message); log("Gagal terima: "+e.message); }
+};
 
-$('loginForm').onsubmit=async e=>{e.preventDefault();$('loginMsg').textContent='Memeriksa…';$('loginMsg').classList.remove('hidden');try{await signInWithEmailAndPassword(auth,$('email').value.trim(),$('password').value);}catch(x){$('loginMsg').textContent='Login gagal: '+x.message;}};
-$('logoutBtn').onclick=async()=>{try{await signOut(auth);}catch{}finally{location.href='./index.html';}};
-
-onAuthStateChanged(auth,async u=>{
-  if(!u){$('loginPanel').classList.remove('hidden');$('dashboard').classList.add('hidden');$('logoutBtn').classList.add('hidden');$('bottomNav').classList.add('hidden');return;}
-  try{userNow=u;profile=await getProfile(u);const actual=roleOf(profile);if(actual!==ROLE){$('loginMsg').textContent='Role harus kurir, Anda: '+actual;$('loginMsg').classList.remove('hidden');return;} $('welcomeTop').textContent='Halo, Kak, '+(profile.nama||u.email)+' · Riwayat'; $('loginPanel').classList.add('hidden');$('dashboard').classList.remove('hidden');$('logoutBtn').classList.remove('hidden');$('bottomNav').classList.remove('hidden');await loadAll();}catch(x){$('loginMsg').textContent='Gagal: '+x.message;$('loginMsg').classList.remove('hidden');}
-});
+window.tolakOrder=async(id)=>{
+  if(!confirm("Tolak order ini? Nanti dilempar ke kurir berikutnya dalam 40 km.")) return;
+  try{
+    await updateDoc(doc(db,'orders',id),{ ditawarkanKe: arrayRemove(currentUser.uid), ditolakOleh: serverTimestamp() });
+    alert("Order ditolak, dilempar ke kurir berikutnya.");
+    loadOrder();
+  }catch(e){ alert("Gagal tolak: "+e.message); }
+};
 </script>
 <script>(function(){var loc=location.href.replace(/#.*$/,"");var ATTR_NAMES=["data-product-id","data-productid","data-product_id","product-id","productid","product_id","data-source-entity-id","source-entity-id","source_entity_id","data-product","data-metadata","data-meta"];var DATASET_KEYS=["productId","productid","product_id","sourceEntityId","sourceentityid","source_entity_id","product","metadata","meta"];function readProductId(value){if(typeof value!=="string"||value.length===0)return null;if(/^[0-9]{6,}$/.test(value))return value;var match=value.match(/(?:product(?:_|-)?id|source(?:_|-)?entity(?:_|-)?id)["'=:\s]+([0-9]{6,})/i);return match?match[1]:null}function extractProductId(start){for(var node=start;node&&node!==document.body;node=node.parentElement){for(var i=0;i<ATTR_NAMES.length;i++){var attrValue=node.getAttribute&&node.getAttribute(ATTR_NAMES[i]);var attrProductId=readProductId(attrValue);if(attrProductId)return attrProductId}var dataset=node.dataset||null;if(dataset){for(var j=0;j<DATASET_KEYS.length;j++){var dataValue=dataset[DATASET_KEYS[j]];var dataProductId=readProductId(dataValue);if(dataProductId)return dataProductId}}}return null}function isInlineMediaSlotElement(node){return !!(node&&node.getAttribute&&node.getAttribute("data-clippy-inline-media-slot")!==null)}function findInlineMediaSlot(start){for(var node=start;node&&node!==document.body;node=node.parentElement){if(isInlineMediaSlotElement(node))return node}return null}function readInlineMediaUrl(node){if(!node)return null;return node.getAttribute&&((node.getAttribute("data-clippy-inline-media-url")||node.getAttribute("data-url")||node.getAttribute("data_url")))||node.href||null}function stripHash(url){return String(url).replace(/#.*$/,"")}function urlsMatch(a,b){if(!a||!b)return false;try{return stripHash(new URL(a,loc).href)===stripHash(new URL(b,loc).href)}catch(_){return stripHash(a)===stripHash(b)}}function isFirstPartyReelUrl(value){try{var url=new URL(value,loc);if(url.protocol!=="https:")return false;var host=url.hostname.toLowerCase();var supported=host==="instagram.com"||host.endsWith(".instagram.com")||host==="facebook.com"||host.endsWith(".facebook.com");return supported&&/\/reels?\//i.test(url.pathname)}catch(_){return false}}function isInlineMediaUrlClick(node,href){var slot=findInlineMediaSlot(node);if(!slot)return false;var slotUrl=readInlineMediaUrl(slot);if(slotUrl)return urlsMatch(href,slotUrl);return isFirstPartyReelUrl(href)}function findDataHref(start){for(var node=start;node&&node!==document.body;node=node.parentElement){if(node.getAttribute){var href=node.getAttribute("data-href")||node.getAttribute("data-url");if(href)return{href:href,node:node}}}return null}var nativeOpen=window.open;window.open=function(url){if(parent!==window&&typeof url==="string"&&/^https?:\/\//.test(url)){parent.postMessage({type:"ecto:usercontent-link-click",href:url},"*");return null}return nativeOpen?nativeOpen.apply(window,arguments):null};document.addEventListener("click",function(e){var target=e.target instanceof Element?e.target:null;if(!target)return;if(parent===window)return;var a=target.closest?target.closest("a[href]"):null;if(a&&a.href&&/^https?:\/\//.test(a.href)&&a.href.replace(/#.*$/,"")!==loc){if(isInlineMediaUrlClick(a,a.href))return;var productId=extractProductId(target)||extractProductId(a);if(productId){e.preventDefault();parent.postMessage({type:"ecto-artifact-link-click",productId:productId},"*");return}e.preventDefault();parent.postMessage({type:"ecto:usercontent-link-click",href:a.href},"*");return}var dataHref=findDataHref(target);if(dataHref&&/^https?:\/\//.test(dataHref.href)&&dataHref.href.replace(/#.*$/,"")!==loc){if(isInlineMediaUrlClick(dataHref.node,dataHref.href))return;e.preventDefault();parent.postMessage({type:"ecto:usercontent-link-click",href:dataHref.href},"*")}},true)})();</script><script>(function(){var FOCUS_TYPE="ecto:artifact-focus-request";var CLOSE_TYPE="ecto:artifact-close-request";function focusArtifactDocument(){var body=document.body;if(!body)return;try{window.focus();}catch(e){}if(!body.hasAttribute("tabindex"))body.setAttribute("tabindex","-1");try{body.focus({preventScroll:true});}catch(e){try{body.focus();}catch(e2){}}}window.addEventListener("message",function(event){if(event.source!==window.parent)return;var data=event.data;if(!data||typeof data!=="object"||data.type!==FOCUS_TYPE)return;if(document.readyState==="loading"){document.addEventListener("DOMContentLoaded",focusArtifactDocument,{once:true});return;}focusArtifactDocument();});window.addEventListener("keydown",function(event){if(event.key!=="Escape")return;window.setTimeout(function(){if(event.defaultPrevented)return;window.parent.postMessage({type:CLOSE_TYPE},"*");},0);});})();</script></body>
 </html>
