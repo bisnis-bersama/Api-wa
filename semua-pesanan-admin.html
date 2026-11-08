@@ -182,7 +182,7 @@ async function loadVerifikasi(){
     $("content").innerHTML=`<div class="list">${docs.map(o=>{
       const s=parseSplit(o);
       return `<div class="item" style="border:2px solid var(--yellow)"><b>#${esc(o.nomorPesanan||o.id.slice(0,6))} - ${esc(o.status)}</b><div class="meta">OCR: ${esc((o.buktiPenyerahanOcr||o.buktiSerahTerimaOcr||o.buktiResiOcr||o.resiOcrText||o.resiTeksOcr||'Belum ada teks OCR').slice(0,120))}... | Foto Sheet Kolom J: ${o.buktiGambarDiSpreadsheet?'✅':'-'}</div>
-      <div style="margin-top:6px">${(o.buktiPenyerahanOcr||o.buktiSerahTerimaOcr||o.buktiResiOcr||o.resiOcrText||o.resiTeksOcr||o.buktiFotoUrl||o.buktiPenyerahanUrl||o.buktiGambarDiSpreadsheet)?`<button class="btn yellow" onclick="verifikasiKeuangan('${o.id}')">✅ Verifikasi & Bagi (Mitra 95% + Kurir 95% + Admin 5%)</button>`:'<div class="err">Status menunggu verifikasi terbaca, tetapi bukti/OCR belum tersedia.</div>'}</div></div>`;
+      <div style="margin-top:6px">${([o.buktiPenyerahanOcr,o.buktiSerahTerimaOcr,o.buktiResiOcr,o.resiOcrText,o.resiTeksOcr,o.resiOcr,o.ocrText,o.buktiOcr,o.buktiPengirimanOcr,o.buktiFotoUrl,o.buktiPenyerahanUrl,o.buktiGambarDiSpreadsheet].some(v=>String(v||'').trim().length>0))?`<button class="btn yellow" onclick="verifikasiKeuangan('${o.id}')">✅ Verifikasi & Bagi (Mitra 95% + Kurir 95% + Admin 5%)</button>`:'<div class="err">Status menunggu verifikasi terbaca, tetapi bukti/OCR belum tersedia.</div>'}</div></div>`;
     }).join('')}</div>`;
   }catch(e){ $("content").innerHTML=`<div class="err">${esc(e.message)}</div>`; }
 }
@@ -216,7 +216,9 @@ window.verifikasiKeuangan=async id=>{
       if(!orderSnap.exists()) throw Error('Order hilang');
       if(orderSnap.data().saldoDibagi===true) throw Error('Sudah dibagi');
       if(orderSnap.data().status !== 'menunggu_verifikasi_admin') throw Error('Pesanan belum masuk tahap verifikasi Admin');
-      if(!(orderSnap.data().buktiPenyerahanOcr || orderSnap.data().buktiSerahTerimaOcr || orderSnap.data().buktiResiOcr || orderSnap.data().buktiFotoUrl || orderSnap.data().buktiPenyerahanUrl || orderSnap.data().buktiGambarDiSpreadsheet)) throw Error('Bukti pengiriman/OCR belum tersedia');
+      const _bukti=orderSnap.data();
+      const _adaBukti=[_bukti.buktiPenyerahanOcr,_bukti.buktiSerahTerimaOcr,_bukti.buktiResiOcr,_bukti.resiOcrText,_bukti.resiTeksOcr,_bukti.resiOcr,_bukti.ocrText,_bukti.buktiOcr,_bukti.buktiPengirimanOcr,_bukti.buktiFotoUrl,_bukti.buktiPenyerahanUrl,_bukti.buktiGambarDiSpreadsheet,_bukti.buktiGambar,_bukti.buktiFoto].some(v=>String(v||'').trim().length>0);
+      if(!_adaBukti) throw Error('Bukti pengiriman/OCR belum tersedia');
       const od=orderSnap.data();
       const mitraUid=od.mitraUid, kurirUid=od.kurirUid;
       const _metode=String(od.metodePenyerahan||'').toLowerCase();
