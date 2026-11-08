@@ -117,7 +117,7 @@
 import {auth, db, app} from "./firebase-config.js";
 import {getStorage, ref as storageRef, uploadBytes, getDownloadURL} from "https://www.gstatic.com/firebasejs/12.4.0/firebase-storage.js";
 import {onAuthStateChanged} from "https://www.gstatic.com/firebasejs/12.4.0/firebase-auth.js";
-import {collection, query, where, onSnapshot, doc, getDoc, getDocs, updateDoc, runTransaction, serverTimestamp} from "https://www.gstatic.com/firebasejs/12.4.0/firebase-firestore.js";
+import {collection, query, where, onSnapshot, doc, getDoc, getDocs, updateDoc, serverTimestamp} from "https://www.gstatic.com/firebasejs/12.4.0/firebase-firestore.js";
 const storage=getStorage(app);
 
 const $=id=>document.getElementById(id);
@@ -299,21 +299,12 @@ window.tolak=async(id)=>{
 }
 
 window.ambil=async(id)=>{
-  if(!currentUser){alert('Sesi kurir tidak ditemukan.');return;}
   if(!confirm('Ambil pesanan ini?')) return;
-  try{
-    const ref=doc(db,'orders',id);
-    await runTransaction(db,async tx=>{
-      const snap=await tx.get(ref);
-      if(!snap.exists()) throw Error('Pesanan tidak ditemukan.');
-      const order={id,...snap.data()};
-      if(String(order.status||'').toLowerCase()!=='menunggu_kurir') throw Error('Pesanan sudah diambil kurir lain atau tidak tersedia.');
-      const offer=getOfferCourier(order);
-      if(!offer || offer.profile.uid!==currentUser.uid) throw Error('Pesanan ini sudah dialihkan ke kurir lain.');
-      tx.update(ref,{status:'diantar',statusPemenuhan:'diantar',kurirUid:currentUser.uid,kurirNama:currentUser.email||currentUser.uid,diambilAt:serverTimestamp(),updatedAt:serverTimestamp()});
-    });
-    alert('Pesanan berhasil diambil. Status sekarang DIANTAR.');
-  }catch(e){alert('Gagal mengambil pesanan: '+e.message);}
+  const snap=await getDoc(doc(db,'orders',id));
+  if(!snap.exists() || String(snap.data().status||'').toLowerCase()!=='menunggu_kurir'){ alert('Pesanan sudah diambil kurir lain atau tidak tersedia.'); return; }
+  const offer=getOfferCourier({id,...snap.data()});
+  if(!offer || offer.profile.uid!==currentUser.uid){ alert('Pesanan ini sudah dialihkan ke kurir lain.'); return; }
+  await updateDoc(doc(db,'orders',id), {status:'diantar', kurirUid:currentUser.uid, kurirNama:currentUser.email, diambilAt:serverTimestamp()});
 };
 
 let proofOrderId=null, proofFile=null, proofPreviewUrl=null;
@@ -353,19 +344,13 @@ window.kirimBukti=async()=>{
     const o=snap.data();
     if(o.kurirUid!==currentUser.uid) throw new Error('Pesanan ini bukan tugas kurir yang sedang login.');
     if(!['diantar','dikirim','dalam_pengiriman'].includes(String(o.status||'').toLowerCase())) throw new Error('Status pesanan tidak lagi dalam proses pengantaran.');
-    if(['menunggu_verifikasi_admin','menunggu_verifikasi','terverifikasi'].includes(String(o.statusPembayaran||'').toLowerCase()) || o.saldoDibagi===true) throw new Error('Pesanan sudah diajukan atau diproses verifikasi admin.');
     const safeName=String(proofFile.name||'bukti.jpg').replace(/[^a-zA-Z0-9._-]/g,'_');
     const path=`bukti-penyerahan/${id}/${currentUser.uid}_${Date.now()}_${safeName}`;
     const fileRef=storageRef(storage,path);
     await uploadBytes(fileRef,proofFile,{contentType:proofFile.type||'image/jpeg'});
     const url=await getDownloadURL(fileRef);
     await updateDoc(doc(db,'orders',id),{
-      status:'menunggu_verifikasi_admin',
-      statusPemenuhan:'selesai',
-      statusPembayaran:'menunggu_verifikasi_admin',
-      verifikasiAdminStatus:'menunggu',
-      saldoDibagi:false,
-      statusPembayaranAt:serverTimestamp(),
+      status:'verifikasi_admin',
       buktiSerahTerimaUrl:url,
       buktiSerahTerimaPath:path,
       buktiSerahTerimaNama:proofFile.name||safeName,
@@ -384,27 +369,15 @@ window.kirimBukti=async()=>{
 window.lacak=(id)=>{ localStorage.setItem('last_order_id',id); location.href='./perjalanan-kurir.html?orderId='+id; };
 
 onAuthStateChanged(auth, async (u)=>{
-  if(!u){ currentUser=null; return; }
-  currentUser=u;
-  try{
-    const us=await getDoc(doc(db,'users',u.uid));
-    if(!us.exists()) throw new Error('Profil kurir tidak ditemukan.');
-    const profile=us.data(), role=String(profile.role||'').toLowerCase();
-    if(!['kurir','mitra_pengantaran'].includes(role) || profile.status!=='aktif' || profile.aktif!==true){
-      currentUser=null;
-      alert('Akses ditolak. Akun kurir harus aktif.');
-      return;
-    }
-    $('nama').textContent=profile.nama||u.email;
-    $('mySaldo').textContent='Rp '+Number(profile.saldo||0).toLocaleString('id-ID');
-  }catch(e){ console.error(e); currentUser=null; alert('Gagal memvalidasi akun kurir: '+e.message); return; }
+  if(!u) return; currentUser=u;
+  try{ const us=await getDoc(doc(db,'users',u.uid)); if(us.exists()){ $('nama').textContent=us.data().nama||u.email; $('mySaldo').textContent='Rp '+Number(us.data().saldo||0).toLocaleString('id-ID'); } }catch{}
   try{
     const usSnap=await getDocs(collection(db,'users'));
     kurirProfiles=usSnap.docs.map(d=>({uid:d.id,data:d.data()}))
       .filter(k=>['kurir','mitra_pengantaran'].includes(String(k.data.role||'').toLowerCase()));
   }catch(e){ console.error('Gagal memuat daftar kurir',e); }
   const col=collection(db,'orders');
-  onSnapshot(query(col, where('status','in',['menunggu_kurir','diantar','dikirim','dalam_pengiriman','menunggu_verifikasi_admin'])), async snap=>{
+  onSnapshot(query(col, where('status','in',['menunggu_kurir','diantar','dikirim','dalam_pengiriman'])), async snap=>{
     all=snap.docs.map(d=>({id:d.id,...d.data()}));
     await enrichOrders();
   });
