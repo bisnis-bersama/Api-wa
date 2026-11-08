@@ -69,6 +69,18 @@ input:focus{outline:2px solid #ffcc00;background:#fff}
 nav.bottom{position:fixed;left:0;right:0;bottom:0;background:#111;display:grid;grid-template-columns:repeat(4,1fr);text-align:center;padding:8px 0;z-index:10}
 nav.bottom a{color:#aaa;text-decoration:none;font-size:11px} nav.bottom a.active{color:#ffcc00}
 .hidden{display:none}
+#overlayCari{position:fixed;inset:0;background:#fff;z-index:100;display:none;flex-direction:column}
+#overlayCari .top-cari{display:flex;gap:8px;align-items:center;padding:12px;background:#fff;box-shadow:0 1px 6px #00000012;position:sticky;top:0}
+#overlayCari .input-cari{flex:1;background:#f1f1f1;border:0;border-radius:999px;padding:12px 14px;font-size:16px}
+.hasil-cari{display:flex;gap:12px;padding:14px 14px;border-bottom:1px solid #f0f0f0;cursor:pointer;align-items:flex-start}
+.hasil-cari:active{background:#f7f7f7}
+.pin-wrap{width:40px;text-align:center}
+.pin-ico{width:36px;height:36px;background:#f1f1f1;border-radius:50%;display:grid;place-items:center;font-size:18px}
+.jarak-cari{font-size:11px;color:#666;margin-top:2px}
+.judul-cari{font-size:16px;font-weight:600}
+.sub-cari{font-size:13px;color:#666;margin-top:2px}
+.btn-nomor{background:#d6f6ff;border:0;border-radius:999px;padding:10px 16px;font-weight:700;color:#0a5a6b;cursor:pointer;margin:10px 14px;font-size:14px}
+
 </style>
 </head>
 <body>
@@ -141,6 +153,15 @@ nav.bottom a{color:#aaa;text-decoration:none;font-size:11px} nav.bottom a.active
 <div class="muted" id="pesanInfo" style="margin-top:6px">Order akan dibuat status <b>mencari_kurir</b> dan ditawarkan ke kurir terdekat dulu.</div>
 </div>
 </main>
+<div id="overlayCari">
+  <div class="top-cari">
+    <button id="btnTutupCari" type="button" style="border:0;background:none;font-size:22px;cursor:pointer">←</button>
+    <input id="inputCariOverlay" class="input-cari" placeholder="Cari alamat tujuan...">
+    <button id="btnClearCari" type="button" style="border:0;background:none;font-size:22px;cursor:pointer">ⓧ</button>
+  </div>
+  <div id="infoCari" class="muted" style="padding:10px 14px">Ketik nama tempat, jalan, desa, atau alun-alun. Hasil diurutkan dari yang paling dekat dengan lokasi kamu.</div>
+  <div id="listCariOverlay" style="overflow:auto;flex:1"></div>
+</div>
 <nav class="bottom"><a href="./index.html">🏠<br>Beranda</a><a href="./ewallet-admin.html">💳<br>E-Wallet</a><a href="./cari-kurir.html" class="active">🛵<br>Gojek Elit</a><a href="./semua-pesanan-admin.html">📦<br>Pesanan</a></nav>
 
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
@@ -275,35 +296,98 @@ function gpsUntukJemput(){
 $("btnGpsJemput").onclick=gpsUntukJemput;
 
 // === CARI ALAMAT TUJUAN - ketik, peta ikut ===
-let debounceTujuan=null;
-$("tujuanAlamat").addEventListener('input', ()=>{
-  const q=$("tujuanAlamat").value.trim();
-  const box=$("saranTujuan");
-  clearTimeout(debounceTujuan);
-  if(q.length<3){ box.style.display='none'; return; }
-  debounceTujuan=setTimeout(async ()=>{
-    try{
-      const res=await fetch(`https://nominatim.openstreetmap.org/search?format=jsonv2&q=${encodeURIComponent(q)}&limit=5&addressdetails=1&accept-language=id&countrycodes=id`);
-      const list=await res.json();
-      if(!list.length){ box.style.display='none'; return; }
-      box.innerHTML=list.map((it,i)=>`<div data-i="${i}">${it.display_name.split(',').slice(0,3).join(',')}<small>${it.display_name}</small></div>`).join('');
-      box.style.display='block';
-      box.querySelectorAll('div').forEach(el=>{
-        el.onclick=async ()=>{
-          const it=list[Number(el.dataset.i)];
-          $("tujuanLat").value=Number(it.lat).toFixed(6);
-          $("tujuanLng").value=Number(it.lon).toFixed(6);
-          box.style.display='none';
-          await isiAlamatDariGPS(Number(it.lat), Number(it.lon), 'tujuanAlamat', 'alamatLengkapTujuan');
-          if(markerTujuan) markerTujuan.setLatLng([Number(it.lat), Number(it.lon)]);
-          if(mapTujuan) mapTujuan.setView([Number(it.lat), Number(it.lon)], 15);
-          const h=hitung(); if(h) console.log('Tujuan dari ketikan, ongkir', h);
-        };
-      });
-    }catch(e){ box.style.display='none'; }
-  }, 500);
-});
-document.addEventListener('click', e=>{ if(!$("tujuanAlamat").contains(e.target) && !$("saranTujuan").contains(e.target)) $("saranTujuan").style.display='none'; });
+// === PENCARIAN ALA GOOGLE MAPS - overlay fullscreen ===
+let debounceCari=null, hasilCariTerakhir=[];
+function formatJarakCari(km){ if(km<1) return (km*1000).toFixed(0)+' m'; return km.toFixed(1).replace('.',',')+' km'; }
+function judulDariDisplay(display){
+  const parts=display.split(',').map(s=>s.trim());
+  return {judul: parts[0]||display, sub: parts.slice(1).join(', ')};
+}
+async function cariAlamatMaps(q){
+  const jLat=parseFloat($("jemputLat").value), jLng=parseFloat($("jemputLng").value);
+  // viewbox di sekitar jemput (Majalengka) biar hasil dekat dulu, tapi tidak dibatasi kaku
+  let viewbox='';
+  if(!isNaN(jLat)&&!isNaN(jLng)){ const d=0.6; viewbox=`&viewbox=${(jLng-d).toFixed(4)},${(jLat+d).toFixed(4)},${(jLng+d).toFixed(4)},${(jLat-d).toFixed(4)}&bounded=0`; }
+  const url=`https://nominatim.openstreetmap.org/search?format=jsonv2&q=${encodeURIComponent(q)}&limit=12&addressdetails=1&accept-language=id&countrycodes=id${viewbox}`;
+  const res=await fetch(url); const list=await res.json();
+  // Urutkan dari yang paling dekat dengan jemput (GPS pelanggan), seperti Google Maps
+  if(!isNaN(jLat)&&!isNaN(jLng)){
+    list.forEach(it=>{ it._jarak=haversineKm(jLat,jLng,Number(it.lat),Number(it.lon)); });
+    list.sort((a,b)=>a._jarak-b._jarak);
+  }
+  return list;
+}
+function renderHasilCari(list, q){
+  const box=$("listCariOverlay"); const info=$("infoCari");
+  if(!list.length){ box.innerHTML=`<div style="padding:20px;text-align:center;color:#666">Tidak ketemu "${q}". Coba kata lain, misal "Alun-alun Maja" saja.</div>`; info.textContent='Tidak ada hasil'; return; }
+  info.textContent=`${list.length} hasil untuk "${q}" — diurutkan dari yang paling dekat dengan lokasi kamu`;
+  let html='';
+  list.forEach((it,i)=>{
+    const {judul, sub}=judulDariDisplay(it.display_name);
+    const jarak = it._jarak!=null ? `<div class="jarak-cari">${formatJarakCari(it._jarak)}</div>` : '';
+    html+=`<div class="hasil-cari" data-i="${i}"><div class="pin-wrap"><div class="pin-ico">📍</div>${jarak}</div><div style="flex:1"><div class="judul-cari">${judul}</div><div class="sub-cari">${sub||it.display_name}</div></div><div style="font-size:20px;color:#666">↖</div></div>`;
+    // Sisipkan tombol Tambahkan nomor jalan tiap 2 hasil, seperti Google Maps
+    if(i===1 || i===4){ html+=`<button class="btn-nomor" data-nomor="${i}" type="button">+ &nbsp; Tambahkan nomor jalan</button>`; }
+  });
+  // Opsi terakhir: pakai teks yang diketik apa adanya
+  html+=`<div class="hasil-cari" data-i="-1"><div class="pin-wrap"><div class="pin-ico" style="background:#e8f0ff">🔍</div></div><div style="flex:1"><div class="judul-cari">"${q}"</div><div class="sub-cari" style="color:#1a73e8">Coba pakai teks ini sebagai tujuan</div></div></div>`;
+  box.innerHTML=html;
+  box.querySelectorAll('.hasil-cari').forEach(el=>{
+    el.onclick=()=>{
+      const idx=Number(el.dataset.i);
+      if(idx===-1){ // pakai teks mentah, jangan reverse geocode
+        $("tujuanAlamat").value=q; $("tujuanLat").value=''; $("tujuanLng").value='';
+        tutupOverlayCari(); alert('Alamat tujuan diisi dari teks. Sekarang tap peta untuk tentukan titik GPS-nya.'); return;
+      }
+      const it=list[idx];
+      // PENTING: jangan panggil isiAlamatDariGPS lagi, karena reverse bisa geser ke desa lain (Cipinang). Pakai nama dari hasil pencarian langsung.
+      $("tujuanLat").value=Number(it.lat).toFixed(6);
+      $("tujuanLng").value=Number(it.lon).toFixed(6);
+      const {judul, sub}=judulDariDisplay(it.display_name);
+      const lengkap = it.display_name;
+      $("tujuanAlamat").value=lengkap;
+      const elLengkap=$("alamatLengkapTujuan"); if(elLengkap){ elLengkap.classList.remove('hidden'); elLengkap.innerHTML=`📍 <b>${judul}</b><br><small>${sub}</small><br><small>GPS: ${Number(it.lat).toFixed(6)}, ${Number(it.lon).toFixed(6)}${it._jarak!=null?' • Jarak dari kamu: '+formatJarakCari(it._jarak):''}</small>`; }
+      updateStatusLokasi();
+      if(markerTujuan) markerTujuan.setLatLng([Number(it.lat), Number(it.lon)]);
+      if(mapTujuan) mapTujuan.setView([Number(it.lat), Number(it.lon)], 16);
+      tutupOverlayCari();
+      const h=hitung(); if(h) console.log('Tujuan dari pencarian Maps, ongkir', h);
+    };
+  });
+  box.querySelectorAll('[data-nomor]').forEach(btn=>{
+    btn.onclick=(e)=>{
+      e.stopPropagation();
+      const nomor=prompt('Tambahkan nomor jalan / patokan / blok, contoh: No. 12, Blok Jum\'at, Depan Pasar Hewan');
+      if(!nomor) return;
+      const cur=$("tujuanAlamat").value||q;
+      $("tujuanAlamat").value=cur+' - '+nomor;
+      const elLengkap=$("alamatLengkapTujuan"); if(elLengkap){ elLengkap.classList.remove('hidden'); elLengkap.innerHTML+=`<br><small>Patokan: ${nomor}</small>`; }
+      alert('Nomor jalan ditambahkan: '+nomor+'\nSekarang tap peta untuk pastikan titik GPS-nya pas.');
+      tutupOverlayCari();
+    };
+  });
+}
+function bukaOverlayCari(){
+  const ov=$("overlayCari"); ov.style.display='flex';
+  const inp=$("inputCariOverlay"); inp.value=$("tujuanAlamat").value||''; setTimeout(()=>inp.focus(),100);
+  if(inp.value.trim().length>=3) jalankanCariOverlay(inp.value.trim());
+}
+function tutupOverlayCari(){ $("overlayCari").style.display='none'; }
+function jalankanCariOverlay(q){
+  clearTimeout(debounceCari);
+  debounceCari=setTimeout(async ()=>{
+    $("infoCari").textContent='Mencari...';
+    try{ const list=await cariAlamatMaps(q); hasilCariTerakhir=list; renderHasilCari(list, q); }
+    catch(e){ $("infoCari").textContent='Gagal mencari: '+e.message; }
+  }, 400);
+}
+$("tujuanAlamat").addEventListener('click', bukaOverlayCari);
+$("tujuanAlamat").addEventListener('focus', bukaOverlayCari);
+$("inputCariOverlay").addEventListener('input', e=>{ const q=e.target.value.trim(); if(q.length<3){ $("listCariOverlay").innerHTML=''; $("infoCari").textContent='Ketik minimal 3 huruf'; return; } jalankanCariOverlay(q); });
+$("btnTutupCari").onclick=tutupOverlayCari;
+$("btnClearCari").onclick=()=>{ $("inputCariOverlay").value=''; $("listCariOverlay").innerHTML=''; $("inputCariOverlay").focus(); };
+// Sembunyikan saran lama kalau ada
+if($("saranTujuan")) $("saranTujuan").style.display='none';
 
 // === PETA ===
 let mapTujuan=null, markerJemput=null, markerTujuan=null, layerPeta=null, layerSatelit=null;
