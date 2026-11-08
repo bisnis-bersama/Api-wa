@@ -21,6 +21,11 @@
 :where(code, pre, kbd, samp) {
   font-family: "Optimistic Mono", ui-monospace, monospace;
 }
+</style><style>
+@font-face { font-family: "Optimistic"; font-style: normal; font-weight: 400 600; font-display: swap; src: url("/fonts/OptimisticAI_VF_Optimized.woff2") format("woff2"); }
+@font-face { font-family: "Optimistic Mono"; font-style: normal; font-weight: 400; font-display: swap; src: url("/fonts/OptimisticMono_W_TextRegular.woff2") format("woff2"); }
+:where(html) { font-family: "Optimistic", system-ui, sans-serif; }
+:where(code, pre, kbd, samp) { font-family: "Optimistic Mono", ui-monospace, monospace; }
 </style>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
@@ -84,7 +89,14 @@ nav.bottom a{color:#aaa;text-decoration:none;font-size:11px} nav.bottom a.active
 .judul-cari{font-size:16px;font-weight:600}
 .sub-cari{font-size:13px;color:#666;margin-top:2px}
 .btn-nomor{background:#d6f6ff;border:0;border-radius:999px;padding:10px 16px;font-weight:700;color:#0a5a6b;cursor:pointer;margin:10px 14px;font-size:14px}
-
+/* MODE BERSIH — cuma sembunyikan info & petunjuk, fungsi tetap jalan, tidak ada yang dihapus */
+.step p,
+#statusJemput, #statusTujuan,
+#gpsJemputText, #gpsTujuanText,
+#koordinatTengah, #pesanInfo, #labelTengah,
+div[style*="fffbe6"],
+.card p.muted,
+div.muted[style*="text-align:center"]{display:none!important}
 </style>
 </head>
 <body>
@@ -94,9 +106,10 @@ nav.bottom a{color:#aaa;text-decoration:none;font-size:11px} nav.bottom a.active
 </div></header>
 
 <main>
+
 <!-- 1. LOKASI TERKINI -->
 <div class="card">
-<div class="step"><div class="num">1</div><div><h3>Lokasi Terkini Kamu</h3><p>Tentukan lokasi awal / jemput. Ini GPS kamu saat memesan kurir.</p></div></div>
+<div class="step"><div class="num">1</div><div><h3>Lokasi Terkini Kamu</h3></div></div>
 <button class="btn btn-dark" id="btnGpsJemput" style="margin-top:12px">📍 Gunakan Lokasi Saya</button>
 <div id="statusJemput" class="muted" style="margin-top:8px">Belum ditentukan. Tekan Gunakan Lokasi Saya.</div>
 <div id="alamatLengkapJemput" class="alamat-lengkap hidden"></div>
@@ -107,41 +120,38 @@ nav.bottom a{color:#aaa;text-decoration:none;font-size:11px} nav.bottom a.active
 
 <!-- 2. TUJUAN -->
 <div class="card">
-<div class="step"><div class="num">2</div><div><h3>Tujuan</h3><p>Ketik alamat tujuan seperti di Google Maps — bisa di kota / desa mana saja. Pilih dari saran, peta akan ikut. Atau langsung tap peta.</p></div></div>
-<label>Alamat Tujuan</label>
-<input id="tujuanAlamat" readonly placeholder="🔍 Ketik seperti di Google Maps — contoh: Pasar Maja Selatan" style="cursor:pointer;background:#fff">
+<div class="step"><div class="num">2</div><div><h3>Tujuan</h3></div></div>
+
+<input id="tujuanAlamat" readonly placeholder="🔍 Tujuan" style="cursor:pointer;background:#fff">
 <div id="saranTujuan" class="saran"></div>
 <div id="statusTujuan" class="muted" style="margin-top:8px">Belum ditentukan. Cari di kolom pencarian di atas. Kalau tidak ketemu, cari di peta.</div>
 <div id="alamatLengkapTujuan" class="alamat-lengkap hidden"></div>
 <input id="tujuanLat" class="hidden"><input id="tujuanLng" class="hidden">
 <div class="muted" id="gpsTujuanText" style="margin-top:6px"></div>
 
-<div style="margin-top:12px"><b>🗺️ Peta Tujuan</b><span class="muted"> — tap peta atau geser pin merah</span></div>
+
 <div class="map-switch">
 <button id="btnLayerPeta" class="active" type="button">🗺️ Peta</button>
 <button id="btnLayerSatelit" type="button">🛰️ Satelit (Lihat Rumah)</button>
 </div>
 <div id="wrapMap"><div id="mapTujuan"></div><div id="pinTengah">📍</div><div id="labelTengah">Geser peta sampai pin pas di atap rumah tujuan</div></div>
-<div style="margin-top:8px;background:#fffbe6;border:1px solid #ffe08a;padding:10px;border-radius:12px;font-size:12px">🎯 <b>Cara tepat:</b> 1. Pindah ke mode <b>Satelit</b> → 2. Zoom sampai kelihatan rumah → 3. Geser peta sampai pin 📍 pas di atap rumah tujuan → 4. Tekan <b>Kunci Tujuan di Sini</b></div>
+
 <button class="btn btn-yellow" id="btnKunciTengah" type="button" style="margin-top:8px">📌 Kunci Tujuan di Sini (Pin Tengah Peta)</button>
 <div class="row" style="margin-top:8px"><button class="btn btn-grey" id="btnPetaJemput" type="button">🎯 Pusatkan ke Jemput</button><button class="btn btn-grey" id="btnPetaHapusTujuan" type="button">🗑️ Hapus Tujuan</button></div>
-<div style="margin-top:12px;background:#fffbe6;border:1px solid #ffe08a;border-radius:14px;padding:12px">
-  <b>🔍 Cara cari tujuan:</b><br>
-  <span class="muted">1. <b>Cari di kolom pencarian</b> di atas — ketik nama jalan / desa / pasar / RS, pilih yang muncul.<br>2. Kalau tidak ketemu, <b>cari di peta</b>: geser peta sampai pin 📍 pas di tempatnya, lalu tekan <b>📌 Kunci Tujuan di Sini</b>. Atau tekan <b>🗺️ Peta</b> / <b>🛰️ Satelit</b> biar kelihatan rumahnya.</span>
-</div>
-<button class="btn btn-dark" id="btnBukaGmaps" type="button" style="margin-top:8px">🗺️ Buka Titik Ini di Aplikasi Google Maps</button>
-<div class="muted" style="margin-top:6px;text-align:center">Peta di atas sudah pakai sistem Google Maps (jalan + satelit Google). GPS jemput pakai GPS satelit HP.</div>
-<div class="muted" id="koordinatTengah" style="margin-top:6px;text-align:center">Tengah peta: -</div>
-<a id="linkGmapsTujuan" href="#" target="_blank" style="display:block;margin-top:8px;font-size:12px;color:#087443;font-weight:700">🗺️ Buka Rute di Google Maps</a>
+
+
+
+
+
 <div id="peringatanLokasi" style="display:none;background:#fff0f0;border:1px solid #f5c6c6;padding:10px;border-radius:12px;font-size:12px;margin-top:10px"></div>
 </div>
 
 <!-- 3. KENDARAAN + ONGKIR -->
 <div class="card">
-<div class="step"><div class="num">3</div><div><h3>Kendaraan yang Dibutuhkan</h3><p>Pilih setelah kedua GPS (awal & tujuan) sudah ditentukan.</p></div></div>
+<div class="step"><div class="num">3</div><div><h3>Kendaraan</h3></div></div>
 <div class="kendaraan">
-<button id="cardMotor" type="button"><b>🛵 Motor</b><small>Dasar Rp 8.000 + Rp 2.000/km</small><small>Untuk paket kecil & cepat</small></button>
-<button id="cardMobil" type="button"><b>🚗 Mobil</b><small>Dasar Rp 15.000 + Rp 3.500/km</small><small>Untuk barang banyak / besar</small></button>
+<button id="cardMotor" type="button"><b>🛵 Motor</b><small>Dasar Rp 8.000 + Rp 2.000/km</small></button>
+<button id="cardMobil" type="button"><b>🚗 Mobil</b><small>Dasar Rp 15.000 + Rp 3.500/km</small></button>
 </div>
 <select id="jenisKendaraan" class="hidden"><option value="motor">Motor</option><option value="mobil">Mobil</option></select>
 
@@ -331,7 +341,9 @@ function gpsUntukJemput(){
   }, e=>alert("Gagal ambil GPS: "+e.message), {enableHighAccuracy:true, timeout:10000});
 }
 $("btnGpsJemput").onclick=gpsUntukJemput;
-
+// Panduan tersembunyi — tampil saat diklik
+// Panduan tersembunyi — tampil saat diklik
+};
 // === CARI ALAMAT TUJUAN - ketik, peta ikut ===
 // === PENCARIAN ALA GOOGLE MAPS - overlay fullscreen ===
 let debounceCari=null, hasilCariTerakhir=[];
@@ -511,7 +523,7 @@ function initPeta(){
   const pusat=(!isNaN(tLat)&&!isNaN(tLng))?[tLat,tLng]:[jLat,jLng];
   mapTujuan=L.map('mapTujuan').setView(pusat, 14);
   // PETA GOOGLE MAPS — tile Google, bukan OpenStreetMap lagi
-  layerPeta=L.tileLayer('https://mt1.google.com/vt/lyrs=m&x={x}&y={y}&z={z}',{maxZoom:20, attribution:'© Google Maps'}).addTo(mapTujuan);
+  layerPeta=L.tileLayer('https://mt1.google.com/vt/lyrs=m&x={x}&y={y}&z={z}',{maxZoom:20, attribution:'© Google Maps'}).addTo(mapTujuan); }catch(e){} });
   layerSatelit=L.tileLayer('https://mt1.google.com/vt/lyrs=s,h&x={x}&y={y}&z={z}',{maxZoom:20, attribution:'© Google Maps'});
   markerJemput=L.marker([jLat,jLng]).addTo(mapTujuan).bindPopup('📍 Lokasi Awal - GPS Pelanggan');
   const posT=(!isNaN(tLat)&&!isNaN(tLng))?[tLat,tLng]:[jLat,jLng];
@@ -619,6 +631,8 @@ $("btnCari").onclick=async ()=>{
     $("txtJarakKurir").textContent=`✅ Ketemu ${kurirList.length} kurir dalam 40 km. Terdekat: ${kurirList[0].nama||kurirList[0].email} (${kurirList[0].jarakKeJemput.toFixed(2)} km)`;
   }catch(e){ $("listKurir").innerHTML='<div style="color:red">Gagal cari kurir: '+e.message+'</div>'; }
 };
+window.pilihKurir('${k.id}')">Pilih</button></div></div>`; }).join(''); kurirTerpilih=[kurirList[0]]; $("btnPesan").disabled=false; $("txtJarakKurir").textContent=`✅ Ketemu ${kurirList.length} kurir dalam 40 km. Terdekat: ${kurirList[0].nama||kurirList[0].email} (${kurirList[0].jarakKeJemput.toFixed(2)} km)`; }catch(e){ $("listKurir").innerHTML='<div style="color:red">Gagal cari kurir: '+e.message+'</div>'; } };
+
 window.pilihKurir=(id)=>{ const k=kurirList.find(x=>x.id===id); if(!k) return; kurirTerpilih=[k]; $("btnPesan").disabled=false; alert(`Kurir dipilih: ${k.nama||k.email} (${k.jarakKeJemput.toFixed(2)} km dari jemput)`); };
 
 $("btnPesan").onclick=async ()=>{
