@@ -118,7 +118,7 @@ function isVisibleToMitra(x){
   const status=String(x.status||'').trim().toLowerCase();
   const uid=userNow?.uid;
   const assigned=x.mitraUsahaUid===uid||x.mitraUid===uid||x.acceptedByMitraUid===uid;
-  return status==='disetujui' || (assigned && ['dikemas','menunggu_kurir','diantar','menunggu_verifikasi_admin'].includes(status));
+  return status==='disetujui' || (assigned && ['dikemas','menunggu_kurir','menunggu_verifikasi_admin'].includes(status));
 }
 async function fetchAssignedOrders(){
   const found=new Map(), uid=userNow.uid;
@@ -132,7 +132,7 @@ async function fetchAssignedOrders(){
     query(collection(db,"orders"),where("acceptedByMitraUid","==",uid))
   ];
   for(const q of attempts){try{const snap=await getDocs(q);snap.docs.forEach(d=>found.set(d.id,{id:d.id,...d.data()}));}catch(e){}}
-  return {orders:[...found.values()].filter(x=>isAssignedToMe(x)&&isVisibleToMitra(x))};
+  return {orders:[...found.values()].filter(x=>String(x.status||x.statusPemenuhan||'').trim().toLowerCase()!=='diantar' && isAssignedToMe(x)&&isVisibleToMitra(x))};
 }
 function coord(v){if(v===undefined||v===null||v==="")return null;const n=Number(v);return Number.isFinite(n)&&Math.abs(n)<=180?n:null;}
 function coordsFrom(obj){
@@ -185,7 +185,7 @@ function renderOrderRecord(x){
   const statusRaw=String(x.status||x.statusPemenuhan||'').trim().toLowerCase();
   const sudahDikemas=statusRaw==='dikemas';
   const menungguKurir=statusRaw==='menunggu_kurir';
-  const sudahDikirim=statusRaw==='diantar';
+  const sudahDikirim=false; // Status diantar hanya dikelola halaman Kurir.
   const sudahSelesai=statusRaw==='menunggu_verifikasi_admin'||statusRaw==='selesai';
   const milikSaya=x.acceptedByMitraUid===userNow?.uid||x.mitraUsahaUid===userNow?.uid||x.mitraUid===userNow?.uid;
   const metodeSerah=String(x.metodePenyerahan||'');
@@ -193,20 +193,17 @@ function renderOrderRecord(x){
   let pilihanProses='';
   if(milikSaya && statusRaw==='disetujui'){
     pilihanProses=`<div class="actions" style="margin-top:10px"><button class="btn" type="button" data-order-action="pack-self" data-id="${esc(x.id)}">📦 ${isExpedisi?'Dikemas & Proses Ekspedisi':'Dikemas & Kirim Sendiri'}</button>${!isExpedisi&&x._kurirRadius40?`<button class="btn dark" type="button" data-order-action="pack-courier" data-id="${esc(x.id)}">📦 Dikemas & Serahkan ke Kurir</button>`:''}</div>${!isExpedisi&&!x._kurirRadius40?`<div class="meta" style="margin-top:7px;color:#b42318">Kurir tidak tersedia dalam radius 40 km dari pelanggan dan mitra. Opsi serahkan ke kurir disembunyikan.</div>`:''}<div class="order-action-message meta" data-message-for="${esc(x.id)}"></div>`;
-  } else if(milikSaya && sudahDikemas && diprosesSendiri){
-    pilihanProses=`<div class="actions" style="margin-top:10px"><button class="btn" type="button" data-order-action="mark-shipped" data-id="${esc(x.id)}">🚚 Dikirim</button></div><div class="order-action-message meta" data-message-for="${esc(x.id)}"></div>`;
-  } else if(milikSaya && sudahDikirim){
-    pilihanProses=`<div class="actions" style="margin-top:10px"><button class="btn" type="button" data-order-action="finish-with-receipt" data-id="${esc(x.id)}">✅ Selesai</button></div><div class="order-action-message meta" data-message-for="${esc(x.id)}"></div>`;
+  }
   }
   const resiInfo=(sudahSelesai||statusRaw==='menunggu_verifikasi_admin') && x.resiOcrText?`<div class="ok" style="margin-top:8px"><b>Resi tersimpan (hasil OCR)</b><div class="meta" style="white-space:pre-wrap;margin-top:5px">${esc(x.resiOcrText)}</div><div class="meta">Berkas: ${esc(x.resiNamaFile||'-')}</div></div>`:'';
   const metodeLabel=x.metodePenyerahan==='mitra_kirim_sendiri'?'Dikirim sendiri oleh mitra':x.metodePenyerahan==='serahkan_ke_kurir'?'Diserahkan ke kurir':x.metodePenyerahan==='via_expedisi'?'Diproses melalui ekspedisi':'';
   const infoPenyerahan=metodeLabel?`<div class="meta">Penyerahan: <b>${metodeLabel}</b></div>`:'';
   const infoMenungguKurir=menungguKurir?'<div class="notice" style="margin-top:8px">Pesanan sudah diserahkan ke antrean kurir. Mitra hanya dapat memantau status; tidak ada aksi pengiriman lagi.</div>':'';
-  return `<article class="item order-collapse" data-id="${esc(x.id)}"><div class="itemtop"><strong style="font-size:13px">${no}</strong><span class="status">${esc(status)}</span></div><div class="meta">ID: ${shortId}...</div>${infoCheckout}<div style="margin-top:10px;padding:10px;background:#f7faf8;border:1px solid #e2eee7;border-radius:10px"><strong style="font-size:12px">👤 DATA PELANGGAN</strong><div style="margin-top:6px"><b>${esc(namaPelanggan)}</b></div><div class="meta">WhatsApp: <a href="https://wa.me/${esc(String(noWa).replace(/\D/g,''))}" target="_blank" rel="noopener" style="color:#087443;font-weight:800">${esc(noWa)}</a></div><div class="meta" style="margin-top:5px">Alamat: ${esc(alamat)}</div><div class="meta" style="margin-top:5px">GPS: ${gpsInfo}</div>${gpsHtml}</div><div style="margin-top:10px;padding:10px;background:#fff;border:1px solid #e6e7e8;border-radius:10px"><strong style="font-size:12px">📦 DATA PESANAN (${items.length} produk)</strong>${itemRows}${x.catatan?`<div class="meta">Catatan pelanggan: ${esc(x.catatan)}</div>`:''}</div>${infoPenyerahan}${infoMenungguKurir}${sudahDikemas?'<div class="ok" style="margin-top:8px">Pesanan sudah dikemas.</div>':''}${sudahDikirim?'<div class="ok" style="margin-top:8px">Pesanan sudah dikirim.</div>':''}${resiInfo}${pilihanProses}</article>`;
+  return `<article class="item order-collapse" data-id="${esc(x.id)}"><div class="itemtop"><strong style="font-size:13px">${no}</strong><span class="status">${esc(status)}</span></div><div class="meta">ID: ${shortId}...</div>${infoCheckout}<div style="margin-top:10px;padding:10px;background:#f7faf8;border:1px solid #e2eee7;border-radius:10px"><strong style="font-size:12px">👤 DATA PELANGGAN</strong><div style="margin-top:6px"><b>${esc(namaPelanggan)}</b></div><div class="meta">WhatsApp: <a href="https://wa.me/${esc(String(noWa).replace(/\D/g,''))}" target="_blank" rel="noopener" style="color:#087443;font-weight:800">${esc(noWa)}</a></div><div class="meta" style="margin-top:5px">Alamat: ${esc(alamat)}</div><div class="meta" style="margin-top:5px">GPS: ${gpsInfo}</div>${gpsHtml}</div><div style="margin-top:10px;padding:10px;background:#fff;border:1px solid #e6e7e8;border-radius:10px"><strong style="font-size:12px">📦 DATA PESANAN (${items.length} produk)</strong>${itemRows}${x.catatan?`<div class="meta">Catatan pelanggan: ${esc(x.catatan)}</div>`:''}</div>${infoPenyerahan}${infoMenungguKurir}${sudahDikemas?'<div class="ok" style="margin-top:8px">Pesanan sudah dikemas.</div>':''}${resiInfo}${pilihanProses}</article>`;
 }
 async function handleOrderPacking(id, mode, card){
-  if(mode==='finish-with-receipt'){
-    openReceiptModal(id);
+  if(mode==='finish-with-receipt'||mode==='mark-shipped'){
+    alert('Status pengantaran dan bukti selesai hanya diproses di halaman Kurir.');
     return;
   }
   const buttons=card.querySelectorAll('button[data-order-action]');
