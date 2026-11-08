@@ -25,7 +25,10 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <title>Cari Kurir - Toko Siap Antar</title>
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
 <style>
+#mapTujuan{height:280px;border-radius:12px;border:1px solid #ddd;margin-top:8px;z-index:1}
+.leaflet-container{font:12px system-ui}
 *{box-sizing:border-box} body{margin:0;background:#f1f2f4;font:14px/1.5 system-ui,sans-serif;padding-bottom:90px}
 .top{background:#111;color:#fff;padding:12px 14px 18px;border-radius:0 0 20px 20px}.topline{max-width:900px;margin:auto;display:flex;justify-content:space-between;align-items:center}
 .brand{font-weight:900;font-size:17px;color:#ffcc00}.sub{font-size:11px;color:#c7cbd0}
@@ -52,17 +55,27 @@ nav.bottom a{color:#aaa;text-decoration:none;font-size:11px} nav.bottom a.active
 <main>
 <div class="panel">
 <h2 style="margin:0">🚖 Cari Kurir Terdekat</h2>
-<p class="muted" style="margin:4px 0 0">Pelanggan isi titik jemput & tujuan, sistem hitung jarak + ongkir, lalu cari kurir online dalam radius 40 km.</p>
+<p class="muted" style="margin:4px 0 0">Pelanggan isi titik jemput (GPS kamu) & tujuan, sistem hitung jarak PELANGGAN → TUJUAN + ongkir, lalu cari kurir online dalam radius 40 km.</p>
 
-<label>Titik Jemput - Alamat / Patokan</label>
+<div style="background:#fff3cd;border:1px solid #ffe08a;padding:10px;border-radius:10px;font-size:12px">⚠️ <b>Pelanggan wajib tentukan 2 titik:</b> 1. Lokasi Awal (Jemput) dan 2. Lokasi Tujuan. Dua-duanya harus diisi dan <b>harus beda</b>. Kalau sama, jarak jadi 0.00 km dan order tidak bisa dibuat.</div>
+
+<label>1. LOKASI AWAL (Jemput) — GPS PELANGGAN SAAT MEMESAN — WAJIB</label>
+<div class="muted">Ini GPS kamu saat memesan kurir. Tekan tombol GPS biar keisi otomatis.</div>
 <input id="jemputAlamat" placeholder="Contoh: Depan Pasar Hewan Maja">
 <div class="row"><input id="jemputLat" placeholder="Lat jemput, contoh -6.812"><input id="jemputLng" placeholder="Lng jemput, contoh 108.28"></div>
 <button class="btn btn-grey" id="btnGpsJemput" style="margin-top:6px">📍 Pakai GPS Saya untuk Jemput</button>
+<div id="statusJemput" class="muted" style="margin-top:4px">❌ Lokasi Awal belum ditentukan</div>
 
-<label>Titik Tujuan - Alamat / Patokan</label>
-<input id="tujuanAlamat" placeholder="Contoh: Alun-alun Cirebon">
+<label>2. LOKASI TUJUAN — WAJIB, HARUS BEDA DARI LOKASI AWAL</label>
+<input id="tujuanAlamat" placeholder="Contoh: Alun-alun Cirebon — jangan isi dengan lokasi kamu sekarang kalau mau kirim ke tempat lain">
 <div class="row"><input id="tujuanLat" placeholder="Lat tujuan"><input id="tujuanLng" placeholder="Lng tujuan"></div>
-<button class="btn btn-grey" id="btnGpsTujuan" style="margin-top:6px">📍 Pakai GPS Saya untuk Tujuan</button>
+<button class="btn btn-grey" id="btnGpsTujuan" style="margin-top:6px">📍 Pakai GPS Saya untuk Tujuan (hanya kalau tujuan = lokasi kamu sekarang)</button>
+<div id="statusTujuan" class="muted" style="margin-top:4px">❌ Lokasi Tujuan belum ditentukan</div>
+<div style="margin-top:10px"><b>🗺️ Pilih Tujuan Lewat Peta</b><div class="muted">Cara 1: Tap peta di titik tujuan. Cara 2: Geser pin merah. Cara 3: Isi Lat/Lng manual di kolom atas — peta ikut pindah.</div>
+<div id="mapTujuan"></div>
+<div class="row" style="margin-top:6px"><button class="btn btn-grey" id="btnPetaJemput" type="button">🎯 Pusatkan Peta ke Jemput</button><button class="btn btn-grey" id="btnPetaHapusTujuan" type="button">🗑️ Hapus Tujuan</button></div>
+<a id="linkGmapsTujuan" href="#" target="_blank" style="display:block;margin-top:6px;font-size:12px;color:#087443;font-weight:700">🗺️ Buka Tujuan di Google Maps</a></div>
+<div id="peringatanLokasi" style="display:none;background:#fff0f0;border:1px solid #f5c6c6;padding:8px;border-radius:10px;font-size:12px;margin-top:8px"></div>
 
 <label>Jenis Kendaraan</label>
 <select id="jenisKendaraan"><option value="motor">🛵 Motor</option><option value="mobil">🚗 Mobil</option></select>
@@ -73,7 +86,7 @@ nav.bottom a{color:#aaa;text-decoration:none;font-size:11px} nav.bottom a.active
 </div>
 
 <div id="hasilHitung" style="margin-top:12px;display:none;background:#f9faf8;border:1px solid #eee;border-radius:12px;padding:10px">
-<div class="muted">JARAK JEMPUT → TUJUAN</div><div class="hasil" id="txtJarak">-</div>
+<div class="muted">JARAK PELANGGAN (JEMPUT) → TUJUAN</div><div class="hasil" id="txtJarak">-</div>
 <div class="muted">ONGKIR (Otomatis)</div><div class="hasil" id="txtOngkir" style="color:#087443">-</div>
 <div class="muted" id="txtRincianOngkir">-</div>
 <div class="muted" id="txtJarakKurir">-</div>
@@ -89,8 +102,9 @@ nav.bottom a{color:#aaa;text-decoration:none;font-size:11px} nav.bottom a.active
 <div class="muted" id="pesanInfo" style="margin-top:6px">Pesan akan membuat order status <b>mencari_kurir</b> dan ditawarkan ke kurir terdekat dulu. Kalau 30 detik tidak diterima, lempar ke kurir berikutnya.</div>
 </div>
 </main>
-<nav class="bottom"><a href="./index.html">🏠<br>Beranda</a><a href="./ewallet-admin.html">💳<br>E-Wallet</a><a href="./cari-kurir.html" class="active">🚖<br>Cari Kurir</a><a href="./semua-pesanan-admin.html">📦<br>Pesanan</a></nav>
+<nav class="bottom"><a href="./index.html">🏠<br>Beranda</a><a href="./ewallet-admin.html">💳<br>E-Wallet</a><a href="data:text/html;base64,PCFkb2N0eXBlIGh0bWw+CjxodG1sIGxhbmc9ImlkIj4KPGhlYWQ+CjxtZXRhIGNoYXJzZXQ9InV0Zi04Ij4KPG1ldGEgbmFtZT0idmlld3BvcnQiIGNvbnRlbnQ9IndpZHRoPWRldmljZS13aWR0aCxpbml0aWFsLXNjYWxlPTEsdmlld3BvcnQtZml0PWNvdmVyIj4KPHRpdGxlPkNhcmkgS3VyaXIgLSBUb2tvIFNpYXAgQW50YXI8L3RpdGxlPgo8c3R5bGU+Cip7Ym94LXNpemluZzpib3JkZXItYm94fSBib2R5e21hcmdpbjowO2JhY2tncm91bmQ6I2YxZjJmNDtmb250OjE0cHgvMS41IHN5c3RlbS11aSxzYW5zLXNlcmlmO3BhZGRpbmctYm90dG9tOjkwcHh9Ci50b3B7YmFja2dyb3VuZDojMTExO2NvbG9yOiNmZmY7cGFkZGluZzoxMnB4IDE0cHggMThweDtib3JkZXItcmFkaXVzOjAgMCAyMHB4IDIwcHh9LnRvcGxpbmV7bWF4LXdpZHRoOjkwMHB4O21hcmdpbjphdXRvO2Rpc3BsYXk6ZmxleDtqdXN0aWZ5LWNvbnRlbnQ6c3BhY2UtYmV0d2VlbjthbGlnbi1pdGVtczpjZW50ZXJ9Ci5icmFuZHtmb250LXdlaWdodDo5MDA7Zm9udC1zaXplOjE3cHg7Y29sb3I6I2ZmY2MwMH0uc3Vie2ZvbnQtc2l6ZToxMXB4O2NvbG9yOiNjN2NiZDB9Cm1haW57bWF4LXdpZHRoOjgyMHB4O21hcmdpbjotMTBweCBhdXRvIDA7cGFkZGluZzowIDEwcHg7cG9zaXRpb246cmVsYXRpdmU7ei1pbmRleDoyfQoucGFuZWx7YmFja2dyb3VuZDojZmZmO2JvcmRlci1yYWRpdXM6MTZweDtwYWRkaW5nOjE0cHg7bWFyZ2luLWJvdHRvbToxMHB4O2JveC1zaGFkb3c6MCA0cHggMTZweCAjMDAwMDAwMGF9CmxhYmVse2ZvbnQtc2l6ZToxMXB4O2ZvbnQtd2VpZ2h0OjcwMDtjb2xvcjojNTU1O2Rpc3BsYXk6YmxvY2s7bWFyZ2luOjEwcHggMCA0cHh9CmlucHV0LHNlbGVjdHt3aWR0aDoxMDAlO3BhZGRpbmc6MTBweCAxMnB4O2JvcmRlcjoxcHggc29saWQgI2RkZDtib3JkZXItcmFkaXVzOjEwcHg7Zm9udC1zaXplOjE0cHh9Ci5yb3d7ZGlzcGxheTpncmlkO2dyaWQtdGVtcGxhdGUtY29sdW1uczoxZnIgMWZyO2dhcDo4cHh9Ci5idG57Ym9yZGVyOjA7Ym9yZGVyLXJhZGl1czoxMnB4O3BhZGRpbmc6MTJweDtmb250LXdlaWdodDo4MDA7Y3Vyc29yOnBvaW50ZXI7d2lkdGg6MTAwJTtmb250LXNpemU6MTRweH0KLmJ0bi15ZWxsb3d7YmFja2dyb3VuZDojZmZjYzAwO2NvbG9yOiMxMTF9LmJ0bi1ibGFja3tiYWNrZ3JvdW5kOiMxMTE7Y29sb3I6I2ZmZn0uYnRuLWdyZXl7YmFja2dyb3VuZDojZWVlO2NvbG9yOiMxMTF9Ci5idG46ZGlzYWJsZWR7b3BhY2l0eTouNX0KLmt1cmlye2JvcmRlcjoxcHggc29saWQgI2VlZTtib3JkZXItcmFkaXVzOjEycHg7cGFkZGluZzoxMHB4O21hcmdpbi10b3A6OHB4O2Rpc3BsYXk6ZmxleDtqdXN0aWZ5LWNvbnRlbnQ6c3BhY2UtYmV0d2VlbjtnYXA6MTBweDthbGlnbi1pdGVtczpjZW50ZXJ9Ci5rdXJpciBie2ZvbnQtc2l6ZToxNHB4fS5rdXJpciBzbWFsbHtjb2xvcjojNjY2fQouYmFkZ2V7YmFja2dyb3VuZDojZThmOGVlO2NvbG9yOiMwODc0NDM7cGFkZGluZzozcHggOHB4O2JvcmRlci1yYWRpdXM6MjBweDtmb250LXNpemU6MTFweDtmb250LXdlaWdodDo3MDB9Ci5iYWRnZS1vZmZ7YmFja2dyb3VuZDojZmZlOGU4O2NvbG9yOiNhMDB9Ci5oYXNpbHtmb250LXNpemU6MjJweDtmb250LXdlaWdodDo5MDB9Lm11dGVke2NvbG9yOiM2NjY7Zm9udC1zaXplOjEycHh9CiNsb2d7d2hpdGUtc3BhY2U6cHJlLXdyYXA7Zm9udC1zaXplOjExcHg7Y29sb3I6IzU1NTtiYWNrZ3JvdW5kOiNmZmY7Ym9yZGVyOjFweCBzb2xpZCAjZTVlNWU1O3BhZGRpbmc6OHB4O2JvcmRlci1yYWRpdXM6MTBweDtkaXNwbGF5Om5vbmV9Cm5hdi5ib3R0b217cG9zaXRpb246Zml4ZWQ7bGVmdDowO3JpZ2h0OjA7Ym90dG9tOjA7YmFja2dyb3VuZDojMTExO2Rpc3BsYXk6Z3JpZDtncmlkLXRlbXBsYXRlLWNvbHVtbnM6cmVwZWF0KDQsMWZyKTt0ZXh0LWFsaWduOmNlbnRlcjtwYWRkaW5nOjhweCAwO3otaW5kZXg6MTB9Cm5hdi5ib3R0b20gYXtjb2xvcjojYWFhO3RleHQtZGVjb3JhdGlvbjpub25lO2ZvbnQtc2l6ZToxMXB4fSBuYXYuYm90dG9tIGEuYWN0aXZle2NvbG9yOiNmZmNjMDB9Cjwvc3R5bGU+CjwvaGVhZD4KPGJvZHk+CjxoZWFkZXIgY2xhc3M9InRvcCI+PGRpdiBjbGFzcz0idG9wbGluZSI+PGRpdj48ZGl2IGNsYXNzPSJicmFuZCI+VE9LTyBTSUFQIEFOVEFSPC9kaXY+PGRpdiBjbGFzcz0ic3ViIj5DYXJpIEt1cmlyIOKAoiBNaXJpcCBHcmFiIOKAoiBSYWRpdXMgNDAga208L2Rpdj48L2Rpdj48YSBocmVmPSIuL2luZGV4Lmh0bWwiIHN0eWxlPSJjb2xvcjojZmZjYzAwO3RleHQtZGVjb3JhdGlvbjpub25lO2ZvbnQtd2VpZ2h0OjgwMCI+4oaQIE1lbnU8L2E+PC9kaXY+PC9oZWFkZXI+CjxtYWluPgo8ZGl2IGNsYXNzPSJwYW5lbCI+CjxoMiBzdHlsZT0ibWFyZ2luOjAiPvCfmpYgQ2FyaSBLdXJpciBUZXJkZWthdDwvaDI+CjxwIGNsYXNzPSJtdXRlZCIgc3R5bGU9Im1hcmdpbjo0cHggMCAwIj5QZWxhbmdnYW4gaXNpIHRpdGlrIGplbXB1dCAmIHR1anVhbiwgc2lzdGVtIGhpdHVuZyBqYXJhayArIG9uZ2tpciwgbGFsdSBjYXJpIGt1cmlyIG9ubGluZSBkYWxhbSByYWRpdXMgNDAga20uPC9wPgoKPGRpdiBzdHlsZT0iYmFja2dyb3VuZDojZmZmM2NkO2JvcmRlcjoxcHggc29saWQgI2ZmZTA4YTtwYWRkaW5nOjEwcHg7Ym9yZGVyLXJhZGl1czoxMHB4O2ZvbnQtc2l6ZToxMnB4Ij7imqDvuI8gPGI+UGVsYW5nZ2FuIHdhamliIHRlbnR1a2FuIDIgdGl0aWs6PC9iPiAxLiBMb2thc2kgQXdhbCAoSmVtcHV0KSBkYW4gMi4gTG9rYXNpIFR1anVhbi4gRHVhLWR1YW55YSBoYXJ1cyBkaWlzaSBkYW4gPGI+aGFydXMgYmVkYTwvYj4uIEthbGF1IHNhbWEsIGphcmFrIGphZGkgMC4wMCBrbSBkYW4gb3JkZXIgdGlkYWsgYmlzYSBkaWJ1YXQuPC9kaXY+Cgo8bGFiZWw+MS4gTE9LQVNJIEFXQUwgKEplbXB1dCkg4oCUIFdBSklCPC9sYWJlbD4KPGlucHV0IGlkPSJqZW1wdXRBbGFtYXQiIHBsYWNlaG9sZGVyPSJDb250b2g6IERlcGFuIFBhc2FyIEhld2FuIE1hamEiPgo8ZGl2IGNsYXNzPSJyb3ciPjxpbnB1dCBpZD0iamVtcHV0TGF0IiBwbGFjZWhvbGRlcj0iTGF0IGplbXB1dCwgY29udG9oIC02LjgxMiI+PGlucHV0IGlkPSJqZW1wdXRMbmciIHBsYWNlaG9sZGVyPSJMbmcgamVtcHV0LCBjb250b2ggMTA4LjI4Ij48L2Rpdj4KPGJ1dHRvbiBjbGFzcz0iYnRuIGJ0bi1ncmV5IiBpZD0iYnRuR3BzSmVtcHV0IiBzdHlsZT0ibWFyZ2luLXRvcDo2cHgiPvCfk40gUGFrYWkgR1BTIFNheWEgdW50dWsgSmVtcHV0PC9idXR0b24+CjxkaXYgaWQ9InN0YXR1c0plbXB1dCIgY2xhc3M9Im11dGVkIiBzdHlsZT0ibWFyZ2luLXRvcDo0cHgiPuKdjCBMb2thc2kgQXdhbCBiZWx1bSBkaXRlbnR1a2FuPC9kaXY+Cgo8bGFiZWw+Mi4gTE9LQVNJIFRVSlVBTiDigJQgV0FKSUIsIEhBUlVTIEJFREEgREFSSSBMT0tBU0kgQVdBTDwvbGFiZWw+CjxpbnB1dCBpZD0idHVqdWFuQWxhbWF0IiBwbGFjZWhvbGRlcj0iQ29udG9oOiBBbHVuLWFsdW4gQ2lyZWJvbiDigJQgamFuZ2FuIGlzaSBkZW5nYW4gbG9rYXNpIGthbXUgc2VrYXJhbmcga2FsYXUgbWF1IGtpcmltIGtlIHRlbXBhdCBsYWluIj4KPGRpdiBjbGFzcz0icm93Ij48aW5wdXQgaWQ9InR1anVhbkxhdCIgcGxhY2Vob2xkZXI9IkxhdCB0dWp1YW4iPjxpbnB1dCBpZD0idHVqdWFuTG5nIiBwbGFjZWhvbGRlcj0iTG5nIHR1anVhbiI+PC9kaXY+CjxidXR0b24gY2xhc3M9ImJ0biBidG4tZ3JleSIgaWQ9ImJ0bkdwc1R1anVhbiIgc3R5bGU9Im1hcmdpbi10b3A6NnB4Ij7wn5ONIFBha2FpIEdQUyBTYXlhIHVudHVrIFR1anVhbiAoaGFueWEga2FsYXUgdHVqdWFuID0gbG9rYXNpIGthbXUgc2VrYXJhbmcpPC9idXR0b24+CjxkaXYgaWQ9InN0YXR1c1R1anVhbiIgY2xhc3M9Im11dGVkIiBzdHlsZT0ibWFyZ2luLXRvcDo0cHgiPuKdjCBMb2thc2kgVHVqdWFuIGJlbHVtIGRpdGVudHVrYW48L2Rpdj4KPGRpdiBpZD0icGVyaW5nYXRhbkxva2FzaSIgc3R5bGU9ImRpc3BsYXk6bm9uZTtiYWNrZ3JvdW5kOiNmZmYwZjA7Ym9yZGVyOjFweCBzb2xpZCAjZjVjNmM2O3BhZGRpbmc6OHB4O2JvcmRlci1yYWRpdXM6MTBweDtmb250LXNpemU6MTJweDttYXJnaW4tdG9wOjhweCI+PC9kaXY+Cgo8bGFiZWw+SmVuaXMgS2VuZGFyYWFuPC9sYWJlbD4KPHNlbGVjdCBpZD0iamVuaXNLZW5kYXJhYW4iPjxvcHRpb24gdmFsdWU9Im1vdG9yIj7wn5u1IE1vdG9yPC9vcHRpb24+PG9wdGlvbiB2YWx1ZT0ibW9iaWwiPvCfmpcgTW9iaWw8L29wdGlvbj48L3NlbGVjdD4KCjxkaXYgY2xhc3M9InJvdyIgc3R5bGU9Im1hcmdpbi10b3A6MTJweCI+CjxidXR0b24gY2xhc3M9ImJ0biBidG4tYmxhY2siIGlkPSJidG5IaXR1bmciPkhpdHVuZyBKYXJhayAmIE9uZ2tpcjwvYnV0dG9uPgo8YnV0dG9uIGNsYXNzPSJidG4gYnRuLXllbGxvdyIgaWQ9ImJ0bkNhcmkiPvCflI0gQ2FyaSBLdXJpciAoNDAga20pPC9idXR0b24+CjwvZGl2PgoKPGRpdiBpZD0iaGFzaWxIaXR1bmciIHN0eWxlPSJtYXJnaW4tdG9wOjEycHg7ZGlzcGxheTpub25lO2JhY2tncm91bmQ6I2Y5ZmFmODtib3JkZXI6MXB4IHNvbGlkICNlZWU7Ym9yZGVyLXJhZGl1czoxMnB4O3BhZGRpbmc6MTBweCI+CjxkaXYgY2xhc3M9Im11dGVkIj5KQVJBSyBKRU1QVVQg4oaSIFRVSlVBTjwvZGl2PjxkaXYgY2xhc3M9Imhhc2lsIiBpZD0idHh0SmFyYWsiPi08L2Rpdj4KPGRpdiBjbGFzcz0ibXV0ZWQiPk9OR0tJUiAoT3RvbWF0aXMpPC9kaXY+PGRpdiBjbGFzcz0iaGFzaWwiIGlkPSJ0eHRPbmdraXIiIHN0eWxlPSJjb2xvcjojMDg3NDQzIj4tPC9kaXY+CjxkaXYgY2xhc3M9Im11dGVkIiBpZD0idHh0UmluY2lhbk9uZ2tpciI+LTwvZGl2Pgo8ZGl2IGNsYXNzPSJtdXRlZCIgaWQ9InR4dEphcmFrS3VyaXIiPi08L2Rpdj4KPC9kaXY+Cgo8L2Rpdj4KCjxkaXYgY2xhc3M9InBhbmVsIj4KPGgzIHN0eWxlPSJtYXJnaW46MCI+S3VyaXIgVGVyZGVrYXQgKFJhZGl1cyA0MCBrbSBkYXJpIEplbXB1dCk8L2gzPgo8cCBjbGFzcz0ibXV0ZWQiIHN0eWxlPSJtYXJnaW46NHB4IDAiPkRpdXJ1dGthbiBkYXJpIHlhbmcgcGFsaW5nIGRla2F0LiBGaWx0ZXI6IGtlbmRhcmFhbiBzYW1hICsgamFyYWsga3VyaXIga2UgamVtcHV0IDw9IDQwIGttICsgc2FsZG8ga3VyaXIgPj0gb25na2lyLiBZYW5nIHRpZGFrIGxvbG9zIHRpZGFrIGRpdGFtcGlsa2FuLjwvcD4KPGRpdiBpZD0iaW5mb1NjYW4iIHN0eWxlPSJmb250LXNpemU6MTJweDtjb2xvcjojNjY2O21hcmdpbi1ib3R0b206NnB4Ij48L2Rpdj48ZGl2IGlkPSJsaXN0S3VyaXIiPjxkaXYgY2xhc3M9Im11dGVkIj5CZWx1bSBjYXJpLiBJc2kgamVtcHV0ICYgdHVqdWFuIGR1bHUsIGxhbHUgdGVrYW4gQ2FyaSBLdXJpci48L2Rpdj48L2Rpdj4KPGJ1dHRvbiBjbGFzcz0iYnRuIGJ0bi15ZWxsb3ciIGlkPSJidG5QZXNhbiIgZGlzYWJsZWQgc3R5bGU9Im1hcmdpbi10b3A6MTBweCI+4pyFIFBlc2FuIEt1cmlyIFRlcmRla2F0PC9idXR0b24+CjxkaXYgY2xhc3M9Im11dGVkIiBpZD0icGVzYW5JbmZvIiBzdHlsZT0ibWFyZ2luLXRvcDo2cHgiPlBlc2FuIGFrYW4gbWVtYnVhdCBvcmRlciBzdGF0dXMgPGI+bWVuY2FyaV9rdXJpcjwvYj4gZGFuIGRpdGF3YXJrYW4ga2Uga3VyaXIgdGVyZGVrYXQgZHVsdS4gS2FsYXUgMzAgZGV0aWsgdGlkYWsgZGl0ZXJpbWEsIGxlbXBhciBrZSBrdXJpciBiZXJpa3V0bnlhLjwvZGl2Pgo8L2Rpdj4KPC9tYWluPgo8bmF2IGNsYXNzPSJib3R0b20iPjxhIGhyZWY9Ii4vaW5kZXguaHRtbCI+8J+PoDxicj5CZXJhbmRhPC9hPjxhIGhyZWY9Ii4vZXdhbGxldC1hZG1pbi5odG1sIj7wn5KzPGJyPkUtV2FsbGV0PC9hPjxhIGhyZWY9Ii4vY2FyaS1rdXJpci5odG1sIiBjbGFzcz0iYWN0aXZlIj7wn5qWPGJyPkNhcmkgS3VyaXI8L2E+PGEgaHJlZj0iLi9zZW11YS1wZXNhbmFuLWFkbWluLmh0bWwiPvCfk6Y8YnI+UGVzYW5hbjwvYT48L25hdj4KCjxzY3JpcHQgdHlwZT0ibW9kdWxlIj4KaW1wb3J0IHtpbml0aWFsaXplQXBwLGdldEFwcHMsZ2V0QXBwfSBmcm9tICJodHRwczovL3d3dy5nc3RhdGljLmNvbS9maXJlYmFzZWpzLzEyLjQuMC9maXJlYmFzZS1hcHAuanMiOwppbXBvcnQge2dldEF1dGgsb25BdXRoU3RhdGVDaGFuZ2VkfSBmcm9tICJodHRwczovL3d3dy5nc3RhdGljLmNvbS9maXJlYmFzZWpzLzEyLjQuMC9maXJlYmFzZS1hdXRoLmpzIjsKaW1wb3J0IHtnZXRGaXJlc3RvcmUsY29sbGVjdGlvbixxdWVyeSx3aGVyZSxnZXREb2NzLGFkZERvYyxzZXJ2ZXJUaW1lc3RhbXB9IGZyb20gImh0dHBzOi8vd3d3LmdzdGF0aWMuY29tL2ZpcmViYXNlanMvMTIuNC4wL2ZpcmViYXNlLWZpcmVzdG9yZS5qcyI7CmNvbnN0IGZpcmViYXNlQ29uZmlnPXthcGlLZXk6IkFJemFTeUJ4cVpobDZ0M1J3clhNd1ZkSmVJa2cwTnpHZnd2bHdlTSIsYXV0aERvbWFpbjoidG9rby1zaWFwLWFudGFyLTlhN2JiLmZpcmViYXNlYXBwLmNvbSIscHJvamVjdElkOiJ0b2tvLXNpYXAtYW50YXItOWE3YmIiLHN0b3JhZ2VCdWNrZXQ6InRva28tc2lhcC1hbnRhci05YTdiYi5maXJlYmFzZXN0b3JhZ2UuYXBwIixtZXNzYWdpbmdTZW5kZXJJZDoiMzUxMzM1ODM4NzEyIixhcHBJZDoiMTozNTEzMzU4Mzg3MTI6d2ViOjZlMmIzZTBiMGUwYjBlMGIwZTBiMGUwYiJ9Owpjb25zdCBhcHA9Z2V0QXBwcygpLmxlbmd0aD9nZXRBcHAoKTppbml0aWFsaXplQXBwKGZpcmViYXNlQ29uZmlnKTsKY29uc3QgYXV0aD1nZXRBdXRoKGFwcCk7IGNvbnN0IGRiPWdldEZpcmVzdG9yZShhcHApOwpjb25zdCAkPWlkPT5kb2N1bWVudC5nZXRFbGVtZW50QnlJZChpZCk7CmNvbnN0IHJ1cGlhaD1uPT4iUnAgIisoTnVtYmVyKG4pfHwwKS50b0xvY2FsZVN0cmluZygiaWQtSUQiKTsKbGV0IGN1cnJlbnRVc2VyPW51bGwsIGt1cmlyVGVycGlsaWg9W10sIGphcmFrS209MCwgb25na2lyPTAsIGt1cmlyTGlzdD1bXTsKCm9uQXV0aFN0YXRlQ2hhbmdlZChhdXRoLHU9PnsgY3VycmVudFVzZXI9dXx8bnVsbDsgfSk7CgpmdW5jdGlvbiBsb2cobSl7IGNvbnNvbGUubG9nKG0pOyB9CmZ1bmN0aW9uIGhhdmVyc2luZUttKGxhdDEsbG5nMSxsYXQyLGxuZzIpewogIGNvbnN0IFI9NjM3MSwgZExhdD0obGF0Mi1sYXQxKSpNYXRoLlBJLzE4MCwgZExuZz0obG5nMi1sbmcxKSpNYXRoLlBJLzE4MDsKICBjb25zdCBhPU1hdGguc2luKGRMYXQvMikqKjIgKyBNYXRoLmNvcyhsYXQxKk1hdGguUEkvMTgwKSpNYXRoLmNvcyhsYXQyKk1hdGguUEkvMTgwKSpNYXRoLnNpbihkTG5nLzIpKioyOwogIHJldHVybiAyKlIqTWF0aC5hc2luKE1hdGguc3FydChhKSk7Cn0KZnVuY3Rpb24gdGFyaWYoKXsKICBjb25zdCBqZW5pcz0kKCJqZW5pc0tlbmRhcmFhbiIpLnZhbHVlOwogIGlmKGplbmlzPT09Im1vYmlsIikgcmV0dXJuIHtiYXNlOjE1MDAwLCBwZXJLbTozNTAwLCBsYWJlbDoiTW9iaWwg4oCiIERhc2FyIFJwIDE1LjAwMCArIFJwIDMuNTAwL2ttIn07CiAgcmV0dXJuIHtiYXNlOjgwMDAsIHBlckttOjIwMDAsIGxhYmVsOiJNb3RvciDigKIgRGFzYXIgUnAgOC4wMDAgKyBScCAyLjAwMC9rbSJ9Owp9CmZ1bmN0aW9uIGhpdHVuZygpewogIGNvbnN0IGpMYXQ9cGFyc2VGbG9hdCgkKCJqZW1wdXRMYXQiKS52YWx1ZSksIGpMbmc9cGFyc2VGbG9hdCgkKCJqZW1wdXRMbmciKS52YWx1ZSk7CiAgY29uc3QgdExhdD1wYXJzZUZsb2F0KCQoInR1anVhbkxhdCIpLnZhbHVlKSwgdExuZz1wYXJzZUZsb2F0KCQoInR1anVhbkxuZyIpLnZhbHVlKTsKICBpZihbakxhdCxqTG5nLHRMYXQsdExuZ10uc29tZSh2PT5pc05hTih2KSkpeyBhbGVydCgiSXNpIGR1bHUgTGF0L0xuZyBqZW1wdXQgJiB0dWp1YW4uIFBha2FpIHRvbWJvbCBHUFMga2FsYXUgYmluZ3VuZy4iKTsgcmV0dXJuIG51bGw7IH0KICBqYXJha0ttPWhhdmVyc2luZUttKGpMYXQsakxuZyx0TGF0LHRMbmcpOwogIGNvbnN0IHRmPXRhcmlmKCk7CiAgb25na2lyPU1hdGgucm91bmQodGYuYmFzZSArIGphcmFrS20qdGYucGVyS20pOwogIC8vIEJ1bGF0a2FuIGtlIDUwMCB0ZXJkZWthdCBiaWFyIGVuYWsKICBvbmdraXI9TWF0aC5yb3VuZChvbmdraXIvNTAwKSo1MDA7CiAgJCgiaGFzaWxIaXR1bmciKS5zdHlsZS5kaXNwbGF5PSdibG9jayc7CiAgJCgidHh0SmFyYWsiKS50ZXh0Q29udGVudD1qYXJha0ttLnRvRml4ZWQoMikrIiBrbSI7CiAgJCgidHh0T25na2lyIikudGV4dENvbnRlbnQ9cnVwaWFoKG9uZ2tpcik7CiAgJCgidHh0UmluY2lhbk9uZ2tpciIpLnRleHRDb250ZW50PXRmLmxhYmVsKyIg4oCiIEphcmFrICIramFyYWtLbS50b0ZpeGVkKDIpKyIga20g4oaSICIrcnVwaWFoKHRmLmJhc2UpKyIgKyAiK2phcmFrS20udG9GaXhlZCgyKSsiIHggIitydXBpYWgodGYucGVyS20pKyIgPSAiK3J1cGlhaChvbmdraXIpOwogIGlmKGphcmFrS20+NDApeyAkKCJ0eHRKYXJha0t1cmlyIikudGV4dENvbnRlbnQ9IuKaoO+4jyBKYXJhayBqZW1wdXQg4oaSIHR1anVhbiBsZWJpaCBkYXJpIDQwIGttLCBkaSBsdWFyIGphbmdrYXVhbiBsYXlhbmFuLiI7IH0KICBlbHNlICQoInR4dEphcmFrS3VyaXIiKS50ZXh0Q29udGVudD0i4pyFIE1hc2loIGRhbGFtIGphbmdrYXVhbiA0MCBrbS4iOwogIGxvZyhgSGl0dW5nOiBqYXJhaz0ke2phcmFrS20udG9GaXhlZCgyKX0ga20gb25na2lyPSR7b25na2lyfSBqZW5pcz0keyQoImplbmlzS2VuZGFyYWFuIikudmFsdWV9YCk7CiAgcmV0dXJuIHtqYXJha0ttLCBvbmdraXJ9Owp9CiQoImJ0bkhpdHVuZyIpLm9uY2xpY2s9KCk9PmhpdHVuZygpOwokKCJqZW5pc0tlbmRhcmFhbiIpLmFkZEV2ZW50TGlzdGVuZXIoJ2NoYW5nZScsICgpPT57IGhpdHVuZygpOyBpZihrdXJpckxpc3QubGVuZ3RoKSAkKCJidG5DYXJpIikuY2xpY2soKTsgfSk7CgpmdW5jdGlvbiBncHNVbnR1ayh0YXJnZXRMYXQsIHRhcmdldExuZyl7CiAgaWYoIW5hdmlnYXRvci5nZW9sb2NhdGlvbil7IGFsZXJ0KCJHUFMgdGlkYWsgZGlkdWt1bmcgZGkgSFAgaW5pIik7IHJldHVybjsgfQogIG5hdmlnYXRvci5nZW9sb2NhdGlvbi5nZXRDdXJyZW50UG9zaXRpb24ocG9zPT57CiAgICAkKHRhcmdldExhdCkudmFsdWU9cG9zLmNvb3Jkcy5sYXRpdHVkZS50b0ZpeGVkKDYpOwogICAgJCh0YXJnZXRMbmcpLnZhbHVlPXBvcy5jb29yZHMubG9uZ2l0dWRlLnRvRml4ZWQoNik7CiAgICBsb2coYEdQUyAke3RhcmdldExhdH09JHtwb3MuY29vcmRzLmxhdGl0dWRlfSwgJHt0YXJnZXRMbmd9PSR7cG9zLmNvb3Jkcy5sb25naXR1ZGV9YCk7CiAgfSwgZT0+YWxlcnQoIkdhZ2FsIGFtYmlsIEdQUzogIitlLm1lc3NhZ2UpLCB7ZW5hYmxlSGlnaEFjY3VyYWN5OnRydWUsIHRpbWVvdXQ6MTAwMDB9KTsKfQokKCJidG5HcHNKZW1wdXQiKS5vbmNsaWNrPSgpPT5ncHNVbnR1aygiamVtcHV0TGF0IiwiamVtcHV0TG5nIik7CiQoImJ0bkdwc1R1anVhbiIpLm9uY2xpY2s9KCk9Pmdwc1VudHVrKCJ0dWp1YW5MYXQiLCJ0dWp1YW5MbmciKTsKCmZ1bmN0aW9uIGFtYmlsTGF0TG5nS3VyaXIoZCl7CiAgY29uc3QgbGF0ID0gZC5sYXQgPz8gZC5sYXRpdHVkZSA/PyBkLmxva2FzaT8ubGF0ID8/IGQucG9zaXNpPy5sYXQgPz8gZC5rb29yZGluYXQ/LmxhdDsKICBjb25zdCBsbmcgPSBkLmxuZyA/PyBkLmxvbmdpdHVkZSA/PyBkLmxva2FzaT8ubG5nID8/IGQucG9zaXNpPy5sbmcgPz8gZC5rb29yZGluYXQ/LmxuZzsKICBpZihsYXQ9PW51bGwgfHwgbG5nPT1udWxsKSByZXR1cm4gbnVsbDsKICByZXR1cm4ge2xhdDpOdW1iZXIobGF0KSwgbG5nOk51bWJlcihsbmcpfTsKfQpmdW5jdGlvbiBrZW5kYXJhYW5LdXJpcihkKXsKICAvLyBDZWsgU0VNVUEgZmllbGQgeWFuZyBtdW5na2luIGRpcGFrYWkgZGkgRmlyZXN0b3JlLCB0ZXJtYXN1ayBrYWxhdSBrZW5kYXJhYW4gZGlzaW1wYW4gc2ViYWdhaSBvYmplY3QKICBsZXQgcmF3ID0gZC5qZW5pc0tlbmRhcmFhbiB8fCBkLmtlbmRhcmFhbiB8fCBkLnZlaGljbGUgfHwgZC50aXBlS2VuZGFyYWFuIHx8IGQuamVuaXMgfHwgZC5rZW5kYXJhYW5KZW5pcyB8fCBkLmtlbmRhcmFhbkt1cmlyIHx8IGQuamVuaXNLZW5kYXJhYW5LdXJpciB8fCAnJzsKICBpZihyYXcgJiYgdHlwZW9mIHJhdyA9PT0gJ29iamVjdCcpewogICAgcmF3ID0gcmF3LmplbmlzIHx8IHJhdy50eXBlIHx8IHJhdy5uYW1hIHx8IHJhdy5rZW5kYXJhYW4gfHwgcmF3LnZlaGljbGUgfHwgSlNPTi5zdHJpbmdpZnkocmF3KTsKICB9CiAgY29uc3QgdiA9IFN0cmluZyhyYXcgfHwgJycpLnRvTG93ZXJDYXNlKCkudHJpbSgpOwogIC8vIERhcmkgc2NyZWVuc2hvdCBGaXJlc3RvcmUga2FtdTogZmllbGQtbnlhIG5hbWFueWEgJ2tlbmRhcmFhbicgaXNpbnlhICdNb3RvcicgLT4gaGFydXMga2ViYWNhIG1vdG9yCiAgaWYodi5pbmNsdWRlcygnbW9iaWwnKSB8fCB2LmluY2x1ZGVzKCdjYXInKSB8fCB2LmluY2x1ZGVzKCdhdmFuemEnKSB8fCB2LmluY2x1ZGVzKCd4ZW5pYScpIHx8IHYuaW5jbHVkZXMoJ2NhbHlhJykpIHJldHVybiAnbW9iaWwnOwogIGlmKHYuaW5jbHVkZXMoJ21vdG9yJykgfHwgdi5pbmNsdWRlcygnbWF0aWMnKSB8fCB2LmluY2x1ZGVzKCdiZWJlaycpIHx8IHYuaW5jbHVkZXMoJ3Nwb3J0JykgfHwgdi5pbmNsdWRlcygndmFyaW8nKSB8fCB2LmluY2x1ZGVzKCdiZWF0JykgfHwgdi5pbmNsdWRlcygnbm1heCcpKSByZXR1cm4gJ21vdG9yJzsKICBpZih2PT09JycpIHJldHVybiAnbW90b3InOyAvLyBkYXRhIGxhbWEgdGFucGEgZmllbGQga2VuZGFyYWFuIGRpYW5nZ2FwIG1vdG9yCiAgcmV0dXJuIHY7Cn0KCiQoImJ0bkNhcmkiKS5vbmNsaWNrPWFzeW5jKCk9PnsKICBjb25zdCBoPWhpdHVuZygpOyBpZighaCkgcmV0dXJuOwoKICBjb25zdCBqTGF0PXBhcnNlRmxvYXQoJCgiamVtcHV0TGF0IikudmFsdWUpLCBqTG5nPXBhcnNlRmxvYXQoJCgiamVtcHV0TG5nIikudmFsdWUpOwogICQoImxpc3RLdXJpciIpLmlubmVySFRNTD0nPGRpdiBjbGFzcz0ibXV0ZWQiPk1lbmNhcmkga3VyaXIgZGFsYW0gNDAga20uLi48L2Rpdj4nOwogIHRyeXsKICAgIGNvbnN0IHBpbGloSmVuaXM9JCgiamVuaXNLZW5kYXJhYW4iKS52YWx1ZTsgLy8gbW90b3IgLyBtb2JpbAogICAgY29uc3QgcXM9YXdhaXQgZ2V0RG9jcyhxdWVyeShjb2xsZWN0aW9uKGRiLCd1c2VycycpLCB3aGVyZSgncm9sZScsJz09Jywna3VyaXInKSkpOwogICAga3VyaXJMaXN0PVtdOwogICAgcXMuZm9yRWFjaChkb2M9PnsKICAgICAgY29uc3QgZD1kb2MuZGF0YSgpfHx7fTsKICAgICAgY29uc3QgcG9zPWFtYmlsTGF0TG5nS3VyaXIoZCk7CiAgICAgIGlmKCFwb3MpIHJldHVybjsKICAgICAgLy8gRklYOiBmaWx0ZXIga2VuZGFyYWFuLiBLYWxhdSBwaWxpaCBNb2JpbCwgamFuZ2FuIHRhbXBpbGthbiBrdXJpciBNb3Rvci4KICAgICAgLy8gS2FsYXUgYmVsdW0gYWRhIHlhbmcgZGFmdGFyIGt1cmlyIG1vYmlsLCBsaXN0IGFrYW4ga29zb25nIC0gaXR1IGJlbmFyLgogICAgICBjb25zdCBrZW49a2VuZGFyYWFuS3VyaXIoZCk7CiAgICAgIC8vIEZJTFRFUiAxIC0gS0VOREFSQUFOOiBwaWxpaCBNb2JpbCA9IGN1bWEga3VyaXIgTW9iaWwsIHBpbGloIE1vdG9yID0gY3VtYSBrdXJpciBNb3RvcgogICAgICBpZihwaWxpaEplbmlzPT09J21vYmlsJyAmJiBrZW4hPT0nbW9iaWwnKSByZXR1cm47CiAgICAgIGlmKHBpbGloSmVuaXM9PT0nbW90b3InICYmIGtlbiE9PSdtb3RvcicpIHJldHVybjsKICAgICAgLy8gRklMVEVSIDIgLSBSQURJVVMgNDAgS006IGphcmFrIGt1cmlyIGtlIGplbXB1dCBoYXJ1cyA8PSA0MCBrbQogICAgICBjb25zdCBqYXJha0tlSmVtcHV0PWhhdmVyc2luZUttKGpMYXQsakxuZyxwb3MubGF0LHBvcy5sbmcpOwogICAgICBpZihqYXJha0tlSmVtcHV0PjQwKSByZXR1cm47CiAgICAgIC8vIEZJTFRFUiAzIC0gU0FMRE86IGt1cmlyIGhhcnVzIHB1bnlhIHNhbGRvID49IG9uZ2tpciAoZGVwb3NpdCBjdWt1cCksIGthbGF1IHRpZGFrIGphbmdhbiB0YW1waWwKICAgICAgY29uc3Qga3VyaXJTYWxkbyA9IE51bWJlcihkLnNhbGRvID8/IGQuc2FsZG9Fd2FsbGV0ID8/IGQuc2FsZG9XYWxsZXQgPz8gZC5kZXBvc2l0ID8/IGQuc2FsZG9DT0QgPz8gMCkgfHwgMDsKICAgICAgaWYoa3VyaXJTYWxkbyA8IGgub25na2lyKSByZXR1cm47CiAgICAgIGNvbnN0IG9ubGluZSA9IGQub25saW5lPT09dHJ1ZSB8fCBkLnN0YXR1cz09PSdvbmxpbmUnIHx8IGQuYWt0aWY9PT10cnVlIHx8IGQuc3RhdHVzPT09J2FrdGlmJzsKICAgICAga3VyaXJMaXN0LnB1c2goe2lkOmRvYy5pZCwgLi4uZCwgamFyYWtLZUplbXB1dCwgb25saW5lLCBsYXQ6cG9zLmxhdCwgbG5nOnBvcy5sbmcsIHNhbGRvOiBrdXJpclNhbGRvfSk7CiAgICB9KTsKICAgIC8vIEluZm86IGJlcmFwYSB5YW5nIGRpLXNjYW4sIGJlcmFwYSB5YW5nIGxvbG9zCiAgICBjb25zdCB0b3RhbFNjYW4gPSBxcy5zaXplIHx8IHFzLmRvY3M/Lmxlbmd0aCB8fCAwOwogICAgY29uc3QgaW5mb1NjYW4gPSBkb2N1bWVudC5nZXRFbGVtZW50QnlJZCgnaW5mb1NjYW4nKTsKICAgIGlmKGluZm9TY2FuKSBpbmZvU2Nhbi50ZXh0Q29udGVudCA9IGBEaS1zY2FuOiAke3RvdGFsU2Nhbn0ga3VyaXIg4oCiIExvbG9zIGZpbHRlciAoa2VuZGFyYWFuICsgNDAga20gKyBzYWxkbyA+PSAke3J1cGlhaChoLm9uZ2tpcil9KTogJHtrdXJpckxpc3QubGVuZ3RofSDigKIgWWFuZyB0aWRhayBsb2xvcyBkaXNlbWJ1bnlpa2FuLmA7CiAgICBrdXJpckxpc3Quc29ydCgoYSxiKT0+YS5qYXJha0tlSmVtcHV0LWIuamFyYWtLZUplbXB1dCk7CiAgICBpZigha3VyaXJMaXN0Lmxlbmd0aCl7CiAgICAgIGNvbnN0IHBpbGloSmVuaXMyPSQoImplbmlzS2VuZGFyYWFuIikudmFsdWU7CiAgICAgICQoImxpc3RLdXJpciIpLmlubmVySFRNTD0nPGRpdiBzdHlsZT0iYmFja2dyb3VuZDojZmZmO2JvcmRlcjoxcHggc29saWQgI2U1ZTVlNTtwYWRkaW5nOjEwcHg7Ym9yZGVyLXJhZGl1czoxMHB4Ij5UaWRhayBhZGEga3VyaXIgJysocGlsaWhKZW5pczI9PT0nbW9iaWwnPydNb2JpbCc6J01vdG9yJykrJyB5YW5nIGxvbG9zIDMgZmlsdGVyOiBrZW5kYXJhYW4gc2FtYSArIGphcmFrIDw9IDQwIGttICsgc2FsZG8gPj0gb25na2lyLiAnKyhwaWxpaEplbmlzMj09PSdtb2JpbCc/J0JlbHVtIGFkYSB5YW5nIGRhZnRhciBrdXJpciBwYWthaSBNb2JpbCwgamFkaSB3YWphciBrb3NvbmcuJzonQ29iYSBsYWdpIG5hbnRpIC8ga3VyaXIgaGFydXMgYWt0aWZrYW4gR1BTICYgc3RhdHVzIG9ubGluZS4nKSsnPC9kaXY+JzsKICAgICAgJCgiYnRuUGVzYW4iKS5kaXNhYmxlZD10cnVlOwogICAgICByZXR1cm47CiAgICB9CiAgICAkKCJsaXN0S3VyaXIiKS5pbm5lckhUTUw9a3VyaXJMaXN0Lm1hcCgoayxpKT0+ewogICAgICBjb25zdCBuYW1hPWsubmFtYXx8ay5uYW1hVXNhaGF8fGsuZW1haWx8fCdLdXJpcic7CiAgICAgIGNvbnN0IGtlbmRhcmFhbj1rZW5kYXJhYW5LdXJpcihrKT09PSdtb2JpbCcgPyAnTW9iaWwnIDogJ01vdG9yJzsKICAgICAgcmV0dXJuIGA8ZGl2IGNsYXNzPSJrdXJpciI+PGRpdj48Yj4ke2krMX0uICR7bmFtYX08L2I+PGJyPjxzbWFsbD7wn5qWICR7a2VuZGFyYWFufSDigKIg8J+TjSAke2suamFyYWtLZUplbXB1dC50b0ZpeGVkKDIpfSBrbSBkYXJpIGplbXB1dCDigKIg4q2QICR7ay5yYXRpbmd8fCctJ30g4oCiICR7ay5ub0hwfHxrLnRlbGVwb258fCcnfTwvc21hbGw+PC9kaXY+PGRpdj48c3BhbiBjbGFzcz0iYmFkZ2UgJHtrLm9ubGluZT8nJzonYmFkZ2Utb2ZmJ30iPiR7ay5vbmxpbmU/J09ubGluZSc6J09mZmxpbmUnfTwvc3Bhbj48YnI+PGJ1dHRvbiBjbGFzcz0iYnRuIGJ0bi1ibGFjayIgc3R5bGU9InBhZGRpbmc6NnB4IDEwcHg7bWFyZ2luLXRvcDo2cHgiIG9uY2xpY2s9IndpbmRvdy5waWxpaEt1cmlyKCcke2suaWR9JykiPlBpbGloPC9idXR0b24+PC9kaXY+PC9kaXY+YDsKICAgIH0pLmpvaW4oJycpOwogICAga3VyaXJUZXJwaWxpaD1ba3VyaXJMaXN0WzBdXTsKICAgICQoImJ0blBlc2FuIikuZGlzYWJsZWQ9ZmFsc2U7CiAgICAkKCJ0eHRKYXJha0t1cmlyIikudGV4dENvbnRlbnQ9YOKchSBLZXRlbXUgJHtrdXJpckxpc3QubGVuZ3RofSBrdXJpciBkYWxhbSA0MCBrbS4gVGVyZGVrYXQ6ICR7a3VyaXJMaXN0WzBdLm5hbWF8fGt1cmlyTGlzdFswXS5lbWFpbH0gKCR7a3VyaXJMaXN0WzBdLmphcmFrS2VKZW1wdXQudG9GaXhlZCgyKX0ga20pYDsKICAgIGxvZyhgQ2FyaSBrdXJpcjoga2V0ZW11ICR7a3VyaXJMaXN0Lmxlbmd0aH0gZGFsYW0gNDAga21gKTsKICB9Y2F0Y2goZSl7ICQoImxpc3RLdXJpciIpLmlubmVySFRNTD0nPGRpdiBzdHlsZT0iY29sb3I6cmVkIj5HYWdhbCBjYXJpIGt1cmlyOiAnK2UubWVzc2FnZSsnPC9kaXY+JzsgbG9nKCdHYWdhbCBjYXJpIGt1cmlyOiAnK2UubWVzc2FnZSk7IH0KfTsKd2luZG93LnBpbGloS3VyaXI9KGlkKT0+ewogIGNvbnN0IGs9a3VyaXJMaXN0LmZpbmQoeD0+eC5pZD09PWlkKTsgaWYoIWspIHJldHVybjsKICBrdXJpclRlcnBpbGloPVtrXTsKICAkKCJidG5QZXNhbiIpLmRpc2FibGVkPWZhbHNlOwogIGxvZyhgUGlsaWgga3VyaXI6ICR7ay5uYW1hfHxrLmVtYWlsfSAke2suamFyYWtLZUplbXB1dC50b0ZpeGVkKDIpfSBrbWApOwogIGFsZXJ0KGBLdXJpciBkaXBpbGloOiAke2submFtYXx8ay5lbWFpbH0gKCR7ay5qYXJha0tlSmVtcHV0LnRvRml4ZWQoMil9IGttIGRhcmkgamVtcHV0KWApOwp9OwoKJCgiYnRuUGVzYW4iKS5vbmNsaWNrPWFzeW5jKCk9PnsKICBjb25zdCBoPWhpdHVuZygpOyBpZighaCkgcmV0dXJuOwogIGlmKCFjdXJyZW50VXNlcil7IGFsZXJ0KCJMb2dpbiBkdWx1IHNlYmFnYWkgcGVsYW5nZ2FuIGxld2F0IGUtd2FsbGV0IC8gbG9naW4gcGVsYW5nZ2FuLiBLYWxhdSB0aWRhayBsb2dpbiwgb3JkZXIgdGlkYWsgYmlzYSBkaWJ1YXQga2FyZW5hIFJ1bGVzIG1pbnRhIHBlbGFuZ2dhblVpZCA9PSB1aWQgbG9naW4uIik7IHJldHVybjsgfQogIGlmKCFrdXJpclRlcnBpbGloLmxlbmd0aCl7IGFsZXJ0KCJDYXJpIGt1cmlyIGR1bHUuIEthbGF1IGxpc3Qga29zb25nLCBiZXJhcnRpIHRpZGFrIGFkYSBrdXJpciB5YW5nIGxvbG9zIGZpbHRlcjoga2VuZGFyYWFuIHNhbWEgKyBqYXJhayA8PSA0MCBrbSArIHNhbGRvID49IG9uZ2tpci4gVG9wIHVwIGR1bHUgc2FsZG8gc2FsYWggc2F0dSBrdXJpciBtaW5pbWFsIFJwIDguMDAwIChNb3RvcikgLyBScCAxNS4wMDAgKE1vYmlsKSBkaSBlLXdhbGxldCBrdXJpciAvIEZpcmVzdG9yZSB1c2VycyAtPiBzYWxkby4iKTsgcmV0dXJuOyB9CiAgaWYoIWNvbmZpcm0oYFBlc2FuIGt1cmlyICR7a3VyaXJUZXJwaWxpaFswXS5uYW1hfHxrdXJpclRlcnBpbGloWzBdLmVtYWlsfT9cbkphcmFrICR7aC5qYXJha0ttLnRvRml4ZWQoMil9IGttIOKAoiBPbmdraXIgJHtydXBpYWgoaC5vbmdraXIpfWApKSByZXR1cm47CiAgdHJ5ewogICAgLy8gRklYIEdQUzoga2FsYXUgYWxhbWF0IHRla3Mga29zb25nLCBpc2kgZGVuZ2FuIEdQUyBiaWFyIGRpIGt1cmlyIHRpZGFrIHRhbXBpbCAnLScKICAgIGNvbnN0IGpMYXRWID0gcGFyc2VGbG9hdCgkKCJqZW1wdXRMYXQiKS52YWx1ZSksIGpMbmdWID0gcGFyc2VGbG9hdCgkKCJqZW1wdXRMbmciKS52YWx1ZSk7CiAgICBjb25zdCB0TGF0ViA9IHBhcnNlRmxvYXQoJCgidHVqdWFuTGF0IikudmFsdWUpLCB0TG5nViA9IHBhcnNlRmxvYXQoJCgidHVqdWFuTG5nIikudmFsdWUpOwogICAgaWYoakxhdFY9PT10TGF0ViAmJiBqTG5nVj09PXRMbmdWKXsgYWxlcnQoIkplbXB1dCBkYW4gVHVqdWFuIEdQUy1ueWEgc2FtYSBwZXJzaXMsIGphcmFrIGphZGkgMC4wMCBrbS4gSXNpIFR1anVhbiBkZW5nYW4gbG9rYXNpIHlhbmcgYmVkYSAodGVrYW4gJ1Bha2FpIEdQUyBTYXlhIHVudHVrIFR1anVhbicgZGkgbG9rYXNpIHR1anVhbiwgYXRhdSBpc2kgTGF0L0xuZyB0dWp1YW4gbWFudWFsKS4iKTsgcmV0dXJuOyB9CiAgICBjb25zdCBqZW1wdXRBbGFtYXRGaXggPSAoJCgiamVtcHV0QWxhbWF0IikudmFsdWV8fCIiKS50cmltKCkgfHwgYEdQUyAke2pMYXRWLnRvRml4ZWQoNil9LCAke2pMbmdWLnRvRml4ZWQoNil9YDsKICAgIGNvbnN0IHR1anVhbkFsYW1hdEZpeCA9ICgkKCJ0dWp1YW5BbGFtYXQiKS52YWx1ZXx8IiIpLnRyaW0oKSB8fCBgR1BTICR7dExhdFYudG9GaXhlZCg2KX0sICR7dExuZ1YudG9GaXhlZCg2KX1gOwogICAgY29uc3Qgb3JkZXI9ewogICAgICBwZWxhbmdnYW5VaWQ6IGN1cnJlbnRVc2VyP2N1cnJlbnRVc2VyLnVpZDpudWxsLAogICAgICBwZWxhbmdnYW5FbWFpbDogY3VycmVudFVzZXI/Y3VycmVudFVzZXIuZW1haWw6bnVsbCwKICAgICAgamVtcHV0QWxhbWF0OiBqZW1wdXRBbGFtYXRGaXgsCiAgICAgIGplbXB1dExhdDogakxhdFYsCiAgICAgIGplbXB1dExuZzogakxuZ1YsCiAgICAgIHR1anVhbkFsYW1hdDogdHVqdWFuQWxhbWF0Rml4LAogICAgICB0dWp1YW5MYXQ6IHRMYXRWLAogICAgICB0dWp1YW5Mbmc6IHRMbmdWLAogICAgICBqZW5pc0tlbmRhcmFhbjogJCgiamVuaXNLZW5kYXJhYW4iKS52YWx1ZSwKICAgICAgamFyYWtLbTogaC5qYXJha0ttLAogICAgICBvbmdraXI6IGgub25na2lyLAogICAgICBzdWJ0b3RhbDogaC5vbmdraXIsCiAgICAgIHRvdGFsOiBoLm9uZ2tpciwKICAgICAgc3RhdHVzOiAnbWVuY2FyaV9rdXJpcicsCiAgICAgIGt1cmlyVWlkOiBrdXJpclRlcnBpbGloWzBdLmlkLAogICAgICBrdXJpck5hbWE6IGt1cmlyVGVycGlsaWhbMF0ubmFtYXx8a3VyaXJUZXJwaWxpaFswXS5lbWFpbHx8IiIsCiAgICAgIGt1cmlySmFyYWtLbToga3VyaXJUZXJwaWxpaFswXS5qYXJha0tlSmVtcHV0LAogICAgICBkaXRhd2Fya2FuS2U6IFtrdXJpclRlcnBpbGloWzBdLmlkXSwKICAgICAgZGl0YXdhcmthbkF0OiBzZXJ2ZXJUaW1lc3RhbXAoKSwKICAgICAgY3JlYXRlZEF0OiBzZXJ2ZXJUaW1lc3RhbXAoKSwKICAgICAgc2FsZG9EaWJhZ2k6IGZhbHNlLAogICAgICBhZG1pblNhbGRvTWFzdWs6IGZhbHNlLAogICAgfTsKICAgIGNvbnN0IHJlZj1hd2FpdCBhZGREb2MoY29sbGVjdGlvbihkYiwnb3JkZXJzJyksIG9yZGVyKTsKICAgIGFsZXJ0KCLinIUgT3JkZXIgZGlidWF0ISBJRDogIityZWYuaWQrIlxcbkRpdGF3YXJrYW4ga2Uga3VyaXIgdGVyZGVrYXQuIEthbGF1IDMwIGRldGlrIHRpZGFrIGRpdGVyaW1hLCBzaXN0ZW0gbGVtcGFyIGtlIGt1cmlyIGJlcmlrdXRueWEgZGFsYW0gNDAga20uIik7CiAgICBsb2coYE9yZGVyIGRpYnVhdCAke3JlZi5pZH0ga2Uga3VyaXIgJHtrdXJpclRlcnBpbGloWzBdLmlkfWApOwogIH1jYXRjaChlKXsKICAgIGlmKGUubWVzc2FnZS5pbmNsdWRlcygncGVybWlzc2lvbicpIHx8IGUubWVzc2FnZS5pbmNsdWRlcygnTWlzc2luZyBvciBpbnN1ZmZpY2llbnQnKSl7CiAgICAgIGFsZXJ0KCJHYWdhbCBidWF0IG9yZGVyOiBQRVJNSVNTSU9OLlxuXG5BcnRpbnlhIFJ1bGVzIGRpIEZpcmViYXNlIENvbnNvbGUgTUFTSUggWUFORyBMQU1BLCBiZWx1bSB5YW5nIGdhYnVuZ2FuLlxuXG5DZWs6IGJ1a2EgRmlyZWJhc2UgQ29uc29sZSA+IEZpcmVzdG9yZSA+IFJ1bGVzLCBjYXJpIGthdGEgJ2lzQ2FyaUt1cmlyQ3JlYXRlJy4gS2FsYXUgdGlkYWsgYWRhLCBiZXJhcnRpIGJlbHVtIGRpLVB1Ymxpc2guXG5cbkNhcmEgYmVuZXJpbjogY29weSBTRU1VQSBpc2kgZmlsZSAnZmlyZXN0b3JlLXJ1bGVzLW1lcmdlZC1jYXJpLWt1cmlyLnR4dCcgeWFuZyBha3Uga2FzaWgsIHBhc3RlIGtlIFJ1bGVzLCB0ZWthbiBQdWJsaXNoLCB0dW5nZ3UgMSBtZW5pdCwgY29iYSBsYWdpLlxuXG5KYW5nYW4gcGFrYWkgcnVsZXMgc2VkZXJoYW5hIGRpIHBlc2FuIGxhbWEgaW5pLCBwYWthaSB5YW5nIGdhYnVuZ2FuIGJpYXIgYXR1cmFuIGxhbWEga2FtdSB0aWRhayBoaWxhbmcuIik7CiAgICB9IGVsc2UgeyBhbGVydCgiR2FnYWwgYnVhdCBvcmRlcjogIitlLm1lc3NhZ2UpOyB9CiAgICBsb2coIkdhZ2FsIG9yZGVyOiAiK2UubWVzc2FnZSk7CiAgfQp9Owo8L3NjcmlwdD4KPC9ib2R5Pgo8L2h0bWw+Cg==" class="active">🚖<br>Cari Kurir</a><a href="./semua-pesanan-admin.html">📦<br>Pesanan</a></nav>
 
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 <script type="module">
 import {initializeApp,getApps,getApp} from "https://www.gstatic.com/firebasejs/12.4.0/firebase-app.js";
 import {getAuth,onAuthStateChanged} from "https://www.gstatic.com/firebasejs/12.4.0/firebase-auth.js";
@@ -115,10 +129,37 @@ function tarif(){
   if(jenis==="mobil") return {base:15000, perKm:3500, label:"Mobil • Dasar Rp 15.000 + Rp 3.500/km"};
   return {base:8000, perKm:2000, label:"Motor • Dasar Rp 8.000 + Rp 2.000/km"};
 }
-function hitung(){
+function updateStatusLokasi(){
   const jLat=parseFloat($("jemputLat").value), jLng=parseFloat($("jemputLng").value);
   const tLat=parseFloat($("tujuanLat").value), tLng=parseFloat($("tujuanLng").value);
-  if([jLat,jLng,tLat,tLng].some(v=>isNaN(v))){ alert("Isi dulu Lat/Lng jemput & tujuan. Pakai tombol GPS kalau bingung."); return null; }
+  const sj=$("statusJemput"), st=$("statusTujuan"), per=$("peringatanLokasi");
+  if(!isNaN(jLat) && !isNaN(jLng)) sj.textContent=`✅ Lokasi Awal sudah ditentukan: ${jLat.toFixed(6)}, ${jLng.toFixed(6)}${$("jemputAlamat").value ? ' — '+$("jemputAlamat").value : ''}`;
+  else sj.textContent='❌ Lokasi Awal belum ditentukan — isi Lat/Lng atau tekan Pakai GPS Saya untuk Jemput';
+  if(!isNaN(tLat) && !isNaN(tLng)) st.textContent=`✅ Lokasi Tujuan sudah ditentukan: ${tLat.toFixed(6)}, ${tLng.toFixed(6)}${$("tujuanAlamat").value ? ' — '+$("tujuanAlamat").value : ''}`;
+  else st.textContent='❌ Lokasi Tujuan belum ditentukan — isi Lat/Lng tujuan manual, jangan samakan dengan jemput';
+  if(per){
+    if(!isNaN(jLat) && !isNaN(jLng) && !isNaN(tLat) && !isNaN(tLng)){
+      const d=haversineKm(jLat,jLng,tLat,tLng);
+      if(d<0.05){ per.style.display='block'; per.textContent=`⚠️ Lokasi Awal dan Tujuan SAMA (jarak ${d.toFixed(2)} km). Pelanggan harus tentukan tujuan yang beda. Kalau tujuan = lokasi kamu sekarang, jangan tekan GPS untuk Tujuan kalau jemput juga GPS kamu.`; }
+      else { per.style.display='none'; }
+    } else per.style.display='none';
+  }
+}
+function validasiLokasi(){
+  updateStatusLokasi();
+  const jLat=parseFloat($("jemputLat").value), jLng=parseFloat($("jemputLng").value);
+  const tLat=parseFloat($("tujuanLat").value), tLng=parseFloat($("tujuanLng").value);
+  if(isNaN(jLat) || isNaN(jLng)){ alert("Pelanggan harus tentukan LOKASI AWAL dulu.\n\nIsi Lat/Lng Jemput atau tekan 'Pakai GPS Saya untuk Jemput'."); return false; }
+  if(isNaN(tLat) || isNaN(tLng)){ alert("Pelanggan harus tentukan LOKASI TUJUAN dulu.\n\nIsi Lat/Lng Tujuan manual (beda dari jemput). Jangan tekan 'Pakai GPS Saya untuk Tujuan' kalau tujuan bukan lokasi kamu sekarang."); return false; }
+  const d=haversineKm(jLat,jLng,tLat,tLng);
+  if(d<0.05){ alert(`Lokasi Awal dan Tujuan SAMA (jarak ${d.toFixed(2)} km).\n\nPelanggan harus tentukan tujuan yang beda dari lokasi awal. Jarak 0.00 km tidak bisa dibuat order.`); return false; }
+  if(d>40){ alert(`Jarak Jemput → Tujuan ${d.toFixed(2)} km, lebih dari 40 km, di luar jangkauan.`); return false; }
+  return true;
+}
+function hitung(){
+  if(!validasiLokasi()) return null;
+  const jLat=parseFloat($("jemputLat").value), jLng=parseFloat($("jemputLng").value);
+  const tLat=parseFloat($("tujuanLat").value), tLng=parseFloat($("tujuanLng").value);
   jarakKm=haversineKm(jLat,jLng,tLat,tLng);
   const tf=tarif();
   ongkir=Math.round(tf.base + jarakKm*tf.perKm);
@@ -127,7 +168,7 @@ function hitung(){
   $("hasilHitung").style.display='block';
   $("txtJarak").textContent=jarakKm.toFixed(2)+" km";
   $("txtOngkir").textContent=rupiah(ongkir);
-  $("txtRincianOngkir").textContent=tf.label+" • Jarak "+jarakKm.toFixed(2)+" km → "+rupiah(tf.base)+" + "+jarakKm.toFixed(2)+" x "+rupiah(tf.perKm)+" = "+rupiah(ongkir);
+  $("txtRincianOngkir").textContent=tf.label+" • Jarak Pelanggan (Jemput) → Tujuan "+jarakKm.toFixed(2)+" km → Ongkir = "+rupiah(tf.base)+" + "+jarakKm.toFixed(2)+" x "+rupiah(tf.perKm)+" = "+rupiah(ongkir);
   if(jarakKm>40){ $("txtJarakKurir").textContent="⚠️ Jarak jemput → tujuan lebih dari 40 km, di luar jangkauan layanan."; }
   else $("txtJarakKurir").textContent="✅ Masih dalam jangkauan 40 km.";
   log(`Hitung: jarak=${jarakKm.toFixed(2)} km ongkir=${ongkir} jenis=${$("jenisKendaraan").value}`);
@@ -141,11 +182,85 @@ function gpsUntuk(targetLat, targetLng){
   navigator.geolocation.getCurrentPosition(pos=>{
     $(targetLat).value=pos.coords.latitude.toFixed(6);
     $(targetLng).value=pos.coords.longitude.toFixed(6);
+    // Kalau alamat masih kosong, isi otomatis biar tidak '-'
+    const alamatId = targetLat==='jemputLat' ? 'jemputAlamat' : 'tujuanAlamat';
+    if(!$(alamatId).value) $(alamatId).value=`GPS ${pos.coords.latitude.toFixed(6)}, ${pos.coords.longitude.toFixed(6)}`;
+    updateStatusLokasi(); updateLinkGmaps();
+    if(mapTujuan && targetLat==='jemputLat'){ mapTujuan.setView([pos.coords.latitude, pos.coords.longitude], 14); if(markerJemput) markerJemput.setLatLng([pos.coords.latitude, pos.coords.longitude]); }
+    // Kalau jemput (GPS pelanggan) berubah dan tujuan sudah ada, ongkir langsung disesuaikan
+    const tl2=parseFloat($("tujuanLat").value), tg2=parseFloat($("tujuanLng").value);
+    if(!isNaN(tl2) && !isNaN(tg2)){ const h2=hitung(); if(h2) console.log('Ongkir disesuaikan dari GPS baru:', h2); }
     log(`GPS ${targetLat}=${pos.coords.latitude}, ${targetLng}=${pos.coords.longitude}`);
   }, e=>alert("Gagal ambil GPS: "+e.message), {enableHighAccuracy:true, timeout:10000});
 }
 $("btnGpsJemput").onclick=()=>gpsUntuk("jemputLat","jemputLng");
 $("btnGpsTujuan").onclick=()=>gpsUntuk("tujuanLat","tujuanLng");
+// Update status live kalau pelanggan ketik manual
+["jemputLat","jemputLng","tujuanLat","tujuanLng","jemputAlamat","tujuanAlamat"].forEach(id=>{
+  document.getElementById(id)?.addEventListener('input', updateStatusLokasi);
+});
+updateStatusLokasi();
+
+// === PETA TUJUAN (Leaflet + OpenStreetMap, tanpa API key) ===
+let mapTujuan=null, markerJemput=null, markerTujuan=null;
+function setTujuanFromMap(lat, lng, dariKlik=true){
+  $("tujuanLat").value = lat.toFixed(6);
+  $("tujuanLng").value = lng.toFixed(6);
+  if(! $("tujuanAlamat").value || $("tujuanAlamat").value.startsWith("GPS") || $("tujuanAlamat").value.startsWith("Peta")){
+    $("tujuanAlamat").value = `Peta ${lat.toFixed(6)}, ${lng.toFixed(6)}`;
+  }
+  if(markerTujuan) markerTujuan.setLatLng([lat, lng]);
+  updateStatusLokasi();
+  updateLinkGmaps();
+  // SESUAIKAN ONGKIR: begitu tujuan digeser di peta, langsung hitung ulang jarak Pelanggan -> Tujuan
+  const jl=parseFloat($("jemputLat").value), jg=parseFloat($("jemputLng").value);
+  if(!isNaN(jl) && !isNaN(jg)){ const h=hitung(); if(h) $("txtJarakKurir").textContent=`✅ Ongkir disesuaikan: Jarak Pelanggan → Tujuan ${h.jarakKm.toFixed(2)} km • Ongkir ${rupiah(h.ongkir)}`; }
+}
+function updateLinkGmaps(){
+  const tLat=$("tujuanLat").value, tLng=$("tujuanLng").value;
+  const jLat=$("jemputLat").value, jLng=$("jemputLng").value;
+  const a=$("linkGmapsTujuan");
+  if(a && tLat && tLng) a.href = `https://www.google.com/maps/dir/?api=1&origin=${jLat},${jLng}&destination=${tLat},${tLng}`;
+}
+function initPetaTujuan(){
+  if(!window.L) return;
+  const jLat=parseFloat($("jemputLat").value) || -6.799508;
+  const jLng=parseFloat($("jemputLng").value) || 108.344044;
+  const tLat=parseFloat($("tujuanLat").value);
+  const tLng=parseFloat($("tujuanLng").value);
+  const pusat = (!isNaN(tLat) && !isNaN(tLng)) ? [tLat, tLng] : [jLat, jLng];
+  mapTujuan = L.map('mapTujuan').setView(pusat, 14);
+  L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {maxZoom:19, attribution:'© OpenStreetMap'}).addTo(mapTujuan);
+  markerJemput = L.marker([jLat, jLng]).addTo(mapTujuan).bindPopup('📍 Lokasi Awal (Jemput) - GPS Pelanggan');
+  const posTujuan = (!isNaN(tLat) && !isNaN(tLng)) ? [tLat, tLng] : [jLat, jLng];
+  markerTujuan = L.marker(posTujuan, {draggable:true, title:'Geser untuk pilih tujuan'}).addTo(mapTujuan).bindPopup('🎯 Tujuan - geser / tap peta untuk pindah');
+  mapTujuan.on('click', e=>{ setTujuanFromMap(e.latlng.lat, e.latlng.lng); });
+  markerTujuan.on('dragend', e=>{ const p=e.target.getLatLng(); setTujuanFromMap(p.lat, p.lng, false); });
+  updateLinkGmaps();
+  // Kalau jemput berubah (GPS), pindahkan pin jemput
+  ["jemputLat","jemputLng"].forEach(id=>{
+    document.getElementById(id)?.addEventListener('input', ()=>{
+      const jl=parseFloat($("jemputLat").value), jg=parseFloat($("jemputLng").value);
+      if(!isNaN(jl) && !isNaN(jg) && markerJemput) markerJemput.setLatLng([jl, jg]);
+    });
+  });
+  ["tujuanLat","tujuanLng"].forEach(id=>{
+    document.getElementById(id)?.addEventListener('input', ()=>{
+      const tl=parseFloat($("tujuanLat").value), tg=parseFloat($("tujuanLng").value);
+      if(!isNaN(tl) && !isNaN(tg) && markerTujuan){ markerTujuan.setLatLng([tl, tg]); mapTujuan.setView([tl, tg], mapTujuan.getZoom()); updateLinkGmaps(); const h3=hitung(); if(h3) console.log('Ongkir manual disesuaikan:', h3); }
+    });
+  });
+}
+setTimeout(initPetaTujuan, 300);
+document.getElementById('btnPetaJemput')?.addEventListener('click', ()=>{
+  const jl=parseFloat($("jemputLat").value), jg=parseFloat($("jemputLng").value);
+  if(isNaN(jl)||isNaN(jg)){ alert('Isi dulu GPS Jemput'); return; }
+  if(mapTujuan) mapTujuan.setView([jl, jg], 14);
+});
+document.getElementById('btnPetaHapusTujuan')?.addEventListener('click', ()=>{
+  $("tujuanLat").value=''; $("tujuanLng").value=''; $("tujuanAlamat").value='';
+  updateStatusLokasi();
+});
 
 function ambilLatLngKurir(d){
   const lat = d.lat ?? d.latitude ?? d.lokasi?.lat ?? d.posisi?.lat ?? d.koordinat?.lat;
