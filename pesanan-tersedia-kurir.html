@@ -181,7 +181,7 @@ function courierDistance(o, profile){
   const toCustomer=pl!==null&&pn!==null?distanceKm(c,[pl,pn]):null;
   // Radius utama dihitung ke lokasi penjemputan mitra; jika GPS mitra tidak ada,
   // gunakan GPS pelanggan sebagai fallback.
-  const basis=toMitra!==null?toMitra:toCustomer;
+  const basis=toMitra;
   return {toMitra,toCustomer,basis,eligible:basis!==null&&basis<=MAX_JARAK_KM};
 }
 function getItemList(o){
@@ -191,24 +191,20 @@ function getItemList(o){
   return [];
 }
 function getOfferCourier(o){
-  const rejected=Array.isArray(o.kurirDitolak)?o.kurirDitolak:[];
-  // Checkout menyimpan kurir yang lolos radius ke mitraCandidateUids.
-  // Jika daftar ini tersedia, gunakan daftar tersebut sebagai sumber kandidat
-  // agar halaman Kurir tidak menghitung ulang dan berbeda dari Checkout.
-  const savedCandidates=Array.isArray(o.mitraCandidateUids)
-    ? o.mitraCandidateUids.filter(Boolean).map(String)
+  // Setiap kurir mengecek GPS-nya sendiri. Semua kurir dalam radius 40 km
+  // berhak melihat dan berebut pesanan; tidak ada pemilihan satu kurir terdekat.
+  const uid=String(currentUser?.uid||'');
+  if(!uid) return null;
+  const rejected=Array.isArray(o.kurirDitolak)?o.kurirDitolak.map(String):[];
+  if(rejected.includes(uid)) return null;
+  const profile=kurirProfiles.find(k=>String(k.uid)===uid);
+  if(!profile) return null;
+  const distance=courierDistance(o,profile.data||{});
+  return distance.toMitra!==null && distance.toMitra<=MAX_JARAK_KM
+    ? {profile,...distance,eligible:true}
     : null;
-  const candidates=kurirProfiles
-    .filter(k=>k.uid && !rejected.includes(k.uid))
-    .filter(k=>!savedCandidates || savedCandidates.includes(String(k.uid)))
-    .map(k=>({profile:k,...courierDistance(o,k.data)}))
-    .filter(k=>k.basis!==null)
-    .sort((a,b)=>{
-      if(a.eligible!==b.eligible) return a.eligible?-1:1;
-      return a.basis-b.basis;
-    });
-  return candidates[0]||null;
 }
+
 function render(){
   const siap = all.filter(o=>{
     if(String(o.status||'').toLowerCase()!=='menunggu_kurir') return false;
@@ -283,7 +279,7 @@ function renderOrder(o, isAktif=false){
         <div class="box dark"><span>Kurir → Mitra</span><b style="color:#00ff88">${jarakMitra!==null&&jarakMitra!==undefined?jarakMitra.toFixed(2)+' km':'-'}</b></div>
         <div class="box dark"><span>Kurir → Pelanggan</span><b style="color:var(--y)">${jarakPelanggan!==null&&jarakPelanggan!==undefined?jarakPelanggan.toFixed(2)+' km':'-'}</b></div>
       </div>
-      <div class="subaddr" style="color:#fff;margin-top:7px">Prioritas kurir dalam radius ${MAX_JARAK_KM} km dari mitra. Jika kurir terdekat menolak, tawaran diteruskan ke kurir berikutnya; setelah semua kurir dalam radius menolak, pesanan ditawarkan ke kurir di luar radius.</div>
+      <div class="subaddr" style="color:#fff;margin-top:7px">Semua kurir dengan GPS maksimal ${MAX_JARAK_KM} km dari mitra berhak melihat dan berebut pesanan. Kurir di luar radius tidak ditampilkan.</div>
       <div class="box dark" style="margin-top:8px"><span>Ongkir kurir</span><b style="color:var(--y)">Rp ${Number(split.ongkirKurir||0).toLocaleString('id-ID')}</b></div>
       ${gpsMitraOk&&gpsPelOk?`<a href="https://www.google.com/maps/dir/${mitraLat},${mitraLng}/${pelLat},${pelLng}" target="_blank" class="btn btn-y">🗺️ Rute Mitra ke Pelanggan</a>`:''}
     </div>
@@ -315,7 +311,10 @@ window.ambil=async(id)=>{
       const order={id,...snap.data()};
       if(String(order.status||'').toLowerCase()!=='menunggu_kurir') throw Error('Pesanan sudah diambil kurir lain atau tidak tersedia.');
       const offer=getOfferCourier(order);
-      if(!offer || offer.profile.uid!==currentUser.uid) throw Error('Pesanan ini sudah dialihkan ke kurir lain.');
+      const profile=kurirProfiles.find(k=>String(k.uid)===String(currentUser.uid));
+      const distance=profile?courierDistance(order,profile.data||{}):null;
+      if(!distance || distance.toMitra===null || distance.toMitra>MAX_JARAK_KM) throw Error('GPS kurir harus berada maksimal 40 km dari GPS mitra untuk mengambil pesanan.');
+      if(Array.isArray(order.kurirDitolak)&&order.kurirDitolak.map(String).includes(String(currentUser.uid))) throw Error('Kurir sudah menolak pesanan ini.');
       tx.update(ref,{status:'diantar',statusPemenuhan:'diantar',kurirUid:currentUser.uid,kurirNama:currentUser.email||currentUser.uid,diambilAt:serverTimestamp(),updatedAt:serverTimestamp()});
     });
     alert('Pesanan berhasil diambil. Status sekarang DIANTAR.');
