@@ -51,7 +51,7 @@ nav.bottom a{color:#aaa;text-decoration:none;font-size:11px} nav.bottom a.active
 <header class="top"><div class="topline"><div><div class="brand">TOKO SIAP ANTAR</div><div class="sub">Cari Kurir • Mirip Grab • Radius 40 km</div></div><a href="./index.html" style="color:#ffcc00;text-decoration:none;font-weight:800">← Menu</a></div></header>
 <main>
 <div class="panel">
-<h2 style="margin:0">🚖 Cari Kurir Terdekat</h2>
+<h2 style="margin:0">🚖 Cari Kurir Terdekat <span style="background:#111;color:#ffd400;padding:2px 6px;border-radius:6px;font-size:10px">v3 FILTER MOBIL AKTIF</span><div style="background:#111;color:#ffd400;padding:8px;border-radius:8px;margin-top:8px;font-size:12px">✅ File baru sudah kepasang — Pilih Mobil = cuma kurir Mobil, Pilih Motor = cuma kurir Motor</div></h2>
 <p class="muted" style="margin:4px 0 0">Pelanggan isi titik jemput & tujuan, sistem hitung jarak + ongkir, lalu cari kurir online dalam radius 40 km.</p>
 
 <label>Titik Jemput - Alamat / Patokan</label>
@@ -101,6 +101,7 @@ const auth=getAuth(app); const db=getFirestore(app);
 const $=id=>document.getElementById(id);
 const rupiah=n=>"Rp "+(Number(n)||0).toLocaleString("id-ID");
 let currentUser=null, kurirTerpilih=[], jarakKm=0, ongkir=0, kurirList=[];
+console.log('VERSI v3 - Filter Mobil aktif');
 onAuthStateChanged(auth,u=>{ currentUser=u||null; });
 
 function log(m){ const el=$("log"); el.style.display='block'; el.textContent+=m+"\n"; console.log(m); }
@@ -133,6 +134,7 @@ function hitung(){
   return {jarakKm, ongkir};
 }
 $("btnHitung").onclick=()=>hitung();
+$("jenisKendaraan").addEventListener('change', ()=>{ hitung(); if(kurirList.length) $("btnCari").click(); });
 
 function gpsUntuk(targetLat, targetLng){
   if(!navigator.geolocation){ alert("GPS tidak didukung di HP ini"); return; }
@@ -151,18 +153,41 @@ function ambilLatLngKurir(d){
   if(lat==null || lng==null) return null;
   return {lat:Number(lat), lng:Number(lng)};
 }
+function kendaraanKurir(d){
+  // Cek SEMUA field yang mungkin dipakai di Firestore, termasuk kalau kendaraan disimpan sebagai object
+  let raw = d.jenisKendaraan || d.kendaraan || d.vehicle || d.tipeKendaraan || d.jenis || d.kendaraanJenis || d.kendaraanKurir || d.jenisKendaraanKurir || '';
+  if(raw && typeof raw === 'object'){
+    raw = raw.jenis || raw.type || raw.nama || raw.kendaraan || raw.vehicle || JSON.stringify(raw);
+  }
+  const v = String(raw || '').toLowerCase().trim();
+  // Dari screenshot Firestore kamu: field-nya namanya 'kendaraan' isinya 'Motor' -> harus kebaca motor
+  if(v.includes('mobil') || v.includes('car') || v.includes('avanza') || v.includes('xenia') || v.includes('calya')) return 'mobil';
+  if(v.includes('motor') || v.includes('matic') || v.includes('bebek') || v.includes('sport') || v.includes('vario') || v.includes('beat') || v.includes('nmax')) return 'motor';
+  if(v==='') return 'motor'; // data lama tanpa field kendaraan dianggap motor
+  return v;
+}
 
 $("btnCari").onclick=async()=>{
   const h=hitung(); if(!h) return;
+  log('FILTER: pilih=' + $("jenisKendaraan").value + ', akan buang semua yang bukan ' + $("jenisKendaraan").value);
   const jLat=parseFloat($("jemputLat").value), jLng=parseFloat($("jemputLng").value);
   $("listKurir").innerHTML='<div class="muted">Mencari kurir dalam 40 km...</div>';
   try{
+    const pilihJenis=$("jenisKendaraan").value; // motor / mobil
     const qs=await getDocs(query(collection(db,'users'), where('role','==','kurir')));
     kurirList=[];
     qs.forEach(doc=>{
       const d=doc.data()||{};
       const pos=ambilLatLngKurir(d);
       if(!pos) return;
+      // FIX: filter kendaraan. Kalau pilih Mobil, jangan tampilkan kurir Motor.
+      // Kalau belum ada yang daftar kurir mobil, list akan kosong - itu benar.
+      const ken=kendaraanKurir(d);
+      // DEBUG: biar ketahuan di log kenapa dibuang / lolos
+      log(`Cek kurir ${d.nama||d.email||doc.id}: kendaraan di DB='${d.kendaraan||d.jenisKendaraan||'(kosong)'}' -> dibaca='${ken}', pilih='${pilihJenis}'`);
+      if(pilihJenis==='mobil' && ken!=='mobil'){ log(` -> BUANG, karena bukan Mobil`); return; }
+      if(pilihJenis==='motor' && ken!=='motor'){ log(` -> BUANG, karena bukan Motor`); return; }
+      log(` -> LOLOS`);
       const jarakKeJemput=haversineKm(jLat,jLng,pos.lat,pos.lng);
       const online = d.online===true || d.status==='online' || d.aktif===true || d.status==='aktif';
       // Tampilkan semua, tapi tandai yang offline. Filter utama 40 km.
@@ -172,13 +197,14 @@ $("btnCari").onclick=async()=>{
     });
     kurirList.sort((a,b)=>a.jarakKeJemput-b.jarakKeJemput);
     if(!kurirList.length){
-      $("listKurir").innerHTML='<div style="background:#fff8d8;border:1px dashed #f4df80;padding:10px;border-radius:10px">Tidak ada kurir dalam 40 km dari jemput. Coba lagi nanti / kurir harus aktifkan GPS & status online.</div>';
+      const pilihJenis2=$("jenisKendaraan").value;
+      $("listKurir").innerHTML='<div style="background:#fff8d8;border:1px dashed #f4df80;padding:10px;border-radius:10px">Tidak ada kurir '+(pilihJenis2==='mobil'?'Mobil':'Motor')+' dalam 40 km dari jemput. '+(pilihJenis2==='mobil'?'Belum ada yang daftar kurir pakai Mobil, jadi wajar kosong.':'Coba lagi nanti / kurir harus aktifkan GPS & status online.')+'</div>';
       $("btnPesan").disabled=true;
       return;
     }
     $("listKurir").innerHTML=kurirList.map((k,i)=>{
       const nama=k.nama||k.namaUsaha||k.email||'Kurir';
-      const kendaraan=k.jenisKendaraan||k.kendaraan||$("jenisKendaraan").value;
+      const kendaraan=kendaraanKurir(k)==='mobil' ? 'Mobil' : 'Motor';
       return `<div class="kurir"><div><b>${i+1}. ${nama}</b><br><small>🚖 ${kendaraan} • 📍 ${k.jarakKeJemput.toFixed(2)} km dari jemput • ⭐ ${k.rating||'-'} • ${k.noHp||k.telepon||''}</small></div><div><span class="badge ${k.online?'':'badge-off'}">${k.online?'Online':'Offline'}</span><br><button class="btn btn-black" style="padding:6px 10px;margin-top:6px" onclick="window.pilihKurir('${k.id}')">Pilih</button></div></div>`;
     }).join('');
     kurirTerpilih=[kurirList[0]];
@@ -227,7 +253,12 @@ $("btnPesan").onclick=async()=>{
     const ref=await addDoc(collection(db,'orders'), order);
     alert("✅ Order dibuat! ID: "+ref.id+"\\nDitawarkan ke kurir terdekat. Kalau 30 detik tidak diterima, sistem lempar ke kurir berikutnya dalam 40 km.");
     log(`Order dibuat ${ref.id} ke kurir ${kurirTerpilih[0].id}`);
-  }catch(e){ alert("Gagal buat order: "+e.message); log("Gagal order: "+e.message); }
+  }catch(e){
+    if(e.message.includes('permission') || e.message.includes('Missing or insufficient')){
+      alert("Gagal buat order: PERMISSION.\n\nIni bukan salah HP. Rules Firestore belum izinkan buat order.\nCopy Rules di bawah ke Firebase Console > Firestore > Rules, lalu Publish:\n\nmatch /orders/{id} { allow read: if true; allow create: if true; allow update: if true; }\nmatch /users/{id} { allow read: if true; allow update: if request.auth != null; }");
+    } else { alert("Gagal buat order: "+e.message); }
+    log("Gagal order: "+e.message);
+  }
 };
 </script>
 <script>(function(){var loc=location.href.replace(/#.*$/,"");var ATTR_NAMES=["data-product-id","data-productid","data-product_id","product-id","productid","product_id","data-source-entity-id","source-entity-id","source_entity_id","data-product","data-metadata","data-meta"];var DATASET_KEYS=["productId","productid","product_id","sourceEntityId","sourceentityid","source_entity_id","product","metadata","meta"];function readProductId(value){if(typeof value!=="string"||value.length===0)return null;if(/^[0-9]{6,}$/.test(value))return value;var match=value.match(/(?:product(?:_|-)?id|source(?:_|-)?entity(?:_|-)?id)["'=:\s]+([0-9]{6,})/i);return match?match[1]:null}function extractProductId(start){for(var node=start;node&&node!==document.body;node=node.parentElement){for(var i=0;i<ATTR_NAMES.length;i++){var attrValue=node.getAttribute&&node.getAttribute(ATTR_NAMES[i]);var attrProductId=readProductId(attrValue);if(attrProductId)return attrProductId}var dataset=node.dataset||null;if(dataset){for(var j=0;j<DATASET_KEYS.length;j++){var dataValue=dataset[DATASET_KEYS[j]];var dataProductId=readProductId(dataValue);if(dataProductId)return dataProductId}}}return null}function isInlineMediaSlotElement(node){return !!(node&&node.getAttribute&&node.getAttribute("data-clippy-inline-media-slot")!==null)}function findInlineMediaSlot(start){for(var node=start;node&&node!==document.body;node=node.parentElement){if(isInlineMediaSlotElement(node))return node}return null}function readInlineMediaUrl(node){if(!node)return null;return node.getAttribute&&((node.getAttribute("data-clippy-inline-media-url")||node.getAttribute("data-url")||node.getAttribute("data_url")))||node.href||null}function stripHash(url){return String(url).replace(/#.*$/,"")}function urlsMatch(a,b){if(!a||!b)return false;try{return stripHash(new URL(a,loc).href)===stripHash(new URL(b,loc).href)}catch(_){return stripHash(a)===stripHash(b)}}function isFirstPartyReelUrl(value){try{var url=new URL(value,loc);if(url.protocol!=="https:")return false;var host=url.hostname.toLowerCase();var supported=host==="instagram.com"||host.endsWith(".instagram.com")||host==="facebook.com"||host.endsWith(".facebook.com");return supported&&/\/reels?\//i.test(url.pathname)}catch(_){return false}}function isInlineMediaUrlClick(node,href){var slot=findInlineMediaSlot(node);if(!slot)return false;var slotUrl=readInlineMediaUrl(slot);if(slotUrl)return urlsMatch(href,slotUrl);return isFirstPartyReelUrl(href)}function findDataHref(start){for(var node=start;node&&node!==document.body;node=node.parentElement){if(node.getAttribute){var href=node.getAttribute("data-href")||node.getAttribute("data-url");if(href)return{href:href,node:node}}}return null}var nativeOpen=window.open;window.open=function(url){if(parent!==window&&typeof url==="string"&&/^https?:\/\//.test(url)){parent.postMessage({type:"ecto:usercontent-link-click",href:url},"*");return null}return nativeOpen?nativeOpen.apply(window,arguments):null};document.addEventListener("click",function(e){var target=e.target instanceof Element?e.target:null;if(!target)return;if(parent===window)return;var a=target.closest?target.closest("a[href]"):null;if(a&&a.href&&/^https?:\/\//.test(a.href)&&a.href.replace(/#.*$/,"")!==loc){if(isInlineMediaUrlClick(a,a.href))return;var productId=extractProductId(target)||extractProductId(a);if(productId){e.preventDefault();parent.postMessage({type:"ecto-artifact-link-click",productId:productId},"*");return}e.preventDefault();parent.postMessage({type:"ecto:usercontent-link-click",href:a.href},"*");return}var dataHref=findDataHref(target);if(dataHref&&/^https?:\/\//.test(dataHref.href)&&dataHref.href.replace(/#.*$/,"")!==loc){if(isInlineMediaUrlClick(dataHref.node,dataHref.href))return;e.preventDefault();parent.postMessage({type:"ecto:usercontent-link-click",href:dataHref.href},"*")}},true)})();</script><script>(function(){var FOCUS_TYPE="ecto:artifact-focus-request";var CLOSE_TYPE="ecto:artifact-close-request";function focusArtifactDocument(){var body=document.body;if(!body)return;try{window.focus();}catch(e){}if(!body.hasAttribute("tabindex"))body.setAttribute("tabindex","-1");try{body.focus({preventScroll:true});}catch(e){try{body.focus();}catch(e2){}}}window.addEventListener("message",function(event){if(event.source!==window.parent)return;var data=event.data;if(!data||typeof data!=="object"||data.type!==FOCUS_TYPE)return;if(document.readyState==="loading"){document.addEventListener("DOMContentLoaded",focusArtifactDocument,{once:true});return;}focusArtifactDocument();});window.addEventListener("keydown",function(event){if(event.key!=="Escape")return;window.setTimeout(function(){if(event.defaultPrevented)return;window.parent.postMessage({type:CLOSE_TYPE},"*");},0);});})();</script></body>
