@@ -42,7 +42,7 @@ input,select{width:100%;padding:10px 12px;border:1px solid #ddd;border-radius:10
 .badge{background:#e8f8ee;color:#087443;padding:3px 8px;border-radius:20px;font-size:11px;font-weight:700}
 .badge-off{background:#ffe8e8;color:#a00}
 .hasil{font-size:22px;font-weight:900}.muted{color:#666;font-size:12px}
-#log{white-space:pre-wrap;font-size:11px;color:#555;background:#fff8d8;border:1px dashed #f4df80;padding:8px;border-radius:10px;display:none}
+#log{white-space:pre-wrap;font-size:11px;color:#555;background:#fff;border:1px solid #e5e5e5;padding:8px;border-radius:10px;display:none}
 nav.bottom{position:fixed;left:0;right:0;bottom:0;background:#111;display:grid;grid-template-columns:repeat(4,1fr);text-align:center;padding:8px 0;z-index:10}
 nav.bottom a{color:#aaa;text-decoration:none;font-size:11px} nav.bottom a.active{color:#ffcc00}
 </style>
@@ -51,7 +51,7 @@ nav.bottom a{color:#aaa;text-decoration:none;font-size:11px} nav.bottom a.active
 <header class="top"><div class="topline"><div><div class="brand">TOKO SIAP ANTAR</div><div class="sub">Cari Kurir • Mirip Grab • Radius 40 km</div></div><a href="./index.html" style="color:#ffcc00;text-decoration:none;font-weight:800">← Menu</a></div></header>
 <main>
 <div class="panel">
-<h2 style="margin:0">🚖 Cari Kurir Terdekat <span style="background:#111;color:#ffd400;padding:2px 6px;border-radius:6px;font-size:10px">v3 FILTER MOBIL AKTIF</span><div style="background:#111;color:#ffd400;padding:8px;border-radius:8px;margin-top:8px;font-size:12px">✅ File baru sudah kepasang — Pilih Mobil = cuma kurir Mobil, Pilih Motor = cuma kurir Motor</div></h2>
+<h2 style="margin:0">🚖 Cari Kurir Terdekat</h2>
 <p class="muted" style="margin:4px 0 0">Pelanggan isi titik jemput & tujuan, sistem hitung jarak + ongkir, lalu cari kurir online dalam radius 40 km.</p>
 
 <label>Titik Jemput - Alamat / Patokan</label>
@@ -78,7 +78,7 @@ nav.bottom a{color:#aaa;text-decoration:none;font-size:11px} nav.bottom a.active
 <div class="muted" id="txtRincianOngkir">-</div>
 <div class="muted" id="txtJarakKurir">-</div>
 </div>
-<div id="log"></div>
+
 </div>
 
 <div class="panel">
@@ -104,7 +104,7 @@ let currentUser=null, kurirTerpilih=[], jarakKm=0, ongkir=0, kurirList=[];
 console.log('VERSI v3 - Filter Mobil aktif');
 onAuthStateChanged(auth,u=>{ currentUser=u||null; });
 
-function log(m){ const el=$("log"); el.style.display='block'; el.textContent+=m+"\n"; console.log(m); }
+function log(m){ console.log(m); }
 function haversineKm(lat1,lng1,lat2,lng2){
   const R=6371, dLat=(lat2-lat1)*Math.PI/180, dLng=(lng2-lng1)*Math.PI/180;
   const a=Math.sin(dLat/2)**2 + Math.cos(lat1*Math.PI/180)*Math.cos(lat2*Math.PI/180)*Math.sin(dLng/2)**2;
@@ -169,7 +169,7 @@ function kendaraanKurir(d){
 
 $("btnCari").onclick=async()=>{
   const h=hitung(); if(!h) return;
-  log('FILTER: pilih=' + $("jenisKendaraan").value + ', akan buang semua yang bukan ' + $("jenisKendaraan").value);
+
   const jLat=parseFloat($("jemputLat").value), jLng=parseFloat($("jemputLng").value);
   $("listKurir").innerHTML='<div class="muted">Mencari kurir dalam 40 km...</div>';
   try{
@@ -183,11 +183,6 @@ $("btnCari").onclick=async()=>{
       // FIX: filter kendaraan. Kalau pilih Mobil, jangan tampilkan kurir Motor.
       // Kalau belum ada yang daftar kurir mobil, list akan kosong - itu benar.
       const ken=kendaraanKurir(d);
-      // DEBUG: biar ketahuan di log kenapa dibuang / lolos
-      log(`Cek kurir ${d.nama||d.email||doc.id}: kendaraan di DB='${d.kendaraan||d.jenisKendaraan||'(kosong)'}' -> dibaca='${ken}', pilih='${pilihJenis}'`);
-      if(pilihJenis==='mobil' && ken!=='mobil'){ log(` -> BUANG, karena bukan Mobil`); return; }
-      if(pilihJenis==='motor' && ken!=='motor'){ log(` -> BUANG, karena bukan Motor`); return; }
-      log(` -> LOLOS`);
       const jarakKeJemput=haversineKm(jLat,jLng,pos.lat,pos.lng);
       const online = d.online===true || d.status==='online' || d.aktif===true || d.status==='aktif';
       // Tampilkan semua, tapi tandai yang offline. Filter utama 40 km.
@@ -198,7 +193,7 @@ $("btnCari").onclick=async()=>{
     kurirList.sort((a,b)=>a.jarakKeJemput-b.jarakKeJemput);
     if(!kurirList.length){
       const pilihJenis2=$("jenisKendaraan").value;
-      $("listKurir").innerHTML='<div style="background:#fff8d8;border:1px dashed #f4df80;padding:10px;border-radius:10px">Tidak ada kurir '+(pilihJenis2==='mobil'?'Mobil':'Motor')+' dalam 40 km dari jemput. '+(pilihJenis2==='mobil'?'Belum ada yang daftar kurir pakai Mobil, jadi wajar kosong.':'Coba lagi nanti / kurir harus aktifkan GPS & status online.')+'</div>';
+      $("listKurir").innerHTML='<div style="background:#fff;border:1px solid #e5e5e5;padding:10px;border-radius:10px">Tidak ada kurir '+(pilihJenis2==='mobil'?'Mobil':'Motor')+' dalam 40 km dari jemput. '+(pilihJenis2==='mobil'?'Belum ada yang daftar kurir pakai Mobil, jadi wajar kosong.':'Coba lagi nanti / kurir harus aktifkan GPS & status online.')+'</div>';
       $("btnPesan").disabled=true;
       return;
     }
