@@ -97,14 +97,15 @@ input,select{width:100%;border:1px solid #cfe5d8;border-radius:12px;padding:14px
   <div class="check-wrap">
     <label class="check-box active" id="box_kurir"><input type="checkbox" id="bisa_kurir" checked> 🛵 Siap Antar</label>
     <label class="check-box active" id="box_expedisi"><input type="checkbox" id="bisa_expedisi" checked> 📦 Expedisi</label>
+    <label class="check-box" id="box_cod"><input type="checkbox" id="bisa_cod"> 💵 COD (bersyarat Kurir + saldo)</label>
   </div>
   <div style="font-size:11px;color:#666;background:#fffde7;border:1px dashed #ffe082;padding:8px;border-radius:8px;margin-bottom:6px">
-  ✅ COD dihapus. Hanya Siap Antar & Expedisi yang tersedia.<br>
+  COD tersedia jika Kurir dalam radius 40 km dan saldo talangan mencukupi.<br>
   Contoh: Makanan basah matikan Expedisi.
   </div>
 
   <button class="btn" id="btnSimpan">💾 Simpan ke Spreadsheet MEMBER</button>
-  <div style="font-size:11px;color:#999;margin-top:8px;text-align:center">Sheet ID: 1H23wsTKmR1grQgSAqULbUCM9wQdfx5u6RHJwrrbROG0 | Col 10 = 0 (COD nonaktif) | Col 11-12 = Siap Antar/Expedisi</div>
+  <div style="font-size:11px;color:#999;margin-top:8px;text-align:center">Sheet ID: 1H23wsTKmR1grQgSAqULbUCM9wQdfx5u6RHJwrrbROG0 | Col 10 = COD pilihan Mitra | Col 11-12 = Siap Antar/Expedisi</div>
 </div>
 
 <script type="module">
@@ -192,7 +193,7 @@ document.getElementById('btnSimpan').onclick=async()=>{
  const stok=Number(document.getElementById('stok').value)||100;
  const desk=document.getElementById('deskripsi').value.trim();
  const kat=document.getElementById('kategori').value;
- const bisaCOD=0; // COD dihapus permanen
+ const bisaCOD=document.getElementById('bisa_cod').checked?1:0; // COD pilihan Mitra, validasi checkout tetap wajib
  const bisaKurir=document.getElementById('bisa_kurir').checked?1:0;
  const bisaExp=document.getElementById('bisa_expedisi').checked?1:0;
  
@@ -227,7 +228,7 @@ document.getElementById('btnSimpan').onclick=async()=>{
      ID:id,Nama:nama,Harga:harga,Deskripsi:desk,Kategori:kat,Stok:stok,Image:fotoPolos,MitraUid:mitraUid,MitraNama:mitraNama,Singkatan:singkatan(mitraNama),BisaCOD:bisaCOD,BisaKurir:bisaKurir,BisaExpedisi:bisaExp
    };
    await fetch(SCRIPT_URL,{method:'POST',mode:'no-cors',body:JSON.stringify(payload)});
-   msg.innerHTML=`<div class="msg-ok">✅ Masuk Sheet MEMBER! <b>${nama}</b><br>Siap Antar:${bisaKurir?'Ya':'Tidak'} | Exp:${bisaExp?'Ya':'Tidak'} | Stok:${stok} | COD: Nonaktif<br><small>Jika foto >30KB, akan auto kecilin ke 200px biar masuk Sheet</small></div>`;
+   msg.innerHTML=`<div class="msg-ok">✅ Masuk Sheet MEMBER! <b>${nama}</b><br>Siap Antar:${bisaKurir?'Ya':'Tidak'} | Exp:${bisaExp?'Ya':'Tidak'} | Stok:${stok} | COD: ${bisaCOD?'Aktif bersyarat':'Tidak aktif'}<br><small>Jika foto >30KB, akan auto kecilin ke 200px biar masuk Sheet</small></div>`;
    document.getElementById('nama').value='';
    document.getElementById('harga').value='';
    document.getElementById('deskripsi').value='';

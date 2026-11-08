@@ -145,14 +145,14 @@ function coordsFrom(obj){
 function distanceKm(a,b){const rad=n=>n*Math.PI/180,dLat=rad(b.lat-a.lat),dLng=rad(b.lng-a.lng),h=Math.sin(dLat/2)**2+Math.cos(rad(a.lat))*Math.cos(rad(b.lat))*Math.sin(dLng/2)**2;return 6371*2*Math.atan2(Math.sqrt(h),Math.sqrt(1-h));}
 async function ordersWithCourierAvailability(orders){
   let users=[];
-  try{const snap=await getDocs(collection(db,'users'));users=snap.docs.map(d=>({uid:d.id,...d.data()}));}catch(e){return orders.map(o=>({...o,_kurirRadius25:false}));}
+  try{const snap=await getDocs(collection(db,'users'));users=snap.docs.map(d=>({uid:d.id,...d.data()}));}catch(e){return orders.map(o=>({...o,_kurirRadius40:false}));}
   const couriers=users.filter(u=>['kurir','mitra_pengantaran','kurir_pengantaran'].includes(norm(u.role))&&(!u.status||String(u.status).toLowerCase()==='aktif')&&u.aktif!==false).map(u=>coordsFrom(u)).filter(Boolean);
   return orders.map(o=>{
     const alamat=o.alamatPengiriman||{};
     const customer=coordsFrom({lat:o.lat??alamat.lat??o.lokasi?.lat,lng:o.lng??alamat.lng??o.lokasi?.lng});
     const mitra=coordsFrom({lat:o.mitraLat??o.tokoLat??profile?.mitraLat??profile?.tokoLat??profile?.lat,lng:o.mitraLng??o.tokoLng??profile?.mitraLng??profile?.tokoLng??profile?.lng});
-    const available=!!(customer&&mitra&&couriers.some(c=>distanceKm(c,customer)<=25&&distanceKm(c,mitra)<=25));
-    return {...o,_kurirRadius25:available};
+    const available=!!(customer&&mitra&&couriers.some(c=>distanceKm(c,customer)<=40&&distanceKm(c,mitra)<=40));
+    return {...o,_kurirRadius40:available};
   });
 }
 
@@ -192,7 +192,7 @@ function renderOrderRecord(x){
   const diprosesSendiri=metodeSerah==='mitra_kirim_sendiri'||metodeSerah==='via_expedisi';
   let pilihanProses='';
   if(milikSaya && statusRaw==='disetujui'){
-    pilihanProses=`<div class="actions" style="margin-top:10px"><button class="btn" type="button" data-order-action="pack-self" data-id="${esc(x.id)}">📦 ${isExpedisi?'Dikemas & Proses Ekspedisi':'Dikemas & Kirim Sendiri'}</button>${!isExpedisi&&x._kurirRadius25?`<button class="btn dark" type="button" data-order-action="pack-courier" data-id="${esc(x.id)}">📦 Dikemas & Serahkan ke Kurir</button>`:''}</div>${!isExpedisi&&!x._kurirRadius25?`<div class="meta" style="margin-top:7px;color:#b42318">Kurir tidak tersedia dalam radius 25 km dari pelanggan dan mitra. Opsi serahkan ke kurir disembunyikan.</div>`:''}<div class="order-action-message meta" data-message-for="${esc(x.id)}"></div>`;
+    pilihanProses=`<div class="actions" style="margin-top:10px"><button class="btn" type="button" data-order-action="pack-self" data-id="${esc(x.id)}">📦 ${isExpedisi?'Dikemas & Proses Ekspedisi':'Dikemas & Kirim Sendiri'}</button>${!isExpedisi&&x._kurirRadius40?`<button class="btn dark" type="button" data-order-action="pack-courier" data-id="${esc(x.id)}">📦 Dikemas & Serahkan ke Kurir</button>`:''}</div>${!isExpedisi&&!x._kurirRadius40?`<div class="meta" style="margin-top:7px;color:#b42318">Kurir tidak tersedia dalam radius 40 km dari pelanggan dan mitra. Opsi serahkan ke kurir disembunyikan.</div>`:''}<div class="order-action-message meta" data-message-for="${esc(x.id)}"></div>`;
   } else if(milikSaya && sudahDikemas && diprosesSendiri){
     pilihanProses=`<div class="actions" style="margin-top:10px"><button class="btn" type="button" data-order-action="mark-shipped" data-id="${esc(x.id)}">🚚 Dikirim</button></div><div class="order-action-message meta" data-message-for="${esc(x.id)}"></div>`;
   } else if(milikSaya && sudahDikirim){
