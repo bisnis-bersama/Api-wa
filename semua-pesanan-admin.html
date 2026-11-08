@@ -244,15 +244,24 @@ window.verifikasiKeuangan=async id=>{
         const old=Number(mitraSnap.data().saldoEwallet??mitraSnap.data().saldo??0)||0;
         const credit=keMitraSemua?Math.round((s.subtotal+s.ongkir)*0.95):s.mitra;
         tx.update(mitraRef,{saldoEwallet:old+credit, saldo:old+credit, updatedAt:serverTimestamp()});
+      }else if(mitraRef){
+        const credit=keMitraSemua?Math.round((s.subtotal+s.ongkir)*0.95):s.mitra;
+        tx.set(mitraRef,{saldoEwallet:credit, saldo:credit, updatedAt:serverTimestamp()},{merge:true});
       }
       if(kurirSnap && kurirSnap.exists()){
         const old=Number(kurirSnap.data().saldoEwallet??kurirSnap.data().saldo??0)||0;
         tx.update(kurirRef,{saldoEwallet:old+s.kurir, saldo:old+s.kurir, updatedAt:serverTimestamp()});
+      }else if(kurirRef){
+        tx.set(kurirRef,{saldoEwallet:s.kurir, saldo:s.kurir, updatedAt:serverTimestamp()},{merge:true});
       }
+      const adminCredit=keMitraSemua?Math.round((s.subtotal+s.ongkir)*0.05):s.admin;
+      log(`bagi saldo: mitraUid=${mitraUid} kurirUid=${kurirUid||'-'} keMitraSemua=${keMitraSemua} mitraCredit=${keMitraSemua?Math.round((s.subtotal+s.ongkir)*0.95):s.mitra} kurirCredit=${s.kurir} adminCredit=${adminCredit} adminUid=${currentUser.uid} adminExists=${adminSnap.exists()}`);
       if(adminSnap.exists()){
         const old=Number(adminSnap.data().saldoEwallet??adminSnap.data().saldo??0)||0;
-        const adminCredit=keMitraSemua?Math.round((s.subtotal+s.ongkir)*0.05):s.admin;
         tx.update(adminRef,{saldoEwallet:old+adminCredit, saldo:old+adminCredit, updatedAt:serverTimestamp()});
+      }else{
+        // Dokumen admin belum ada di users -> buatkan, jangan di-skip biar saldo admin tetap masuk
+        tx.set(adminRef,{saldoEwallet:adminCredit, saldo:adminCredit, role:'admin', updatedAt:serverTimestamp(), createdAt:serverTimestamp()},{merge:true});
       }
       tx.update(ref,{status:'selesai', saldoDibagi:true, diverifikasiAt:serverTimestamp(), diverifikasiAdminUid:currentUser.uid, updatedAt:serverTimestamp()});
     });
