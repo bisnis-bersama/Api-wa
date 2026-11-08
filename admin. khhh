@@ -1,0 +1,263 @@
+<!doctype html>
+<html lang="id"><head><style>
+@font-face {
+  font-family: "Optimistic";
+  font-style: normal;
+  font-weight: 400 600;
+  font-display: swap;
+  src: url("/fonts/OptimisticAI_VF_Optimized.woff2") format("woff2");
+}
+@font-face {
+  font-family: "Optimistic Mono";
+  font-style: normal;
+  font-weight: 400;
+  font-display: swap;
+  src: url("/fonts/OptimisticMono_W_TextRegular.woff2") format("woff2");
+}
+:where(html) {
+  font-family: "Optimistic", system-ui, sans-serif;
+}
+:where(code, pre, kbd, samp) {
+  font-family: "Optimistic Mono", ui-monospace, monospace;
+}
+</style><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Admin Pending - Hilang Setelah Disetujui - Mode Bersih Fix</title>
+<style>
+:root{--yellow:#ffcc00;--bg:#f8f9fa;--card:#fff;--line:#eef0f2;--muted:#8b8f97;--black:#111}
+*{box-sizing:border-box}body{margin:0;background:var(--bg);font:14px/1.5 system-ui}
+.top{background:var(--black);color:#fff;padding:14px 16px 24px;border-radius:0 0 24px 24px}
+.topline{max-width:1100px;margin:auto;display:flex;justify-content:space-between;align-items:center}
+.brand{color:var(--yellow);font-weight:900}
+main{max-width:1100px;margin:-14px auto 0;padding:0 12px 80px}
+.panel{background:var(--card);border:1px solid var(--line);border-radius:20px;padding:16px;margin-bottom:12px;box-shadow:0 8px 20px #0001}
+.btn{border:0;border-radius:12px;padding:10px 14px;font-weight:800;cursor:pointer;font-size:12px}
+.btn.yellow{background:var(--yellow);color:var(--black)}
+.btn.black{background:var(--black);color:var(--yellow)}
+.tabs{display:grid;grid-template-columns:1fr 1fr 1fr;gap:6px;margin:12px 0}
+.tabs button{border:1px solid var(--line);border-radius:14px;padding:10px;font-weight:800;background:#f9f9f9;cursor:pointer;font-size:11px}
+.tabs button.active{background:var(--black);color:var(--yellow);border-color:var(--yellow)}
+.list{display:grid;gap:10px}
+.item{border:1px solid var(--line);border-radius:16px;padding:12px;background:#fff}
+.meta{font-size:11px;color:var(--muted)}
+.badge{font-size:10px;font-weight:800;border-radius:999px;padding:4px 8px;background:#fff4c2}
+.ok{color:#087443;background:#e6f7ef;border:1px solid #c3ead7;border-radius:12px;padding:10px}
+.err{color:#b42318;background:#fdecea;border:1px solid #f5c6c1;border-radius:12px;padding:10px}
+.log{font-size:10px;background:#111;color:#0f0;padding:8px;border-radius:10px;white-space:pre-wrap;max-height:120px;overflow:auto}
+@keyframes fadeOut{from{opacity:1;transform:translateY(0)} to{opacity:0;transform:translateY(-10px)}}
+.item.hiding{animation:fadeOut .4s forwards}
+</style></head><body>
+<div class="top"><div class="topline"><div><div class="brand">TOKO SIAP ANTAR</div><div style="color:var(--yellow);font-weight:800;font-size:12px">Admin • Pending & Verifikasi Keuangan</div><div style="color:#c7cbd0;font-size:10px">Admin hanya menyetujui Pending dan memverifikasi bukti selesai untuk pembagian saldo</div></div><a href="./index.html" style="color:var(--yellow);text-decoration:none;font-weight:800">← Menu</a></div></div>
+<main>
+<div class="panel">
+<h2 style="margin:0">Semua Pesanan</h2>
+<p class="meta">Admin hanya melakukan dua tindakan: menyetujui pesanan Pending, lalu memverifikasi pesanan yang sudah selesai dan memiliki bukti OCR/pengiriman untuk pembagian saldo. Proses pengemasan dan pengiriman dikelola Mitra/Kurir.</p>
+<div id="log" class="log" style="display:none"></div>
+<div class="tabs">
+<button id="tabPending" class="active" onclick="loadPending()">🟡 Pending <small id="countPending">0</small></button>
+<button id="tabVerifikasi" onclick="loadVerifikasi()">🟠 Verifikasi <small id="countVerifikasi">0</small></button>
+</div>
+<div style="display:flex;gap:6px"><button class="btn yellow" onclick="loadPending()">🔄 Muat Pending</button><button class="btn black" onclick="document.getElementById('log').style.display=document.getElementById('log').style.display==='none'?'block':'none'">📋 Log</button></div>
+</div>
+<div id="content" class="panel">Memuat...</div>
+</main>
+<script type="module">
+import {auth,db} from "./firebase-config.js";
+import {onAuthStateChanged} from "https://www.gstatic.com/firebasejs/12.4.0/firebase-auth.js";
+import {doc,getDoc,collection,getDocs,query,where,limit,updateDoc,serverTimestamp,runTransaction} from "https://www.gstatic.com/firebasejs/12.4.0/firebase-firestore.js";
+const $=id=>document.getElementById(id);
+const esc=s=>String(s??'').replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
+function log(m){const el=$("log"); el.style.display='block'; el.textContent+=`\n${new Date().toLocaleTimeString()} ${m}`; console.log(m);}
+function rupiah(n){return "Rp "+(Number(n)||0).toLocaleString("id-ID");}
+let currentUser=null;
+onAuthStateChanged(auth, async u=>{
+  if(!u){ $("content").innerHTML='<div class="err">Belum login admin. Login dulu di login-fix-session-persist.html</div>'; return; }
+  currentUser=u;
+  try{
+    const snap=await getDoc(doc(db,'users',u.uid));
+    const role=snap.exists()?snap.data().role:'';
+    log(`Login ${u.email} role=${role}`);
+    if(!['admin','superadmin'].includes(role)){
+      log(`⚠️ Role bukan admin, tapi tetap coba load (fallback)`);
+    }
+  }catch(e){ log('cek role error '+e.message); }
+  loadPending();
+});
+function getField(o,paths){for(let p of paths){let v=o; for(let k of p.split('.')){ if(v&&k in v) v=v[k]; else {v=undefined;break;} } if(v!==undefined&&v!==null&&v!=='') return v;} return null;}
+function num(v){const n=Number(v); return isNaN(n)?0:n;}
+function parseSplit(o){
+  const total=num(getField(o,['total'])||0);
+  let ongkir=num(getField(o,['ongkir','ongkosKirim'])||0);
+  let sub=num(getField(o,['subtotal'])||0);
+  if(sub===0&&total>0&&ongkir>0) sub=total-ongkir;
+  if(sub===0) sub=total;
+  const adminPct=0.05, mitraPct=0.95, kurirPct=0.95;
+  const totalKotor=sub+ongkir;
+  return {total,subtotal:sub,ongkir,mitra:Math.round(sub*mitraPct),kurir:Math.round(ongkir*kurirPct),admin:Math.round(totalKotor*adminPct)};
+}
+async function fetchOrdersByStatus(statuses){
+  // statuses array lowercase
+  try{
+    const all=await getDocs(collection(db,'orders'));
+    const docs=all.docs.map(d=>({id:d.id,...d.data()})).filter(o=>{
+      const status=String(o.status||'').trim().toLowerCase();
+      const fulfillment=String(o.statusPemenuhan||'').trim().toLowerCase();
+      return statuses.includes(status)||statuses.includes(fulfillment);
+    });
+    return docs;
+  }catch(e){ log('fetch error '+e.message); return []; }
+}
+async function loadPending(){
+  $("tabPending").classList.add("active"); $("tabVerifikasi").classList.remove("active");
+  $("content").innerHTML='Memuat pending...';
+  log('loadPending mulai');
+  try{
+    let docs=[];
+    try{
+      const q=query(collection(db,'orders'), where('status','==','pending'), limit(100));
+      const snap=await getDocs(q);
+      docs=snap.docs.map(d=>({id:d.id,...d.data()}));
+      log(`query pending dapat ${docs.length}`);
+    }catch(e){
+      log(`query pending gagal ${e.message}, fallback all`);
+      docs=await fetchOrdersByStatus(['pending']);
+    }
+    // fallback jika 0, coba pending_admin juga
+    if(docs.length===0){
+      const more=await fetchOrdersByStatus(['pending']);
+      docs=more;
+      log(`fallback pending_admin dapat ${docs.length}`);
+    }
+    docs.sort((a,b)=>(b.createdAt?.seconds||0)-(a.createdAt?.seconds||0));
+    $("countPending").textContent=docs.length;
+    if(!docs.length){ $("content").innerHTML='<div class="ok">Tidak ada pending ✅ (setelah disetujui akan hilang dari sini karena status jadi disetujui)</div>'; return; }
+    $("content").innerHTML=`<div class="list">${docs.map(o=>{
+      const s=parseSplit(o);
+      const lat=o.lat||o.alamatPengiriman?.lat, lng=o.lng||o.alamatPengiriman?.lng;
+      const gps=lat&&lng?`<a href="https://www.google.com/maps?q=${lat},${lng}" target="_blank" style="color:#087443;font-weight:800">📍 ${Number(lat).toFixed(5)},${Number(lng).toFixed(5)}</a>`:'GPS -';
+      return `<div class="item" id="order_${o.id}"><div style="display:flex;justify-content:space-between"><b>#${esc(o.nomorPesanan||o.id.slice(0,6))}</b><span class="badge">PENDING</span></div>
+      <div class="meta">Pelanggan: ${esc(o.namaPelanggan||'-')} • Total: ${rupiah(s.total)} • Bayar: ${esc(o.metodePembayaran||'-')}</div>
+      <div class="meta">Alamat: ${esc(o.alamat||o.alamatPengiriman?.alamat||'-')}</div>
+      <div class="meta">${gps} • Mitra: ${esc(o.mitraUid||'-').slice(0,8)}</div>
+      <div style="margin-top:8px;display:flex;gap:6px"><button class="btn yellow" onclick="approveOrder('${o.id}')">✅ Setujui - Hilang dari Pending → Masuk Mitra</button><button class="btn black" onclick="detailOrder('${o.id}')">Detail</button></div></div>`;
+    }).join('')}</div>`;
+  }catch(e){ $("content").innerHTML=`<div class="err">Gagal: ${esc(e.message)}</div>`; }
+}
+window.loadPending=loadPending;
+async function loadProses(){
+  $("tabPending")?.classList.remove("active"); $("tabVerifikasi")?.classList.remove("active"); $("tabProses")?.classList.add("active");
+  $("content").innerHTML='Memuat di proses...';
+  try{
+    const docs=await fetchOrdersByStatus(['disetujui','dikemas','menunggu_kurir','diantar']);
+    $("countProses").textContent=docs.length;
+    if(!docs.length){ $("content").innerHTML='<div class="ok">Tidak ada pesanan di proses mitra/kurir</div>'; return; }
+    $("content").innerHTML=`<div class="list">${docs.map(o=>{
+      const s=parseSplit(o);
+      return `<div class="item"><b>#${esc(o.nomorPesanan||o.id.slice(0,6))} - ${esc(o.status)}</b><div class="meta">${esc(o.namaPelanggan||'-')} • ${rupiah(s.total)} • Mitra: ${esc(o.mitraUid||'').slice(0,8)} • Kurir: ${esc(o.kurirUid||'').slice(0,8)||'-'}</div>
+      <div class="meta">Metode Penyerahan: ${esc(o.metodePenyerahan||'-')} • Bukti Kolom J: ${o.buktiGambarDiSpreadsheet?'✅ Sudah di Sheet':o.buktiFotoUrl||o.buktiPenyerahanOcr?'Ada OCR':'Belum'}</div></div>`;
+    }).join('')}</div>`;
+  }catch(e){ $("content").innerHTML=`<div class="err">${esc(e.message)}</div>`; }
+}
+window.loadProses=loadProses;
+async function loadVerifikasi(){
+  $("tabPending")?.classList.remove("active"); $("tabProses")?.classList.remove("active"); $("tabVerifikasi")?.classList.add("active");
+  $("content").innerHTML='Memuat verifikasi...';
+  try{
+    let docs=[];
+    try{
+      const q=query(collection(db,'orders'), where('status','==','menunggu_verifikasi_admin'), limit(100));
+      const snap=await getDocs(q);
+      docs=snap.docs.map(d=>({id:d.id,...d.data()}));
+      log(`query verifikasi dapat ${docs.length}`);
+    }catch(e){
+      log(`query verifikasi gagal ${e.message}, fallback all`);
+      docs=await fetchOrdersByStatus(['menunggu_verifikasi_admin']);
+    }
+    if(docs.length===0){
+      const more=await fetchOrdersByStatus(['menunggu_verifikasi_admin']);
+      docs=more;
+    }
+    docs=docs.filter(o=>o.saldoDibagi!==true);
+    $("countVerifikasi").textContent=docs.length;
+    if(!docs.length){ $("content").innerHTML='<div class="ok">Tidak ada menunggu verifikasi keuangan ✅</div>'; return; }
+    $("content").innerHTML=`<div class="list">${docs.map(o=>{
+      const s=parseSplit(o);
+      const ocrKurir=o.buktiSerahTerimaOcr||o.buktiPenyerahanOcr||'';
+      const ocrMitra=o.buktiResiOcr||o.resiOcrText||o.resiTeksOcr||'';
+      const ocrGabung=[ocrKurir,ocrMitra].filter(v=>String(v||'').trim()).join('\n---\n');
+      const ocrTampil=ocrGabung||'Belum ada teks OCR';
+      const ocrKurirTampil=ocrKurir||'-';
+      const ocrMitraTampil=ocrMitra||'-';
+      return `<div class="item" style="border:2px solid var(--yellow)"><b>#${esc(o.nomorPesanan||o.id.slice(0,6))} - ${esc(o.status)}</b><div class="meta">Mitra: ${esc(o.mitraUid||'').slice(0,8)} • Kurir: ${esc(o.kurirUid||'').slice(0,8)||'-'} • Metode: ${esc(o.metodePenyerahan||'-')} • Foto Sheet Kolom J: ${o.buktiGambarDiSpreadsheet?'✅':'-'}</div>
+      <div style="margin-top:8px"><div style="font-size:11px;font-weight:800">OCR Kurir / Penyerahan:</div><div style="font-size:11px;white-space:pre-wrap;background:#f3f4f6;border-radius:8px;padding:8px;max-height:180px;overflow:auto">${esc(ocrKurirTampil)}</div>
+      <div style="font-size:11px;font-weight:800;margin-top:6px">OCR Mitra / Resi:</div><div style="font-size:11px;white-space:pre-wrap;background:#fff8d6;border-radius:8px;padding:8px;max-height:180px;overflow:auto">${esc(ocrMitraTampil)}</div></div>
+      <div style="margin-top:6px">${([o.buktiPenyerahanOcr,o.buktiSerahTerimaOcr,o.buktiResiOcr,o.resiOcrText,o.resiTeksOcr,o.resiOcr,o.ocrText,o.buktiOcr,o.buktiPengirimanOcr,o.buktiFotoUrl,o.buktiPenyerahanUrl,o.buktiGambarDiSpreadsheet].some(v=>String(v||'').trim().length>0))?`<button class="btn yellow" onclick="verifikasiKeuangan('${o.id}')">✅ Verifikasi & Bagi (Mitra 95% + Kurir 95% + Admin 5%)</button>`:'<div class="err">Status menunggu verifikasi terbaca, tetapi bukti/OCR belum tersedia.</div>'}</div></div>`;
+    }).join('')}</div>`;
+  }catch(e){ $("content").innerHTML=`<div class="err">${esc(e.message)}</div>`; }
+}
+window.loadVerifikasi=loadVerifikasi;
+window.approveOrder=async id=>{
+  const el=document.getElementById('order_'+id);
+  if(!confirm('Setujui? Status jadi disetujui → hilang dari Pending → muncul di Pesanan Masuk Mitra.')) return;
+  try{
+    // Optimistic: langsung hilangkan dari UI dulu biar terasa hilang
+    if(el){ el.classList.add('hiding'); setTimeout(()=>{ el.style.display='none'; const c=Number($("countPending").textContent||1); $("countPending").textContent=Math.max(0,c-1); }, 350); }
+    log(`Menyetujui ${id}...`);
+    const ref=doc(db,'orders',id);
+    await updateDoc(ref,{status:'disetujui',disetujuiAdmin:true,disetujuiAdminAt:serverTimestamp(),disetujuiAdminUid:currentUser.uid,disetujuiAt:serverTimestamp(),disetujuiOleh:currentUser.uid,updatedAt:serverTimestamp()});
+    log(`✅ ${id} disetujui - status jadi disetujui, hilang dari pending`);
+    // Tampilkan toast
+    setTimeout(()=>{ alert('✅ Disetujui! Order hilang dari Pending (karena status jadi disetujui) → sekarang ada di tab Di Proses dan di Pesanan Masuk Mitra.'); loadPending(); }, 500);
+  }catch(e){ log('approve gagal '+e.message); alert('Gagal setujui: '+e.message); if(el){ el.classList.remove('hiding'); el.style.display=''; } }
+};
+window.detailOrder=async id=>{
+  const snap=await getDoc(doc(db,'orders',id));
+  alert(JSON.stringify(snap.data(),null,2).slice(0,3000));
+};
+window.verifikasiKeuangan=async id=>{
+  if(!confirm('Verifikasi & bagi saldo? Mitra 95%, Kurir 95%, Admin potong 5%')) return;
+  try{
+    const ref=doc(db,'orders',id);
+    const snap=await getDoc(ref);
+    const o=snap.data(); const s=parseSplit(o);
+    await runTransaction(db, async tx=>{
+      const orderSnap=await tx.get(ref);
+      if(!orderSnap.exists()) throw Error('Order hilang');
+      if(orderSnap.data().saldoDibagi===true) throw Error('Sudah dibagi');
+      if(orderSnap.data().status !== 'menunggu_verifikasi_admin') throw Error('Pesanan belum masuk tahap verifikasi Admin');
+      const _bukti=orderSnap.data();
+      const _adaBukti=[_bukti.buktiPenyerahanOcr,_bukti.buktiSerahTerimaOcr,_bukti.buktiResiOcr,_bukti.resiOcrText,_bukti.resiTeksOcr,_bukti.resiOcr,_bukti.ocrText,_bukti.buktiOcr,_bukti.buktiPengirimanOcr,_bukti.buktiFotoUrl,_bukti.buktiPenyerahanUrl,_bukti.buktiGambarDiSpreadsheet,_bukti.buktiGambar,_bukti.buktiFoto].some(v=>String(v||'').trim().length>0);
+      if(!_adaBukti) throw Error('Bukti pengiriman/OCR belum tersedia');
+      const od=orderSnap.data();
+      const mitraUid=od.mitraUid, kurirUid=od.kurirUid;
+      const _metode=String(od.metodePenyerahan||'').toLowerCase();
+      const isSendiri=_metode.includes('sendiri')||_metode.includes('expedisi')||_metode.includes('ekspedisi')||_metode.includes('mitra_kirim')||_metode.includes('mitra kirim')||_metode.includes('proses_sendiri')||od.mitraProsesSendiri===true||od.kirimSendiri===true;
+      const keMitraSemua=isSendiri || !kurirUid;
+      // Firestore: SEMUA baca dulu, baru tulis. Jangan selingi get dan update.
+      const mitraRef=mitraUid?doc(db,'users',mitraUid):null;
+      const kurirRef=(kurirUid && !keMitraSemua)?doc(db,'users',kurirUid):null;
+      const adminRef=doc(db,'users',currentUser.uid);
+      const mitraSnap=mitraRef?await tx.get(mitraRef):null;
+      const kurirSnap=kurirRef?await tx.get(kurirRef):null;
+      const adminSnap=await tx.get(adminRef);
+      // Baru tulis setelah semua baca selesai
+      if(mitraSnap && mitraSnap.exists()){
+        const old=Number(mitraSnap.data().saldoEwallet??mitraSnap.data().saldo??0)||0;
+        const credit=keMitraSemua?Math.round((s.subtotal+s.ongkir)*0.95):s.mitra;
+        tx.update(mitraRef,{saldoEwallet:old+credit, saldo:old+credit, updatedAt:serverTimestamp()});
+      }
+      if(kurirSnap && kurirSnap.exists()){
+        const old=Number(kurirSnap.data().saldoEwallet??kurirSnap.data().saldo??0)||0;
+        tx.update(kurirRef,{saldoEwallet:old+s.kurir, saldo:old+s.kurir, updatedAt:serverTimestamp()});
+      }
+      if(adminSnap.exists()){
+        const old=Number(adminSnap.data().saldoEwallet??adminSnap.data().saldo??0)||0;
+        const adminCredit=keMitraSemua?Math.round((s.subtotal+s.ongkir)*0.05):s.admin;
+        tx.update(adminRef,{saldoEwallet:old+adminCredit, saldo:old+adminCredit, updatedAt:serverTimestamp()});
+      }
+      tx.update(ref,{status:'selesai', saldoDibagi:true, diverifikasiAt:serverTimestamp(), diverifikasiAdminUid:currentUser.uid, updatedAt:serverTimestamp()});
+    });
+    alert('✅ Saldo dibagi!');
+    loadVerifikasi();
+  }catch(e){ alert('Gagal: '+e.message); }
+};
+</script><script>(function(){var loc=location.href.replace(/#.*$/,"");var ATTR_NAMES=["data-product-id","data-productid","data-product_id","product-id","productid","product_id","data-source-entity-id","source-entity-id","source_entity_id","data-product","data-metadata","data-meta"];var DATASET_KEYS=["productId","productid","product_id","sourceEntityId","sourceentityid","source_entity_id","product","metadata","meta"];function readProductId(value){if(typeof value!=="string"||value.length===0)return null;if(/^[0-9]{6,}$/.test(value))return value;var match=value.match(/(?:product(?:_|-)?id|source(?:_|-)?entity(?:_|-)?id)["'=:\s]+([0-9]{6,})/i);return match?match[1]:null}function extractProductId(start){for(var node=start;node&&node!==document.body;node=node.parentElement){for(var i=0;i<ATTR_NAMES.length;i++){var attrValue=node.getAttribute&&node.getAttribute(ATTR_NAMES[i]);var attrProductId=readProductId(attrValue);if(attrProductId)return attrProductId}var dataset=node.dataset||null;if(dataset){for(var j=0;j<DATASET_KEYS.length;j++){var dataValue=dataset[DATASET_KEYS[j]];var dataProductId=readProductId(dataValue);if(dataProductId)return dataProductId}}}return null}function isInlineMediaSlotElement(node){return !!(node&&node.getAttribute&&node.getAttribute("data-clippy-inline-media-slot")!==null)}function findInlineMediaSlot(start){for(var node=start;node&&node!==document.body;node=node.parentElement){if(isInlineMediaSlotElement(node))return node}return null}function readInlineMediaUrl(node){if(!node)return null;return node.getAttribute&&((node.getAttribute("data-clippy-inline-media-url")||node.getAttribute("data-url")||node.getAttribute("data_url")))||node.href||null}function stripHash(url){return String(url).replace(/#.*$/,"")}function urlsMatch(a,b){if(!a||!b)return false;try{return stripHash(new URL(a,loc).href)===stripHash(new URL(b,loc).href)}catch(_){return stripHash(a)===stripHash(b)}}function isFirstPartyReelUrl(value){try{var url=new URL(value,loc);if(url.protocol!=="https:")return false;var host=url.hostname.toLowerCase();var supported=host==="instagram.com"||host.endsWith(".instagram.com")||host==="facebook.com"||host.endsWith(".facebook.com");return supported&&/\/reels?\//i.test(url.pathname)}catch(_){return false}}function isInlineMediaUrlClick(node,href){var slot=findInlineMediaSlot(node);if(!slot)return false;var slotUrl=readInlineMediaUrl(slot);if(slotUrl)return urlsMatch(href,slotUrl);return isFirstPartyReelUrl(href)}function findDataHref(start){for(var node=start;node&&node!==document.body;node=node.parentElement){if(node.getAttribute){var href=node.getAttribute("data-href")||node.getAttribute("data-url");if(href)return{href:href,node:node}}}return null}var nativeOpen=window.open;window.open=function(url){if(parent!==window&&typeof url==="string"&&/^https?:\/\//.test(url)){parent.postMessage({type:"ecto:usercontent-link-click",href:url},"*");return null}return nativeOpen?nativeOpen.apply(window,arguments):null};document.addEventListener("click",function(e){var target=e.target instanceof Element?e.target:null;if(!target)return;if(parent===window)return;var a=target.closest?target.closest("a[href]"):null;if(a&&a.href&&/^https?:\/\//.test(a.href)&&a.href.replace(/#.*$/,"")!==loc){if(isInlineMediaUrlClick(a,a.href))return;var productId=extractProductId(target)||extractProductId(a);if(productId){e.preventDefault();parent.postMessage({type:"ecto-artifact-link-click",productId:productId},"*");return}e.preventDefault();parent.postMessage({type:"ecto:usercontent-link-click",href:a.href},"*");return}var dataHref=findDataHref(target);if(dataHref&&/^https?:\/\//.test(dataHref.href)&&dataHref.href.replace(/#.*$/,"")!==loc){if(isInlineMediaUrlClick(dataHref.node,dataHref.href))return;e.preventDefault();parent.postMessage({type:"ecto:usercontent-link-click",href:dataHref.href},"*")}},true)})();</script><script>(function(){var FOCUS_TYPE="ecto:artifact-focus-request";var CLOSE_TYPE="ecto:artifact-close-request";function focusArtifactDocument(){var body=document.body;if(!body)return;try{window.focus();}catch(e){}if(!body.hasAttribute("tabindex"))body.setAttribute("tabindex","-1");try{body.focus({preventScroll:true});}catch(e){try{body.focus();}catch(e2){}}}window.addEventListener("message",function(event){if(event.source!==window.parent)return;var data=event.data;if(!data||typeof data!=="object"||data.type!==FOCUS_TYPE)return;if(document.readyState==="loading"){document.addEventListener("DOMContentLoaded",focusArtifactDocument,{once:true});return;}focusArtifactDocument();});window.addEventListener("keydown",function(event){if(event.key!=="Escape")return;window.setTimeout(function(){if(event.defaultPrevented)return;window.parent.postMessage({type:CLOSE_TYPE},"*");},0);});})();</script></body></html>
