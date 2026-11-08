@@ -232,22 +232,23 @@ window.verifikasiKeuangan=async id=>{
       const _metode=String(od.metodePenyerahan||'').toLowerCase();
       const isSendiri=_metode.includes('sendiri')||_metode.includes('expedisi')||_metode.includes('ekspedisi')||_metode.includes('mitra_kirim')||_metode.includes('mitra kirim')||_metode.includes('proses_sendiri')||od.mitraProsesSendiri===true||od.kirimSendiri===true;
       const keMitraSemua=isSendiri || !kurirUid;
-      if(mitraUid){
-        const r=doc(db,'users',mitraUid); const rs=await tx.get(r);
-        if(rs.exists()){
-          const old=Number(rs.data().saldoEwallet??rs.data().saldo??0)||0;
-          const credit=keMitraSemua?Math.round((s.subtotal+s.ongkir)*0.95):s.mitra;
-          tx.update(r,{saldoEwallet:old+credit, saldo:old+credit, updatedAt:serverTimestamp()});
-        }
+      // Firestore: SEMUA baca dulu, baru tulis. Jangan selingi get dan update.
+      const mitraRef=mitraUid?doc(db,'users',mitraUid):null;
+      const kurirRef=(kurirUid && !keMitraSemua)?doc(db,'users',kurirUid):null;
+      const adminRef=doc(db,'users',currentUser.uid);
+      const mitraSnap=mitraRef?await tx.get(mitraRef):null;
+      const kurirSnap=kurirRef?await tx.get(kurirRef):null;
+      const adminSnap=await tx.get(adminRef);
+      // Baru tulis setelah semua baca selesai
+      if(mitraSnap && mitraSnap.exists()){
+        const old=Number(mitraSnap.data().saldoEwallet??mitraSnap.data().saldo??0)||0;
+        const credit=keMitraSemua?Math.round((s.subtotal+s.ongkir)*0.95):s.mitra;
+        tx.update(mitraRef,{saldoEwallet:old+credit, saldo:old+credit, updatedAt:serverTimestamp()});
       }
-      if(kurirUid && !keMitraSemua){
-        const r=doc(db,'users',kurirUid); const rs=await tx.get(r);
-        if(rs.exists()){
-          const old=Number(rs.data().saldoEwallet??rs.data().saldo??0)||0;
-          tx.update(r,{saldoEwallet:old+s.kurir, saldo:old+s.kurir, updatedAt:serverTimestamp()});
-        }
+      if(kurirSnap && kurirSnap.exists()){
+        const old=Number(kurirSnap.data().saldoEwallet??kurirSnap.data().saldo??0)||0;
+        tx.update(kurirRef,{saldoEwallet:old+s.kurir, saldo:old+s.kurir, updatedAt:serverTimestamp()});
       }
-      const adminRef=doc(db,'users',currentUser.uid); const adminSnap=await tx.get(adminRef);
       if(adminSnap.exists()){
         const old=Number(adminSnap.data().saldoEwallet??adminSnap.data().saldo??0)||0;
         const adminCredit=keMitraSemua?Math.round((s.subtotal+s.ongkir)*0.05):s.admin;
