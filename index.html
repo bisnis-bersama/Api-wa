@@ -599,6 +599,7 @@ function closeProductZoom() {
   productZoom.classList.remove('show');
   productZoomImage.src = '';
   zoomProductId = null;
+  window.__zoomActiveProduct = null;
   document.body.style.overflow = '';
 }
 
@@ -611,6 +612,7 @@ productsEl.addEventListener('click', function(e) {
   const p = allProducts.find(item => item.id === id);
   if (!p) return;
   zoomProductId = p.id;
+  window.__zoomActiveProduct = p;
   productZoomImage.src = img.src;
   productZoomImage.alt = p.name;
   productZoomName.textContent = p.name + ' - ' + (p.mitraNama||'Mitra');
@@ -623,8 +625,8 @@ productZoom.addEventListener('click', function(e) {
   if (e.target === productZoom) { closeProductZoom(); return; }
   const btn = e.target.closest('[data-zoom-action]');
   if (!btn) return;
-  const p = allProducts.find(item => item.id === zoomProductId);
-  if (!p) return;
+  const p = allProducts.find(item => item.id === zoomProductId) || window.__zoomActiveProduct;
+  if (!p) { alert('Data produk belum tersedia. Silakan tutup popup dan buka kembali.'); return; }
   const action = btn.dataset.zoomAction;
   if (action === 'wa') { openOwnerWhatsApp(p, 'Halo, saya mau tanya produk: '); return; }
   if (action === 'cart' || action === 'buy') {
@@ -797,7 +799,7 @@ document.addEventListener('keydown', function(e) { if (e.key === 'Escape') close
   var name=document.getElementById('productZoomName');
   var price=document.getElementById('productZoomPrice');
   if(!grid||!modal||!photo||!name||!price)return;
-  function close(){modal.classList.remove('show');photo.removeAttribute('src');document.body.style.overflow='';}
+  function close(){modal.classList.remove('show');photo.removeAttribute('src');window.__zoomActiveProduct=null;document.body.style.overflow='';}
   grid.addEventListener('click',function(ev){
     var image=ev.target.closest('.product-photo img');
     if(!image || ev.target.closest('button'))return;
@@ -808,6 +810,7 @@ document.addEventListener('keydown', function(e) { if (e.key === 'Escape') close
     var p=(Array.isArray(window.allProducts)?window.allProducts:[]).find(function(x){return String(x.id)===String(id);}) || products.find(function(x){return String(x.id)===String(id);});
     var src=image.currentSrc||image.src;
     if(!src)return;
+    window.__zoomActiveProduct=p||null;
     photo.src=src;
     photo.alt=p&&p.name?p.name:(image.alt||'Foto produk');
     name.textContent=p&&p.name?p.name:(image.alt||'Detail produk');
