@@ -149,9 +149,17 @@ async function loadOrder(){
       const o={id:d.id, ...d.data()};
       if(o.status!=='mencari_kurir') return;
       // Order hanya boleh ditampilkan kepada kurir target / yang memang ditawarkan.
-      const offered=Array.isArray(o.ditawarkanKe)?o.ditawarkanKe:[];
-      const assigned=o.kurirUid||o.courierUid||o.courierId||'';
-      const isTarget=(!assigned || assigned===currentUser.uid || offered.includes(currentUser.uid));
+      const uid=String(currentUser.uid);
+      const rejected=[...(Array.isArray(o.ditolakOleh)?o.ditolakOleh:[]),...(Array.isArray(o.rejectedBy)?o.rejectedBy:[])].map(String);
+      // Kurir yang sudah menolak tidak boleh melihat order yang sama lagi.
+      if(rejected.includes(uid)) return;
+      const offered=Array.isArray(o.ditawarkanKe)?o.ditawarkanKe.map(String):[];
+      const selected=Array.isArray(o.kurirPilihanUids)?o.kurirPilihanUids.map(String):[];
+      const assigned=[o.kurirUid,o.kurirTargetUid,o.courierUid,o.courierId,o.assignedCourierUid]
+        .filter(Boolean).map(String);
+      // Customer page mengirim kurirPilihanUids; izinkan semua kurir pilihan.
+      const targets=[...new Set([...assigned,...selected])];
+      const isTarget=targets.length ? targets.includes(uid) : (!offered.length || offered.includes(uid));
       if(!isTarget) return;
       const rawLat=o.jemputLat ?? o.pickupLat ?? o.pickup_coordinates?.lat ?? o.titikJemput?.lat;
       const rawLng=o.jemputLng ?? o.pickupLng ?? o.pickup_coordinates?.lng ?? o.titikJemput?.lng;
