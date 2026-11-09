@@ -59,7 +59,7 @@ nav{position:fixed;bottom:0;left:50%;transform:translateX(-50%);width:min(520px,
  </section>
 </main>
 <nav><button class="active"><span>⌂</span>Beranda</button><button id="historyBtn"><span>◷</span>Pesanan</button><button id="helpBtn"><span>♡</span>Bantuan</button><button id="profileBtn"><span>♙</span>Profil</button></nav>
-<div class="toast" id="toast"></div><section id="courierResults" class="card" style="display:none;margin:12px 15px"><div class="section-title">Kurir yang memenuhi saldo 5%</div><div id="courierList"></div><button id="sendEligibleOrder" class="cta" style="display:none;margin-top:12px" disabled>Kirim order ke kurir terpilih</button></section>
+<div class="toast" id="toast"></div><section id="courierResults" class="card" style="display:none;margin:12px 15px"><div class="section-title">Kurir yang memenuhi syarat</div><div id="courierList"></div><div id="orderTracking" style="display:none;margin-top:12px"></div><button id="sendEligibleOrder" class="cta" style="display:none;margin-top:12px" disabled>Kirim order ke kurir terpilih</button></section>
 </div>
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 <script>
@@ -118,7 +118,7 @@ nav{position:fixed;bottom:0;left:50%;transform:translateX(-50%);width:min(520px,
 <script type="module">
 import {app,auth,db} from './firebase-config.js';
 import {onAuthStateChanged} from 'https://www.gstatic.com/firebasejs/12.4.0/firebase-auth.js';
-import {collection,getDocs,query,where,addDoc,serverTimestamp} from 'https://www.gstatic.com/firebasejs/12.4.0/firebase-firestore.js';
+import {collection,getDocs,query,where,addDoc,serverTimestamp,doc,onSnapshot} from 'https://www.gstatic.com/firebasejs/12.4.0/firebase-firestore.js';
 const $=id=>document.getElementById(id);
 let signedUser=null;
 onAuthStateChanged(auth,user=>{
@@ -126,7 +126,7 @@ onAuthStateChanged(auth,user=>{
  if(user){$('userName').textContent=user.displayName||user.email?.split('@')[0]||'Pelanggan';}
  else {$('userName').textContent='Pelanggan';}
 });
-let eligibleOrderPayload=null,eligibleCouriers=[];
+let eligibleOrderPayload=null,eligibleCouriers=[],trackingUnsubscribe=null;
 window.addEventListener('gojek-order-request',async ev=>{
  const payload=ev.detail;if(!signedUser){alert('Silakan login terlebih dahulu.');return;}
  const btn=$('orderBtn'),panel=$('courierResults'),list=$('courierList'),send=$('sendEligibleOrder');
@@ -160,7 +160,7 @@ $('sendEligibleOrder').onclick=async()=>{
   const order={pelangganUid:signedUser.uid,uid:signedUser.uid,ownerUid:signedUser.uid,kurirUid:chosen[0].uid||chosen[0].id,kurirTargetUid:chosen[0].uid||chosen[0].id,kurirPilihanUids:chosen.map(c=>c.uid||c.id),
    jenisKendaraan:payload.service==='motor'?'motor':'mobil',status:'mencari_kurir',statusPemenuhan:'mencari_kurir',alamatJemput:payload.pickup,alamatTujuan:payload.destination,
    titikJemput:{lat:Number(payload.pickup_coordinates.lat),lng:Number(payload.pickup_coordinates.lng)},titikTujuan:{lat:Number(payload.destination_coordinates.lat),lng:Number(payload.destination_coordinates.lng)},rute:route,jarakKm:Number(payload.distance_km||0),ongkir:payload.fare,total:payload.fare,depositKurirDibutuhkan:payload.required,createdAt:serverTimestamp(),created_at:new Date().toISOString()};
-  const ref=await addDoc(collection(db,'orders'),order);$('courierList').innerHTML+=`<div class="ok">Order terkirim ke ${chosen.length} kurir terpilih yang memenuhi syarat. ID: ${ref.id}</div>`;alert('Order berhasil dikirim ke kurir terpilih.');
+  const ref=await addDoc(collection(db,'orders'),order);$('sendEligibleOrder').style.display='none';const tracking=$('orderTracking');tracking.style.display='block';tracking.innerHTML=`<div class="ok"><b>Order terkirim</b><br>ID: ${ref.id}<br>Status: Menunggu kurir menerima pesanan</div>`;if(trackingUnsubscribe)trackingUnsubscribe();trackingUnsubscribe=onSnapshot(doc(db,'orders',ref.id),snap=>{if(!snap.exists())return;const data=snap.data(),st=String(data.statusPemenuhan||data.status||'mencari_kurir').toLowerCase();let label=st.includes('terima')||st.includes('accept')?'Kurir menerima pesanan':st.includes('jalan')||st.includes('pickup')||st.includes('menuju')?'Kurir menuju pelanggan':st.includes('selesai')?'Pesanan selesai':st.includes('tolak')||st.includes('cancel')?'Pesanan ditolak/dibatalkan':'Menunggu kurir menerima pesanan';tracking.innerHTML=`<div class="ok"><b>Status pesanan</b><br>${label}<br>Kurir: ${String(data.kurirNama||chosen[0].nama||'Kurir').replace(/[&<>\"]/g,'')}<br>Nomor kendaraan: ${String(chosen[0].platNomor||'—').replace(/[&<>\"]/g,'')}<br>ID: ${ref.id}</div>`;});alert('Order berhasil dikirim ke kurir terpilih.');
  }catch(err){alert('Gagal mengirim order: '+(err.message||err));}finally{send.disabled=false;send.textContent='Kirim order ke kurir terpilih';}
 };
 </script>
