@@ -216,7 +216,16 @@ let currentUser=null, kurirTerpilih=[], jarakKm=0, ongkir=0, kurirList=[], namaP
 async function updateHeaderPelanggan(u){
   if(!u){ $("headerNamaPelanggan").textContent='Pelanggan'; $("headerSubPelanggan").textContent='Silakan login'; $("headerAvatar").textContent='P'; return; }
   let nama = u.displayName || u.email?.split('@')[0] || 'Pelanggan';
-  try{ const snap=await getDoc(doc(db,'users',u.uid)); if(snap.exists()){ const d=snap.data(); if(d.nama) nama=d.nama; } }catch(e){}
+  // Persis kayak Profil (acuan pelanggan login): 1. by UID, 2. kalau gak ketemu by email (soal dokumen users ada yang ID random, bukan UID)
+  try{
+    const snap=await getDoc(doc(db,'users',u.uid));
+    if(snap.exists()){ const d=snap.data(); if(d.nama) nama=d.nama; }
+    else if(u.email){
+      const q=query(collection(db,'users'), where('email','==',u.email.trim().toLowerCase()));
+      const qs=await getDocs(q);
+      if(!qs.empty){ const d=qs.docs[0].data(); if(d.nama) nama=d.nama; }
+    }
+  }catch(e){}
   namaPelanggan=nama;
   $("headerNamaPelanggan").textContent=nama;
   $("headerSubPelanggan").textContent=u.email||'Pelanggan Gojek Elit';
