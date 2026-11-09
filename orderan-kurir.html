@@ -108,6 +108,12 @@ const rupiah=n=>"Rp "+(Number(n)||0).toLocaleString("id-ID");
 let currentUser=null, myData={}, mySaldo=0, myLat=0, myLng=0, orderList=[];
 
 function log(m){ console.log(m); }
+function coord(o,kind){
+  const p=kind==='jemput'?(o.titikJemput||o.pickup_coordinates||o.lokasiJemput||{}):(o.titikTujuan||o.destination_coordinates||o.lokasiTujuan||{});
+  const lat=Number(o[kind==='jemput'?'jemputLat':'tujuanLat'] ?? o[kind==='jemput'?'pickupLat':'destinationLat'] ?? p.lat ?? p.latitude);
+  const lng=Number(o[kind==='jemput'?'jemputLng':'tujuanLng'] ?? o[kind==='jemput'?'pickupLng':'destinationLng'] ?? p.lng ?? p.longitude);
+  return {lat,lng,valid:Number.isFinite(lat)&&Number.isFinite(lng)&&Math.abs(lat)<=90&&Math.abs(lng)<=180&&(lat!==0||lng!==0)};
+}
 function havKm(lat1,lng1,lat2,lng2){const R=6371,dLat=(lat2-lat1)*Math.PI/180,dLng=(lng2-lng1)*Math.PI/180;const a=Math.sin(dLat/2)**2+Math.cos(lat1*Math.PI/180)*Math.cos(lat2*Math.PI/180)*Math.sin(dLng/2)**2;return 2*R*Math.asin(Math.sqrt(a));}
 function setDot(on){$("dotHeader").classList.toggle("on",on); $("dotNav").classList.toggle("on",on);}
 
@@ -138,8 +144,8 @@ $("btnRefresh").onclick=()=>loadOrder();
 
 async function loadOrder(){
   if(!currentUser) return alert("Login dulu lewat e-wallet");
-  myLat=parseFloat($("myLat").value)||myLat; myLng=parseFloat($("myLng").value)||myLng;
-  if(!myLat || !myLng){ $("listOrder").innerHTML='<div class="muted">Isi dulu Lat/Lng kamu atau tekan Pakai GPS Saya.</div>'; return; }
+  const enteredLat=Number($("myLat").value), enteredLng=Number($("myLng").value); if(Number.isFinite(enteredLat)&&Number.isFinite(enteredLng)&&Math.abs(enteredLat)<=90&&Math.abs(enteredLng)<=180&&(enteredLat!==0||enteredLng!==0)){myLat=enteredLat;myLng=enteredLng;}
+  if(!Number.isFinite(myLat)||!Number.isFinite(myLng)||(myLat===0&&myLng===0)){ $("listOrder").innerHTML='<div class="muted">Isi dulu Lat/Lng kamu atau tekan Pakai GPS Saya.</div>'; return; }
   $("listOrder").innerHTML='<div class="muted">Mencari orderan untuk kamu...</div>';
   try{
     // Ambil order status mencari_kurir. Filter per-kurir + jarak + saldo dilakukan di sini biar tidak kena permission yang aneh.
@@ -155,10 +161,10 @@ async function loadOrder(){
     qs.forEach(d=>{
       const o={id:d.id, ...d.data()};
       if(o.status!=='mencari_kurir') return; // cuma tampilkan yang mencari_kurir, yang lain cuma dihitung di info atas
-      const jLat=Number(o.jemputLat ?? o.pickup_coordinates?.lat ?? o.titikJemput?.lat), jLng=Number(o.jemputLng ?? o.pickup_coordinates?.lng ?? o.titikJemput?.lng);
-      if(isNaN(jLat)||isNaN(jLng)) return;
+      const pickup=coord(o,'jemput'), destination=coord(o,'tujuan');
+      if(!pickup.valid||!destination.valid) return; const jLat=pickup.lat,jLng=pickup.lng;
       const jarak=havKm(myLat,myLng,jLat,jLng);
-      const total=Number(o.total ?? o.ongkir ?? 0)||0;
+      const total=Number(o.ongkir ?? o.total ?? o.fare ?? o.estimated_fare ?? 0)||0;
       // FIX: jangan langsung buang, kumpulkan alasan biar ketahuan kenapa tidak muncul
       let alasan='';
       if(jarak>40) alasan='Jarak '+jarak.toFixed(1)+' km > 40 km';
@@ -175,7 +181,7 @@ async function loadOrder(){
       // Tampilkan SEMUA order dalam 40km, walau saldo kurang / bukan target, tapi bedakan statusnya
       // Kalau jarak >40km saja yang benar-benar disembunyikan
       if(jarak>40) return;
-      orderList.push({...o, jarakKeJemput:jarak, total, alasan, labelTarget, isTarget, bisaTerima: !alasan && isTarget});
+      const jarakKirim=havKm(jLat,jLng,destination.lat,destination.lng);\n      orderList.push({...o, jemputLat:jLat,jemputLng:jLng,tujuanLat:destination.lat,tujuanLng:destination.lng, jarakKeJemput:jarak, jarakKirim, total, alasan, labelTarget, isTarget, bisaTerima: !alasan && isTarget});
     });
     orderList.sort((a,b)=>a.jarakKeJemput-b.jarakKeJemput);
     $("txtJml").textContent=orderList.length;
@@ -192,7 +198,7 @@ async function loadOrder(){
       const terimaBtn = o.bisaTerima ? `<button class="btn btn-yellow" onclick="window.terimaOrder('${o.id}')">✅ Terima</button>` : `<button class="btn btn-yellow" disabled style="opacity:.5">🔒 Terima (terkunci)</button>`;
       return `<div class="order">${labelHtml}${alasanHtml}
         <div style="display:flex;justify-content:space-between"><b>Pelanggan: ${o.pelangganEmail||o.pelangganNama||'Pelanggan'}</b><span style="background:#e8f8ee;color:#087443;padding:3px 8px;border-radius:20px;font-size:11px;font-weight:800">📍 ${o.jarakKeJemput.toFixed(2)} km dari kamu</span></div>
-        <div class="muted">Jemput: ${o.jemputAlamat||`GPS ${Number(o.jemputLat||0).toFixed(6)}, ${Number(o.jemputLng||0).toFixed(6)}`}<br><small>📍 GPS Jemput: ${Number(o.jemputLat||0).toFixed(6)}, ${Number(o.jemputLng||0).toFixed(6)}</small><br>Tujuan: ${o.tujuanAlamat||`GPS ${Number(o.tujuanLat||0).toFixed(6)}, ${Number(o.tujuanLng||0).toFixed(6)}`}<br><small>🎯 GPS Tujuan: ${Number(o.tujuanLat||0).toFixed(6)}, ${Number(o.tujuanLng||0).toFixed(6)}</small><br>Jenis: ${o.jenisKendaraan||'motor'} • Jarak kirim: ${(Number(o.jarakKm)||0).toFixed(2)} km<br><a href="https://www.google.com/maps/dir/?api=1&origin=${o.jemputLat},${o.jemputLng}&destination=${o.tujuanLat},${o.tujuanLng}" target="_blank" style="color:#087443;font-weight:700">🗺️ Buka Rute Jemput → Tujuan di Google Maps</a></div>
+        <div class="muted">Jemput: ${o.jemputAlamat||o.alamatJemput||o.pickup||`GPS ${Number(o.jemputLat||0).toFixed(6)}, ${Number(o.jemputLng||0).toFixed(6)}`}<br><small>📍 GPS Jemput: ${Number(o.jemputLat||0).toFixed(6)}, ${Number(o.jemputLng||0).toFixed(6)}</small><br>Tujuan: ${o.tujuanAlamat||o.alamatTujuan||o.destination||`GPS ${Number(o.tujuanLat||0).toFixed(6)}, ${Number(o.tujuanLng||0).toFixed(6)}`}<br><small>🎯 GPS Tujuan: ${Number(o.tujuanLat||0).toFixed(6)}, ${Number(o.tujuanLng||0).toFixed(6)}</small><br>Jenis: ${o.jenisKendaraan||'motor'} • Jarak kirim: ${(Number(o.jarakKm)||o.jarakKirim||0).toFixed(2)} km<br><a href="https://www.google.com/maps/dir/?api=1&origin=${o.jemputLat},${o.jemputLng}&destination=${o.tujuanLat},${o.tujuanLng}" target="_blank" style="color:#087443;font-weight:700">🗺️ Buka Rute Jemput → Tujuan di Google Maps</a></div>
         <div class="row" style="margin-top:8px"><div style="background:#f9faf8;border:1px solid #eee;border-radius:10px;padding:8px"><small>Ongkir / Total COD</small><b>${rupiah(o.total)}</b></div><div style="background:#fff;border:1px solid #e5e5e5;border-radius:10px;padding:8px"><small>Admin 5% dipotong saat selesai</small><b>${rupiah(adminFee)}</b><br><small>Admin 5% = ${rupiah(adminFee)} • Kamu terima ${rupiah(kurirTerima)}</small></div></div>
         <div class="muted" style="margin-top:6px">Saldo kamu ${rupiah(mySaldo)} ≥ 5% = ${rupiah(adminFee)} ✅ — bisa terima. Admin 5% dipotong dari saldo kamu saat pengantaran selesai. Kamu terima ${rupiah(kurirTerima)} (95%).</div>
         <div class="row" style="margin-top:8px">${terimaBtn}<button class="btn btn-red" onclick="window.tolakOrder('${o.id}')">❌ Tolak</button></div>
@@ -200,7 +206,7 @@ async function loadOrder(){
     }).join('');
     log(`Order masuk: ${orderList.length} cocok (radius 40km + saldo cukup)`);
   }catch(e){
-    $("listOrder").innerHTML='<div style="color:#b42318;background:#fff0f0;padding:10px;border-radius:10px">Gagal baca order: '+e.message+'<br><br><b>FIX RULES - copy ke Firebase Console > Firestore Database > Rules, lalu Publish:</b><br><code style="display:block;background:#111;color:#ffd400;padding:8px;border-radius:8px;margin-top:6px;white-space:pre-wrap">rules_version = \'2\';\nservice cloud.firestore {\n  match /databases/{database}/documents {\n    match /orders/{id} { allow read: if true; allow create: if true; allow update: if true; }\n    match /users/{id} { allow read: if true; allow update: if request.auth != null; }\n    match /{document=**} { allow read, write: if request.auth != null; }\n  }\n}</code></div>';
+    $("listOrder").innerHTML='<div style="color:#b42318;background:#fff0f0;padding:10px;border-radius:10px">Gagal baca order: '+e.message+'<br><br><b>Periksa Firebase Rules:</b> jangan aktifkan akses publik (allow read/write: if true). Pastikan pengguna hanya dapat membaca dan mengubah dokumen yang berhak.</div>';
     log("Gagal load order: "+e.message);
   }
 }
