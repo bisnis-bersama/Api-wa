@@ -58,7 +58,7 @@ nav{position:fixed;bottom:0;left:50%;transform:translateX(-50%);width:min(520px,
  </section>
 </main>
 <nav><button class="active"><span>⌂</span>Beranda</button><button id="historyBtn"><span>◷</span>Pesanan</button><button id="helpBtn"><span>♡</span>Bantuan</button><button id="profileBtn"><span>♙</span>Profil</button></nav>
-<div class="toast" id="toast"></div>
+<div class="toast" id="toast"></div><section id="courierResults" class="card" style="display:none;margin:12px 15px"><div class="section-title">Kurir yang memenuhi saldo 5%</div><div id="courierList"></div></section>
 </div>
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 <script>
@@ -125,53 +125,47 @@ onAuthStateChanged(auth,user=>{
  else {$('userName').textContent='Pelanggan';}
 });
 window.addEventListener('gojek-order-request',async ev=>{
- const payload=ev.detail;
- if(!signedUser){alert('Silakan login terlebih dahulu untuk membuat pesanan.');return;}
- const btn=$('orderBtn');btn.disabled=true;btn.textContent='Mencari kurir…';
- try{
-   const snap=await getDocs(query(collection(db,'users'),where('role','==','kurir')));
-   const candidates=snap.docs.map(d=>({id:d.id,...d.data()})).filter(u=>{
-     const onlineFlag=u.isOnline===true||u.online===true||u.statusOnline===true;
-     const lat=u.gps?.lat??u.lokasi?.lat??u.currentLat??u.latitude??u.lat;
-     const lng=u.gps?.lng??u.lokasi?.lng??u.currentLng??u.longitude??u.lng;
-     return onlineFlag&&Number.isFinite(Number(lat))&&Number.isFinite(Number(lng));
-   }).map(u=>{
-     const lat=Number(u.gps?.lat??u.lokasi?.lat??u.currentLat??u.latitude??u.lat);
-     const lng=Number(u.gps?.lng??u.lokasi?.lng??u.currentLng??u.longitude??u.lng);
-     const dlat=(lat-payload.pickup_coordinates.lat)*Math.PI/180,dlng=(lng-payload.pickup_coordinates.lng)*Math.PI/180;
-     const a=Math.sin(dlat/2)**2+Math.cos(payload.pickup_coordinates.lat*Math.PI/180)*Math.cos(lat*Math.PI/180)*Math.sin(dlng/2)**2;
-     return {...u,lat,lng,km:6371*2*Math.atan2(Math.sqrt(a),Math.sqrt(1-a))};
-   }).filter(u=>u.km<=40&&String(u.kendaraan||u.jenisKendaraan||'').toLowerCase().includes(payload.service==='motor'?'motor':'mobil'))
-     .sort((a,b)=>a.km-b.km);
-   if(!candidates.length)throw new Error('Tidak ada kurir online dengan kendaraan yang cocok dalam radius 40 km.');
-   const chosen=candidates[0], courierUid=chosen.uid||chosen.id;
-   // Firestore tidak menerima array bersarang. Ubah GeoJSON [lng,lat] menjadi array map {lat,lng}.
-   const routePoints=Array.isArray(payload.route_coordinates)?payload.route_coordinates.map(c=>({lat:Number(c[1]),lng:Number(c[0])})).filter(c=>Number.isFinite(c.lat)&&Number.isFinite(c.lng)): [];
-   const fare=Number(payload.estimated_fare||0);
-   const orderDoc={
-     pelangganUid:signedUser.uid,
-     uid:signedUser.uid,
-     ownerUid:signedUser.uid,
-     kurirUid:courierUid,
-     kurirTargetUid:courierUid,
-     jenisKendaraan:payload.service==='motor'?'motor':'mobil',
-     status:'mencari_kurir',
-     statusPemenuhan:'mencari_kurir',
-     alamatJemput:payload.pickup,
-     alamatTujuan:payload.destination,
-     titikJemput:{lat:Number(payload.pickup_coordinates.lat),lng:Number(payload.pickup_coordinates.lng)},
-     titikTujuan:{lat:Number(payload.destination_coordinates.lat),lng:Number(payload.destination_coordinates.lng)},
-     rute:routePoints,
-     jarakKm:Number(payload.distance_km||0),
-     ongkir:fare,
-     total:fare,
-     createdAt:serverTimestamp(),
-     created_at:new Date().toISOString()
-   };
-   const ref=await addDoc(collection(db,'orders'),orderDoc);
-   alert(`Pesanan tersimpan di Firestore. ID: ${ref.id}\\nKurir: ${chosen.nama||courierUid} (${chosen.km.toFixed(1)} km).`);
- }catch(err){console.error(err);alert('Gagal membuat pesanan Firebase: '+(err?.message||err));}
- finally{btn.disabled=false;btn.textContent='Cari kurir';}
+  const payload=ev.detail;
+  if(!signedUser){alert('Silakan login terlebih dahulu untuk membuat pesanan.');return;}
+  const btn=$('orderBtn');btn.disabled=true;btn.textContent='Mencari kurir…';
+  const panel=$('courierResults'),list=$('courierList');panel.style.display='block';list.innerHTML='<div class="hint">Memeriksa kurir online dan saldo…</div>';
+  try{
+    const snap=await getDocs(query(collection(db,'users'),where('role','==','kurir')));
+    const fare=Number(payload.estimated_fare||payload.fare||0);
+    const depositRequired=Math.ceil(fare*0.05);
+    const candidates=snap.docs.map(d=>({id:d.id,...d.data()})).filter(u=>{
+      const online=u.isOnline===true||u.online===true||u.statusOnline===true;
+      const lat=u.gps?.lat??u.lokasi?.lat??u.currentLat??u.latitude??u.lat;
+      const lng=u.gps?.lng??u.lokasi?.lng??u.currentLng??u.longitude??u.lng;
+      const balance=Number(u.saldoEwallet??u.saldoWallet??u.saldo??u.walletBalance??u.deposit??0);
+      const vehicle=String(u.kendaraan||u.jenisKendaraan||'').toLowerCase();
+      return online&&Number.isFinite(Number(lat))&&Number.isFinite(Number(lng))&&
+        (Number(lat)!==0||Number(lng)!==0)&&balance>=depositRequired&&
+        vehicle.includes(payload.service==='motor'?'motor':'mobil');
+    }).map(u=>{
+      const lat=Number(u.gps?.lat??u.lokasi?.lat??u.currentLat??u.latitude??u.lat);
+      const lng=Number(u.gps?.lng??u.lokasi?.lng??u.currentLng??u.longitude??u.lng);
+      const dlat=(lat-payload.pickup_coordinates.lat)*Math.PI/180,dlng=(lng-payload.pickup_coordinates.lng)*Math.PI/180;
+      const a=Math.sin(dlat/2)**2+Math.cos(payload.pickup_coordinates.lat*Math.PI/180)*Math.cos(lat*Math.PI/180)*Math.sin(dlng/2)**2;
+      return {...u,lat,lng,balance,km:6371*2*Math.atan2(Math.sqrt(a),Math.sqrt(1-a))};
+    }).filter(u=>u.km<=40).sort((a,b)=>a.km-b.km);
+    if(!candidates.length)throw new Error(`Tidak ada kurir online dengan kendaraan cocok, jarak ≤40 km, dan saldo minimal ${depositRequired.toLocaleString('id-ID')} (5% ongkir).`);
+    list.innerHTML=candidates.map((u,i)=>`<div style="border:1px solid #e7eee9;border-radius:12px;padding:10px;margin:7px 0;background:${i===0?'#effaf4':'#fff'}"><b>${i===0?'⭐ Terdekat · ':''}${String(u.nama||u.namaUsaha||u.email||u.id).replace(/[&<>"]/g,'')}</b><div class="meta">Jarak ${u.km.toFixed(2)} km · Saldo Rp ${u.balance.toLocaleString('id-ID')} · Syarat Rp ${depositRequired.toLocaleString('id-ID')}</div></div>`).join('');
+    const chosen=candidates[0],courierUid=chosen.uid||chosen.id;
+    list.innerHTML+=`<div class="ok">Kurir terdekat yang memenuhi saldo dipilih otomatis: <b>${String(chosen.nama||chosen.namaUsaha||courierUid).replace(/[&<>"]/g,'')}</b>. Mengirim order…</div>`;
+    const routePoints=Array.isArray(payload.route_coordinates)?payload.route_coordinates.map(c=>({lat:Number(c[1]),lng:Number(c[0])})).filter(c=>Number.isFinite(c.lat)&&Number.isFinite(c.lng)):[];
+    const orderDoc={pelangganUid:signedUser.uid,uid:signedUser.uid,ownerUid:signedUser.uid,kurirUid:courierUid,kurirTargetUid:courierUid,
+      jenisKendaraan:payload.service==='motor'?'motor':'mobil',status:'mencari_kurir',statusPemenuhan:'mencari_kurir',
+      alamatJemput:payload.pickup,alamatTujuan:payload.destination,
+      titikJemput:{lat:Number(payload.pickup_coordinates.lat),lng:Number(payload.pickup_coordinates.lng)},
+      titikTujuan:{lat:Number(payload.destination_coordinates.lat),lng:Number(payload.destination_coordinates.lng)},rute:routePoints,
+      jarakKm:Number(payload.distance_km||0),ongkir:fare,total:fare,depositKurirDibutuhkan:depositRequired,
+      createdAt:serverTimestamp(),created_at:new Date().toISOString()};
+    const ref=await addDoc(collection(db,'orders'),orderDoc);
+    list.innerHTML+=`<div class="ok">Order terkirim. ID: ${ref.id}</div>`;
+    alert(`Order terkirim ke kurir terdekat: ${chosen.nama||courierUid} (${chosen.km.toFixed(1)} km).`);
+  }catch(err){console.error(err);list.innerHTML=`<div class="err">${String(err?.message||err).replace(/[&<>"]/g,'')}</div>`;alert('Gagal mencari/mengirim order: '+(err?.message||err));}
+  finally{btn.disabled=false;btn.textContent='Cari kurir';}
 });
 </script>
 
