@@ -59,7 +59,7 @@ header{position:sticky;top:0;z-index:20;background:linear-gradient(100deg,#009b4
 .search{display:flex;align-items:center;gap:8px;background:#fff;border:1.5px solid #a8dfc6;border-radius:30px;padding:0 14px;box-shadow:0 1px 5px #0000000a}
 .search input{width:100%;border:0;outline:0;background:transparent;padding:13px 0;font-size:15px;color:#23352e}
 main{padding:10px 12px 18px;min-height:150px}
-.products{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:10px}
+.products{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px}
 .product{min-width:0;background:var(--card);border:1px solid var(--line);border-radius:15px;overflow:hidden;box-shadow:0 2px 5px #18312b12;display:flex;flex-direction:column}
 .product-photo{height:112px;background:linear-gradient(135deg,#e4fff2,#fafff0);display:flex;align-items:center;justify-content:center;padding:6px;position:relative}
 .product-photo img{width:100%;height:100%;object-fit:contain}
