@@ -130,8 +130,8 @@ window.addEventListener('gojek-order-request',async ev=>{
  const btn=$('orderBtn');btn.disabled=true;btn.textContent='Mencari kurir…';
  try{
    const snap=await getDocs(query(collection(db,'users'),where('role','==','kurir')));
-   const online=snap.docs.map(d=>({id:d.id,...d.data()})).filter(u=>{
-     const onlineFlag=u.isOnline===true||u.online===true||u.statusOnline===true||u.status==='aktif';
+   const candidates=snap.docs.map(d=>({id:d.id,...d.data()})).filter(u=>{
+     const onlineFlag=u.isOnline===true||u.online===true||u.statusOnline===true;
      const lat=u.gps?.lat??u.lokasi?.lat??u.currentLat??u.latitude??u.lat;
      const lng=u.gps?.lng??u.lokasi?.lng??u.currentLng??u.longitude??u.lng;
      return onlineFlag&&Number.isFinite(Number(lat))&&Number.isFinite(Number(lng));
@@ -140,20 +140,36 @@ window.addEventListener('gojek-order-request',async ev=>{
      const lng=Number(u.gps?.lng??u.lokasi?.lng??u.currentLng??u.longitude??u.lng);
      const dlat=(lat-payload.pickup_coordinates.lat)*Math.PI/180,dlng=(lng-payload.pickup_coordinates.lng)*Math.PI/180;
      const a=Math.sin(dlat/2)**2+Math.cos(payload.pickup_coordinates.lat*Math.PI/180)*Math.cos(lat*Math.PI/180)*Math.sin(dlng/2)**2;
-     return {...u,km:6371*2*Math.atan2(Math.sqrt(a),Math.sqrt(1-a))};
-   }).filter(u=>u.km<=40&&(!payload.service||String(u.kendaraan||'').toLowerCase().includes(payload.service==='motor'?'motor':'mobil')));
+     return {...u,lat,lng,km:6371*2*Math.atan2(Math.sqrt(a),Math.sqrt(1-a))};
+   }).filter(u=>u.km<=40&&String(u.kendaraan||u.jenisKendaraan||'').toLowerCase().includes(payload.service==='motor'?'motor':'mobil'))
+     .sort((a,b)=>a.km-b.km);
+   if(!candidates.length)throw new Error('Tidak ada kurir online dengan kendaraan yang cocok dalam radius 40 km.');
+   const chosen=candidates[0], courierUid=chosen.uid||chosen.id;
+   // Firestore tidak menerima array bersarang. Ubah GeoJSON [lng,lat] menjadi array map {lat,lng}.
+   const routePoints=Array.isArray(payload.route_coordinates)?payload.route_coordinates.map(c=>({lat:Number(c[1]),lng:Number(c[0])})).filter(c=>Number.isFinite(c.lat)&&Number.isFinite(c.lng)): [];
+   const fare=Number(payload.estimated_fare||0);
    const orderDoc={
-     customerUid:signedUser.uid,customerEmail:signedUser.email||null,
-     service:payload.service,kendaraan:payload.service==='motor'?'Motor':'Mobil',
-     pickup:payload.pickup,destination:payload.destination,
-     pickup_coordinates:payload.pickup_coordinates,destination_coordinates:payload.destination_coordinates,
-     route_coordinates:payload.route_coordinates||null,distance_km:payload.distance_km,
-     estimated_fare:payload.estimated_fare,status:'mencari_kurir',
-     candidateCourierUids:online.map(u=>u.uid||u.id),courierUid:null,
-     createdAt:serverTimestamp(),created_at:new Date().toISOString()
+     pelangganUid:signedUser.uid,
+     uid:signedUser.uid,
+     ownerUid:signedUser.uid,
+     kurirUid:courierUid,
+     kurirTargetUid:courierUid,
+     jenisKendaraan:payload.service==='motor'?'motor':'mobil',
+     status:'mencari_kurir',
+     statusPemenuhan:'mencari_kurir',
+     alamatJemput:payload.pickup,
+     alamatTujuan:payload.destination,
+     titikJemput:{lat:Number(payload.pickup_coordinates.lat),lng:Number(payload.pickup_coordinates.lng)},
+     titikTujuan:{lat:Number(payload.destination_coordinates.lat),lng:Number(payload.destination_coordinates.lng)},
+     rute:routePoints,
+     jarakKm:Number(payload.distance_km||0),
+     ongkir:fare,
+     total:fare,
+     createdAt:serverTimestamp(),
+     created_at:new Date().toISOString()
    };
    const ref=await addDoc(collection(db,'orders'),orderDoc);
-   alert(`Pesanan tersimpan di Firestore. ID: ${ref.id}\\nKurir terdekat yang cocok: ${online.length}. Status: mencari_kurir.`);
+   alert(`Pesanan tersimpan di Firestore. ID: ${ref.id}\\nKurir: ${chosen.nama||courierUid} (${chosen.km.toFixed(1)} km).`);
  }catch(err){console.error(err);alert('Gagal membuat pesanan Firebase: '+(err?.message||err));}
  finally{btn.disabled=false;btn.textContent='Cari kurir';}
 });
