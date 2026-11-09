@@ -16,9 +16,9 @@ header{background:#10251d;color:#fff;padding:22px 20px 25px;border-radius:0 0 25
 .greeting{margin-top:24px;font-size:13px;color:#b7c9bf}.headline{font-size:25px;font-weight:800;margin:4px 0 0;letter-spacing:-.5px}
 main{padding:16px 15px}.card{background:var(--white);border:1px solid var(--line);border-radius:19px;padding:16px;margin-bottom:13px;box-shadow:0 5px 18px #10251d06}
 .section-title{font-weight:800;font-size:14px;margin-bottom:13px;display:flex;justify-content:space-between;align-items:center}
-.location-row{display:flex;gap:11px;align-items:center}.dots{display:flex;flex-direction:column;align-items:center;gap:5px}.dot{width:9px;height:9px;border-radius:50%;background:var(--green)}.dot.dest{background:#f5a623}.line{width:1px;height:24px;background:#d5e0d9}
-.fields{flex:1;display:grid;gap:9px}.field{display:flex;align-items:center;background:#f6f8f6;border:1px solid #edf1ee;border-radius:12px;padding:0 12px;height:45px;gap:8px}.field input{border:0;outline:0;background:transparent;width:100%;min-width:0;color:var(--ink)}.field input::placeholder{color:#9aa69f}
-.gps{background:#e8f8ef;color:#087c4d;border-radius:11px;padding:11px 12px;font-size:12px;font-weight:800;white-space:nowrap}
+.location-row{display:grid;grid-template-columns:12px minmax(0,1fr) 58px;gap:9px;align-items:start}.dots{display:flex;flex-direction:column;align-items:center;gap:5px}.dot{width:9px;height:9px;border-radius:50%;background:var(--green)}.dot.dest{background:#f5a623}.line{width:1px;height:24px;background:#d5e0d9}
+.fields{min-width:0;display:grid;gap:9px}.field{display:flex;align-items:center;background:#f6f8f6;border:1px solid #edf1ee;border-radius:12px;padding:0 12px;height:45px;gap:8px}.field input{border:0;outline:0;background:transparent;width:100%;min-width:0;color:var(--ink)}.field input::placeholder{color:#9aa69f}
+.gps{grid-column:3;grid-row:1;align-self:start;width:58px;height:45px;background:#e8f8ef;color:#087c4d;border-radius:11px;padding:8px 4px;font-size:12px;font-weight:800;white-space:nowrap}.search-destination{width:100%;height:42px;border-radius:11px;background:#10251d;color:#fff;font-size:13px;font-weight:800;margin-top:0}
 .map-wrap{height:270px;border-radius:17px;overflow:hidden;position:relative;border:1px solid var(--line);background:#e9efeb}.map-actions{position:absolute;z-index:500;right:10px;top:10px;display:flex;gap:7px}.map-actions button{background:#fff;border-radius:10px;padding:9px 11px;font-size:11px;font-weight:800;box-shadow:0 3px 12px #0001}.map-note{position:absolute;z-index:500;left:10px;bottom:10px;background:#fff;border-radius:10px;padding:8px 10px;font-size:11px;color:#64736a;box-shadow:0 3px 12px #0001}
 .vehicles{display:grid;grid-template-columns:1fr 1fr;gap:10px}.vehicle{border:1px solid var(--line);border-radius:15px;padding:13px;text-align:left;background:#fff}.vehicle.active{border:1.5px solid var(--green);background:#f0fbf5}.vehicle .emoji{font-size:25px}.vehicle strong{display:block;margin-top:5px}.vehicle small{color:var(--muted);font-size:11px}.vehicle .price{font-size:12px;font-weight:800;color:var(--green);margin-top:7px}
 .summary{display:flex;align-items:center;justify-content:space-between;gap:10px}.summary small{display:block;color:var(--muted);font-size:11px}.fare{font-size:23px;font-weight:900;letter-spacing:-.5px}.cta{width:100%;background:var(--green);color:#fff;border-radius:14px;padding:15px;font-weight:900;margin-top:13px;box-shadow:0 7px 18px #00a86b2b}.cta:disabled{opacity:.45;cursor:not-allowed}.hint{font-size:11px;color:var(--muted);margin-top:8px;text-align:center}
@@ -37,7 +37,7 @@ nav{position:fixed;bottom:0;left:50%;transform:translateX(-50%);width:min(520px,
  <section class="card">
   <div class="section-title">Rute perjalanan <span style="color:var(--green);font-size:11px">● Siap dijemput</span></div>
   <div class="location-row"><div class="dots"><i class="dot"></i><i class="line"></i><i class="dot dest"></i></div>
-   <div class="fields"><label class="field">⌖ <input id="pickup" placeholder="Lokasi jemput" value="" autocomplete="street-address"></label><label class="field">⌕ <input id="destination" placeholder="Masukkan alamat tujuan" autocomplete="off"></label></div>
+   <div class="fields"><label class="field">⌖ <input id="pickup" placeholder="Lokasi jemput" value="" autocomplete="street-address"></label><label class="field">⌕ <input id="destination" placeholder="Masukkan alamat tujuan" autocomplete="off"></label><button class="search-destination" id="searchDestinationBtn" type="button">Enter · Cari tujuan</button></div>
    <button class="gps" id="gpsBtn">GPS</button>
   </div>
  </section>
@@ -98,6 +98,7 @@ nav{position:fixed;bottom:0;left:50%;transform:translateX(-50%);width:min(520px,
  let destinationSearchBusy=false;
  async function searchDestination(){const q=$('destination').value.trim();if(!q){destinationPoint=null;update();return}if(destinationSearchBusy)return;destinationSearchBusy=true;toast('Mencari alamat tujuan…');const p=await geo(q);destinationSearchBusy=false;if(!p){destinationPoint=null;update();return toast('Alamat belum ditemukan. Tambahkan kecamatan/kota, lalu tekan Enter.')}destinationPoint=p;map.fitBounds(L.latLngBounds(p,pickupPoint),{padding:[35,35]});update();drawRoute();toast('Tujuan ditemukan. Rute jalan sedang dihitung.')}
  $('destination').addEventListener('change',searchDestination);
+ $('searchDestinationBtn').onclick=searchDestination;
  $('destination').addEventListener('keydown',e=>{if(e.key==='Enter'){e.preventDefault();searchDestination()}});
  $('destination').addEventListener('blur',()=>{if($('destination').value.trim()&&!destinationPoint)searchDestination()});
  $('pickup').addEventListener('change',async()=>{const p=await geo($('pickup').value);if(p){pickupPoint=p;marker.setLatLng(p);map.setView(p,15);update();drawRoute()}else toast('Lokasi jemput tidak ditemukan.')});
@@ -147,6 +148,7 @@ window.addEventListener('gojek-order-request',async ev=>{
       const lng=Number(u.gps?.lng??u.lokasi?.lng??u.currentLng??u.longitude??u.lng);
       const dlat=(lat-payload.pickup_coordinates.lat)*Math.PI/180,dlng=(lng-payload.pickup_coordinates.lng)*Math.PI/180;
       const a=Math.sin(dlat/2)**2+Math.cos(payload.pickup_coordinates.lat*Math.PI/180)*Math.cos(lat*Math.PI/180)*Math.sin(dlng/2)**2;
+      const balance=Number(u.saldoEwallet??u.saldoWallet??u.saldo??u.walletBalance??u.deposit??0);
       return {...u,lat,lng,balance,km:6371*2*Math.atan2(Math.sqrt(a),Math.sqrt(1-a))};
     }).filter(u=>u.km<=40).sort((a,b)=>a.km-b.km);
     if(!candidates.length)throw new Error(`Tidak ada kurir online dengan kendaraan cocok, jarak ≤40 km, dan saldo minimal ${depositRequired.toLocaleString('id-ID')} (5% ongkir).`);
