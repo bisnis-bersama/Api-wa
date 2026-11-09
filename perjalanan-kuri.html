@@ -142,12 +142,13 @@ onAuthStateChanged(auth, async user=>{
     const snap=await getDoc(doc(db,'orders',orderId));
     if(!snap.exists()){$('orderNo').textContent='Pesanan tidak ditemukan'; return;}
     const o=snap.data();
-    const ownerUid=o.ownerUid||o.userId||'';
-    const kurirUid=o.kurirUid||o.courierId||'';
+    const ownerUid=o.ownerUid||o.userId||o.customerUid||o.pelangganUid||'';
+    const kurirUid=o.kurirUid||o.kurirTargetUid||o.courierId||o.courierTargetUid||o.assignedCourierUid||'';
     if(ownerUid && ownerUid!==user.uid){$('warnOwner').style.display='block'; $('warnOwner').innerHTML='⚠️ Ini bukan pesanan kamu. <a href="./pesanan-baru-pelanggan.html">Pesanan Saya</a>';}
     $('orderNo').textContent='#'+(o.nomorPesanan||orderId.slice(0,8))+' • Rp '+(o.total||o.totalBayar||0).toLocaleString('id-ID');
     // GPS PELANGGAN - dari alamatPengiriman SAJA (jangan geolocation override)
-    let plat=num(o.alamatPengiriman?.lat), plng=num(o.alamatPengiriman?.lng), pname=o.alamatPengiriman?.nama||'Kamu';
+    const jemput=o.alamatPengiriman||o.titikJemput||o.pickup||o.pickupLocation||{};
+    let plat=num(jemput.lat??jemput.latitude??o.pickupLat??o.pickupLatitude), plng=num(jemput.lng??jemput.longitude??o.pickupLng??o.pickupLongitude), pname=jemput.nama||jemput.name||'Kamu';
     if(plat&&plng){
       pelangganLatLng=[plat,plng];
       $('statusInfo').textContent='Menunggu kurir';
@@ -193,13 +194,20 @@ onAuthStateChanged(auth, async user=>{
       onSnapshot(doc(db,'orders',orderId), s=>{
         if(!s.exists()) return;
         const od=s.data();
-        if(od.status==='selesai'){
+        const statusRaw=String(od.status||od.statusPesanan||od.statusPemenuhan||'mencari_kurir').toLowerCase();
+        const statusLabel=statusRaw.includes('selesai')?'Pesanan selesai':
+          statusRaw.includes('tolak')||statusRaw.includes('batal')?'Pesanan ditolak/dibatalkan':
+          statusRaw.includes('antar')||statusRaw.includes('jalan')||statusRaw.includes('pickup')||statusRaw.includes('menuju')?'Kurir sedang menuju lokasi jemput':
+          statusRaw.includes('terima')||statusRaw.includes('accept')?'Kurir menerima pesanan':'Menunggu kurir menerima pesanan';
+        $('statusText').textContent=statusLabel;
+        $('statusInfo').textContent=statusLabel;
+        if(statusRaw.includes('selesai')){
           $('statusText').textContent='✅ Pesanan selesai - kurir sudah sampai!';
           $('etaBadge').textContent='SELESAI';
           $('dekatBanner').style.display='block';
           $('dekatBanner').innerHTML='✅ KURIR SUDAH SAMPAI! CEK PESANAN YA!';
         }
-        $('statusInfo').textContent=od.status||'-';
+        $('statusInfo').textContent=statusLabel;
       });
     } else {
       $('cardKurir').style.display='none'; $('cardNoKurir').style.display='flex';
