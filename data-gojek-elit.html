@@ -109,7 +109,7 @@ nav{position:fixed;bottom:0;left:50%;transform:translateX(-50%);width:min(520px,
  if(km>40) $('orderBtn').textContent='Di luar radius 40 km';else $('orderBtn').textContent='Cari kurir';
  }
  document.querySelectorAll('.vehicle').forEach(btn=>btn.onclick=()=>{selected=btn.dataset.type;document.querySelectorAll('.vehicle').forEach(b=>b.classList.toggle('active',b===btn));update()});
- $('orderBtn').onclick=()=>{if(!pickupPoint||!destinationPoint)return;const km=distanceKm(pickupPoint,destinationPoint);if(km>40)return toast('Tujuan di luar radius pencarian kurir 40 km.');const fare=(selected==='motor'?7000+Math.max(0,km-2)*2500:12000+Math.max(0,km-2)*4500);const order={service:selected,fare,estimated_fare:fare,pickup:$('pickup').value||`${pickupPoint.lat.toFixed(5)}, ${pickupPoint.lng.toFixed(5)}`,destination:$('destination').value,distance_km:+km.toFixed(2),pickup_coordinates:{lat:pickupPoint.lat,lng:pickupPoint.lng},destination_coordinates:{lat:destinationPoint.lat,lng:destinationPoint.lng},route_coordinates:routeGeometry,status:'searching',created_at:new Date().toISOString()};localStorage.setItem('gojek_elit_last_order',JSON.stringify(order));window.dispatchEvent(new CustomEvent('gojek-order-request',{detail:order}))};
+ $('orderBtn').onclick=()=>{if(orderAlreadySent||orderSendInProgress)return;if(!pickupPoint||!destinationPoint)return;const km=distanceKm(pickupPoint,destinationPoint);if(km>40)return toast('Tujuan di luar radius pencarian kurir 40 km.');const fare=(selected==='motor'?7000+Math.max(0,km-2)*2500:12000+Math.max(0,km-2)*4500);const order={service:selected,fare,estimated_fare:fare,pickup:$('pickup').value||`${pickupPoint.lat.toFixed(5)}, ${pickupPoint.lng.toFixed(5)}`,destination:$('destination').value,distance_km:+km.toFixed(2),pickup_coordinates:{lat:pickupPoint.lat,lng:pickupPoint.lng},destination_coordinates:{lat:destinationPoint.lat,lng:destinationPoint.lng},route_coordinates:routeGeometry,status:'searching',created_at:new Date().toISOString()};localStorage.setItem('gojek_elit_last_order',JSON.stringify(order));window.dispatchEvent(new CustomEvent('gojek-order-request',{detail:order}))};
  $('historyBtn').onclick=()=>toast(localStorage.getItem('gojek_elit_last_order')?'Pesanan terakhir tersimpan di perangkat.':'Belum ada pesanan.');$('helpBtn').onclick=()=>toast('Hubungi layanan bantuan melalui kanal resmi.');$('profileBtn').onclick=()=>toast('Profil pelanggan');
  update();
 })();
@@ -128,7 +128,7 @@ onAuthStateChanged(auth,user=>{
 });
 let eligibleOrderPayload=null,eligibleCouriers=[];
 window.addEventListener('gojek-order-request',async ev=>{
- const payload=ev.detail;if(!signedUser){alert('Silakan login terlebih dahulu.');return;}
+ const payload=ev.detail;if(orderAlreadySent||orderSendInProgress)return;if(!signedUser){alert('Silakan login terlebih dahulu.');return;}
  const btn=$('orderBtn'),panel=$('courierResults'),list=$('courierList'),send=$('sendEligibleOrder');
  btn.disabled=true;btn.textContent='Memeriksa kurir…';send.style.display='none';send.disabled=true;list.innerHTML='<div class="hint">Memeriksa kurir online, radius 40 km, dan saldo 5%…</div>';
  try{
@@ -153,15 +153,15 @@ window.addEventListener('gojek-order-request',async ev=>{
 });
 $('sendEligibleOrder').onclick=async()=>{
  const payload=eligibleOrderPayload;if(!payload||!signedUser)return;const selectedIds=[...document.querySelectorAll('.eligibleCourier:checked')].map(x=>x.value);if(!selectedIds.length){alert('Pilih minimal satu kurir yang layak.');return;}
- const send=$('sendEligibleOrder');send.disabled=true;send.textContent='Mengirim order…';
+ const send=$('sendEligibleOrder'),findBtn=$('orderBtn');if(orderAlreadySent||orderSendInProgress)return;orderSendInProgress=true;send.disabled=true;findBtn.disabled=true;send.textContent='Mengirim order…';
  try{
   const chosen=eligibleCouriers.filter(c=>selectedIds.includes(c.id));
   const route=Array.isArray(payload.route_coordinates)?payload.route_coordinates.map(c=>({lat:Number(c[1]),lng:Number(c[0])})).filter(c=>Number.isFinite(c.lat)&&Number.isFinite(c.lng)):[];
   const order={pelangganUid:signedUser.uid,uid:signedUser.uid,ownerUid:signedUser.uid,kurirUid:chosen[0].uid||chosen[0].id,kurirTargetUid:chosen[0].uid||chosen[0].id,kurirPilihanUids:chosen.map(c=>c.uid||c.id),
    jenisKendaraan:payload.service==='motor'?'motor':'mobil',status:'mencari_kurir',statusPemenuhan:'mencari_kurir',alamatJemput:payload.pickup,alamatTujuan:payload.destination,
    titikJemput:{lat:Number(payload.pickup_coordinates.lat),lng:Number(payload.pickup_coordinates.lng)},titikTujuan:{lat:Number(payload.destination_coordinates.lat),lng:Number(payload.destination_coordinates.lng)},rute:route,jarakKm:Number(payload.distance_km||0),ongkir:payload.fare,total:payload.fare,depositKurirDibutuhkan:payload.required,createdAt:serverTimestamp(),created_at:new Date().toISOString()};
-  const ref=await addDoc(collection(db,'orders'),order);$('courierList').innerHTML+=`<div class="ok">Order terkirim ke ${chosen.length} kurir terpilih yang memenuhi syarat. ID: ${ref.id}</div>`;alert('Order berhasil dikirim ke kurir terpilih.');
- }catch(err){alert('Gagal mengirim order: '+(err.message||err));}finally{send.disabled=false;send.textContent='Kirim order ke kurir terpilih';}
+  const ref=await addDoc(collection(db,'orders'),order);orderAlreadySent=true;eligibleOrderPayload=null;send.style.display='none';findBtn.disabled=true;findBtn.textContent='Order sudah dikirim';$('courierList').innerHTML+=`<div class="ok" style="margin-top:12px">Order berhasil dikirim dan sedang menunggu kurir menerima. ID: ${ref.id}<br>Untuk mencegah order ganda, tombol pencarian dan pengiriman telah dinonaktifkan.</div>`;alert('Order berhasil dikirim. Tunggu kurir menerima pesanan.');
+ }catch(err){alert('Gagal mengirim order: '+(err.message||err));send.disabled=false;findBtn.disabled=false;send.textContent='Kirim order ke kurir terpilih';}finally{orderSendInProgress=false;}
 };
 </script>
 
